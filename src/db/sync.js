@@ -1,4 +1,6 @@
 const sequelize = require('./index');
+const fs = require('fs');
+const path = require('path');
 
 // Importar todos los modelos
 const Usuario = require('./models/Usuario');
@@ -9,57 +11,25 @@ const TransaccionesAhorro = require('./models/TransaccionesAhorro');
 const Prestamo = require('./models/Prestamo');
 const Pagos = require('./models/Pagos');
 
+// Ruta de la base de datos en producción
+const dbPath = sequelize.options.storage;
+
+// Verifica si la base de datos ya existe antes de sincronizar
+const shouldSync = !fs.existsSync(dbPath);
+
 // Establecer las relaciones entre los modelos
 const defineRelations = () => {
   try {
-    // Relaciones de Usuario
-    Usuario.belongsTo(Domicilio, {
-      foreignKey: 'id_Domicilio_fk',
-      as: 'Domicilio',
-      onDelete: 'CASCADE',
-    });
+    Usuario.belongsTo(Domicilio, { foreignKey: 'id_Domicilio_fk', as: 'Domicilio', onDelete: 'CASCADE' });
+    Usuario.belongsTo(ActividadEconomica, { foreignKey: 'id_ActividadEconomica_fk', as: 'ActividadEconomica', onDelete: 'CASCADE' });
+    Domicilio.hasMany(Usuario, { foreignKey: 'id_Domicilio_fk', as: 'Usuarios' });
+    ActividadEconomica.hasMany(Usuario, { foreignKey: 'id_ActividadEconomica_fk', as: 'Usuarios' });
 
-    Usuario.belongsTo(ActividadEconomica, {
-      foreignKey: 'id_ActividadEconomica_fk',
-      as: 'ActividadEconomica',
-      onDelete: 'CASCADE',
-    });
+    Ahorro.belongsTo(Usuario, { foreignKey: 'id_Usuario_fk', as: 'Usuario', onDelete: 'CASCADE' });
+    TransaccionesAhorro.belongsTo(Ahorro, { foreignKey: 'id_Ahorro_fk', as: 'Ahorro', onDelete: 'CASCADE' });
 
-    Domicilio.hasMany(Usuario, {
-      foreignKey: 'id_Domicilio_fk',
-      as: 'Usuarios',
-    });
-
-    ActividadEconomica.hasMany(Usuario, {
-      foreignKey: 'id_ActividadEconomica_fk',
-      as: 'Usuarios',
-    });
-
-    // Relaciones de Ahorro
-    Ahorro.belongsTo(Usuario, {
-      foreignKey: 'id_Usuario_fk',
-      as: 'Usuario',
-      onDelete: 'CASCADE',
-    });
-
-    TransaccionesAhorro.belongsTo(Ahorro, {
-      foreignKey: 'id_Ahorro_fk',
-      as: 'Ahorro',
-      onDelete: 'CASCADE',
-    });
-
-    // Relaciones de Prestamo
-    Prestamo.belongsTo(Usuario, {
-      foreignKey: 'id_Usuario_fk',
-      as: 'Usuario',
-      onDelete: 'CASCADE',
-    });
-
-    Pagos.belongsTo(Prestamo, {
-      foreignKey: 'id_Prestamo_fk',
-      as: 'Prestamo',
-      onDelete: 'CASCADE',
-    });
+    Prestamo.belongsTo(Usuario, { foreignKey: 'id_Usuario_fk', as: 'Usuario', onDelete: 'CASCADE' });
+    Pagos.belongsTo(Prestamo, { foreignKey: 'id_Prestamo_fk', as: 'Prestamo', onDelete: 'CASCADE' });
 
     console.log('Relationships defined successfully.');
   } catch (error) {
@@ -67,19 +37,20 @@ const defineRelations = () => {
   }
 };
 
-// Sincronización de la base de datos
-(async () => {
+// Función para sincronizar la base de datos
+const syncDatabase = async () => {
   try {
-    // Define las relaciones entre los modelos
     defineRelations();
-
-    // Sincroniza la base de datos (usa "{ force: true }" solo para desarrollo)
-    await sequelize.sync({ force: true });
-    console.log('Database synced successfully.');
+    
+    if (shouldSync) {
+      await sequelize.sync({ force: true }); // ⚠️ Usa { force: true } solo en desarrollo
+      console.log('Database synced successfully.');
+    } else {
+      console.log('Database already exists. Skipping sync.');
+    }
   } catch (error) {
     console.error('Error syncing the database:', error);
-  } finally {
-    await sequelize.close(); // Cierra la conexión después de sincronizar
-    console.log('Database connection closed.');
   }
-})();
+};
+
+module.exports = syncDatabase;

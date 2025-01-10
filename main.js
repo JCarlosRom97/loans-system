@@ -7,11 +7,14 @@ const Usuario = require('./src/db/models/Usuario');
 const ActividadEconomica = require('./src/db/models/ActividadEconomica');
 const Domicilio = require('./src/db/models/Domicilio');
 const { Sequelize } = require('sequelize');
+const syncDatabase = require('./src/db/sync');
 
 // add electron reload
-require('electron-reload')(__dirname, {
-    electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
-});
+if (process.env.NODE_ENV === 'development') {
+  require('electron-reload')(__dirname, {
+      electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
+  });
+}
 
 let mainWindow;
 let modalWindow;
@@ -60,8 +63,9 @@ const createModal = (parentWindow, options = {}) => {
     });
 };
 
-app.whenReady().then(()=>{
-    createWindow();
+app.whenReady().then(async()=>{
+  await syncDatabase();
+  createWindow();
   //Usuarios
   ipcMain.handle('db:getUser', async (event, userId) => {
       try {
@@ -95,11 +99,12 @@ app.whenReady().then(()=>{
 
   ipcMain.handle('db:getUsers', async () => {
     try {
+      console.log(Usuario);
       const users = await Usuario.findAll();
       return users.map(user => user.toJSON());
     } catch (error) {
-      console.error('Error fetching users:', error);
-      throw new Error('Error fetching users');
+      console.error('Error fetching users:', error, Usuario);
+      throw new Error('Error fetching users', error);
     }
   });
 

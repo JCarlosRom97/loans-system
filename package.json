@@ -1,7 +1,7 @@
 {
   "name": "sistema-prestamos",
   "version": "1.0.0",
-  "description": "Sistema de prestamos.",
+  "description": "Sistema de préstamos.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -21,30 +21,29 @@
     "sqlite3": "^5.1.7"
   },
   "build": {
-    "appId": "com.jc.sistemaprestamos",
-    "productName": "MiAppElectron",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "src/**/*",
-      "dist/**/*",
-      "main.js",
-      "package.json"
-    ],
+    "appId": "com.example.sistema-prestamos",
+    "productName": "SistemaPrestamos",
+    "copyright": "Copyright © 2024",
     "win": {
       "target": "nsis",
-      "icon": "icon.ico"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "icon.icns",
+      "icon": "assets/icon.ico",
       "sign": false
-
     },
-    "linux": {
-      "target": "AppImage",
-      "icon": "icon.png"
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "assets/**/*",
+      "src/**/*",
+      "src/db/**/*"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "src/db/document/database.sqlite"
+    ],
+    "directories": {
+      "buildResources": "assets"
     }
   }
 }
