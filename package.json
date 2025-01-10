@@ -36,12 +36,11 @@
       "index.html",
       "assets/**/*",
       "src/**/*",
-      "src/db/**/*",
-      "src/db/database.sqlite" 
+      "src/db/document/**/*"
     ],
     "asar": true,
     "asarUnpack": [
-      "src/db/database.sqlite"
+      "src/db/document/database.sqlite"
     ],
     "directories": {
       "buildResources": "assets"
