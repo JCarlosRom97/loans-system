@@ -2,6 +2,14 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('db', {
   // USERS
+  addUser: async (data) => {  // <-- Agrega esta función
+    try {
+      return await ipcRenderer.invoke('db:addUser', data);
+    } catch (error) {
+      console.error('Error adding User:', error);
+      throw new Error('Error adding user');
+    }
+  },
   getUser: async (data) => {
     try {
       return await ipcRenderer.invoke('db:getUser', data);

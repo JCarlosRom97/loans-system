@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Now you can send the user data or perform any action to display the user
         console.log('User data to submit:', userData);
-        
+    
         // Add the user to the database via the main process
         try {
             const newUser = await window.db.addUser(userData);
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.electron.showNotification('Usuario Agregado', 
                 `Usuario ${userData.Nombre} ha sido exitosamente añadido!`);
 
-                form.reset();
+                //form.reset();
         
             }
            
