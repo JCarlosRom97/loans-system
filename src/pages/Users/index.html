@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuarios</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="container">
+    <div id="header"></div>
+    <h1 class="title">Sistema de prestamos</h1>
+    <div class="searchTableContainer">
+      <select name="" id="categorySearch" class="selectCategory">
+        <option value="1">Nombre</option>
+        <option value="2">CTA. Contable</option>
+      </select>
+      <input type="text"  id="searchValue" class="inputCategory">
+    </div>
+    <div class="table-container">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>CTA CONTABLE</th>
+            <th>Nombre</th>
+            <th>Apellido Paterno</th>
+            <th>Apellido Materno</th>
+            <th>Código Empleado</th>
+            <th>Fecha de Nacimiento</th>
+            <th>Nacionalidad</th>
+            <th>Correo Electrónico</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="user-table-body">
+          <!-- Aquí se insertarán los usuarios dinámicamente -->
+        </tbody>
+      </table>
+      <div id="info"></div>
+    </div>
+
+    <div class="actions">
+      <button id="addUserBtn" class="action-btn">Agregar Usuario</button>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+
+  <script src="./../../components/header/renderer.js" ></script>
+  <script>
+     addHeader('../../components/header/header.html');
+  </script>
+</body>
+</html>
