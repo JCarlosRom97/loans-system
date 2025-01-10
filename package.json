@@ -23,7 +23,7 @@
   "build": {
     "appId": "com.example.sistema-prestamos",
     "productName": "SistemaPrestamos",
-    "copyright": "Copyright © 2024",
+    "copyright": "Copyright ©️ 2024",
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico",
@@ -36,11 +36,12 @@
       "index.html",
       "assets/**/*",
       "src/**/*",
-      "src/db/**/*"
+      "src/db/**/*",
+      "src/db/database.sqlite" 
     ],
     "asar": true,
     "asarUnpack": [
-      "src/db/document/database.sqlite"
+      "src/db/database.sqlite"
     ],
     "directories": {
       "buildResources": "assets"

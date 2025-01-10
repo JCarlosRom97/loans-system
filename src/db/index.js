@@ -1,26 +1,36 @@
-const { app } = require('electron'); // Solo si estás en un archivo del lado de Node
+const { app } = require('electron');
 const path = require('path');
 const { Sequelize } = require('sequelize');
+const fs = require('fs');
 
-// Determina si estás en producción
-const isProduction = process.env.NODE_ENV === 'production';
+// Obtiene la ruta de almacenamiento de usuario
+const userDataPath = app.getPath('userData');
+const databaseFilename = 'database.sqlite';
+const databasePath = path.join(userDataPath, databaseFilename);
+const defaultDatabasePath = path.join(__dirname, 'document', databaseFilename);
 
-// Define la ruta a la base de datos dependiendo del entorno
-const databasePath = isProduction
-  ? path.join(app.getPath('userData'), 'database.sqlite') // Producción
-  : path.join(__dirname, 'document/database.sqlite'); // Desarrollo
+// Si la base de datos no existe en `userData`, la copiamos desde `src/db/document`
+if (!fs.existsSync(databasePath)) {
+  console.log('Database not found in userData. Copying from default location...');
+  if (fs.existsSync(defaultDatabasePath)) {
+    fs.copyFileSync(defaultDatabasePath, databasePath);
+    console.log('Database copied successfully.');
+  } else {
+    console.error('Error: Default database file not found.');
+  }
+}
 
 // Configura Sequelize con SQLite
 const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: databasePath,
-  logging: false, // Desactiva logs para producción
+  logging: false, // Desactiva logs en producción
 });
 
 // Verifica la conexión
 sequelize
   .authenticate()
-  .then(() => console.log('Connection established correctly.'))
-  .catch(err => console.error('Error connecting with SQLite', err));
+  .then(() => console.log('Connection established successfully.'))
+  .catch(err => console.error('Error connecting to SQLite:', err));
 
 module.exports = sequelize;
