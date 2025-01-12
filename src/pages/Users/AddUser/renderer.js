@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.electron.showNotification('Usuario Agregado', 
                 `Usuario ${userData.Nombre} ha sido exitosamente añadido!`);
 
-                //form.reset();
+                form.reset();
         
             }
            

@@ -82,6 +82,41 @@ contextBridge.exposeInMainWorld('db', {
       console.error('Error adding Activity:', error);
       throw new Error('Error adding Activity');
     }
+  },
+  //Savings
+  getAmmountSaving: async (idUser) =>{
+    try {
+      return await ipcRenderer.invoke('db:getAmmountSaving', idUser);
+    } catch (error) {
+      console.error('Error getting savings:', error);
+      throw new Error('Error getting savings');
+    }
+  },
+  getSavings: async () =>{
+    try {
+      return await ipcRenderer.invoke('db:getAllSavingsTransactions');
+    } catch (error) {
+      console.error('Error getting savings:', error);
+      throw new Error('Error getting savings', error);
+    }
+  },
+  addSavings: async (data) =>{
+    try {
+      return await ipcRenderer.invoke('db:addSaving', data);
+    } catch (error) {
+       // Muestra el mensaje de error completo para depuración
+       console.error('Error adding Savings:', error.message);
+      throw new Error('Fondos insuficientes para retirar.');
+    }
+  },
+  removeSavingTransaction: async (idTransaccion) => {
+    try {
+        const response = await ipcRenderer.invoke('db:removeSavingTransaction', { idTransaccion });
+        alert(response.message); // Muestra el mensaje de éxito
+    } catch (error) {
+        console.error('Error removing saving transaction:', error.message);
+        alert("Error al eliminar la transacción.");
+    }
   }
 });
 

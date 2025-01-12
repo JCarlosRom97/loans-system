@@ -20,6 +20,7 @@ if (!fs.existsSync(databasePath)) {
   }
 }
 
+
 // Configura Sequelize con SQLite
 const sequelize = new Sequelize({
   dialect: 'sqlite',

@@ -6,15 +6,20 @@ const fs = require('fs');
 const Usuario = require('./src/db/models/Usuario');
 const ActividadEconomica = require('./src/db/models/ActividadEconomica');
 const Domicilio = require('./src/db/models/Domicilio');
+const Ahorro = require('./src/db/models/Ahorro');
+const TransaccionesAhorro = require('./src/db/models/TransaccionesAhorro');
 const { Sequelize } = require('sequelize');
+const sequelize = require('./src/db/index')
 const syncDatabase = require('./src/db/sync');
+const formatDate = require('./src/hooks/formatDate');
+
 
 // add electron reload
-if (process.env.NODE_ENV === 'development') {
-  require('electron-reload')(__dirname, {
-      electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
-  });
-}
+
+require('electron-reload')(__dirname, {
+    electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
+});
+
 
 let mainWindow;
 let modalWindow;
@@ -228,6 +233,153 @@ app.whenReady().then(async()=>{
       throw new Error('Error adding Actividad');
     }
   });
+
+
+  //Savings
+
+  ipcMain.handle('db:getAllSavingsTransactions', async () => {
+    try {
+        const transacciones = await TransaccionesAhorro.findAll({
+            order: [['Fecha', 'DESC']] // Ordena las transacciones de más reciente a más antigua
+        });
+
+        return transacciones.map(t => t.toJSON()); // Retorna un array de objetos JSON
+    } catch (error) {
+        console.error('Error al obtener las transacciones de ahorro:', error);
+        throw new Error('Error al obtener las transacciones de ahorro');
+    }
+  });
+
+  ipcMain.handle('db:getAmmountSaving', async (_, idUsuario) => {
+    try {
+      console.log('idUsuario',idUsuario);
+      let ahorro = await Ahorro.findOne({ where: { id_Usuario_fk: idUsuario } });
+      if(ahorro){
+        console.log('ahorro', ahorro.dataValues);
+        return ahorro.dataValues;
+      }
+
+    } catch (error) {
+        console.error('Error al obtener el monto de ahorro:', error);
+        throw new Error('Error al obtener el monto de ahorro:');
+    }
+  });
+
+
+  ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, tipo, medioPago }) => {
+    console.log({ idUsuario, monto, tipo, medioPago });
+    const t = await sequelize.transaction();
+    
+    try {
+
+      monto = parseFloat(monto);
+      if (isNaN(monto)) {
+          throw new Error("El monto debe ser un número válido.");
+      }
+
+
+      let ahorro = await Ahorro.findOne({ where: { id_Usuario_fk: idUsuario }, transaction: t });
+
+      if (!ahorro) {
+          if (tipo === "Retiro") {
+              throw new Error("No existe una cuenta de ahorro para retirar dinero.");
+          }
+
+          // Crear una nueva cuenta de ahorro
+          ahorro = await Ahorro.create({
+              Monto: 0,
+              FechaUltimaActualizacion: formatDate(),
+              id_Usuario_fk: idUsuario
+          }, { transaction: t });
+      }
+
+      if (tipo === "Deposito") {
+          ahorro.Monto += monto;
+      } else if (tipo === "Retiro") {
+          if (ahorro.Monto < monto) {
+              throw new Error("Fondos insuficientes para retirar.");
+          }
+          ahorro.Monto -= monto;
+      } else {
+          throw new Error("Tipo de transacción inválido.");
+      }
+
+      await ahorro.save({ transaction: t });
+
+      // Registrar la transacción
+      const transaccionAhorro = await TransaccionesAhorro.create({
+          Monto: monto,
+          Fecha: formatDate(),
+          TipoTransaccion: tipo,
+          MedioPago: medioPago,
+          id_Ahorro_fk: ahorro.ID
+      }, { transaction: t });
+
+      await t.commit();
+      console.log(`Transacción ${tipo} de ${monto} realizada con éxito.`);
+
+      return transaccionAhorro.toJSON(); // Retornar el objeto de la transacción
+    } catch (error) {
+        await t.rollback();
+        console.error("Error en la transacción:", error.message);
+        throw error;
+    }
+  });
+
+  ipcMain.handle('db:removeSavingTransaction', async (_, { idTransaccion }) => {
+    console.log('removeid', { idTransaccion });
+    const t = await sequelize.transaction();
+
+    try {
+        // Buscar la transacción a eliminar
+        const transaccionAhorro = await TransaccionesAhorro.findOne({
+            where: { ID: idTransaccion },
+            include: [
+                {
+                    model: Ahorro,
+                    required: true, // Para asegurarnos de que la transacción esté asociada a un ahorro
+                    as: 'Ahorro'   // Usa el alias correcto aquí
+                }
+            ],
+            transaction: t
+        });
+
+        // Verificar si la transacción existe
+        if (!transaccionAhorro) {
+            throw new Error("Transacción no encontrada.");
+        }
+
+        // Obtener el ahorro relacionado
+        const ahorro = transaccionAhorro.Ahorro;  // Accede usando el alias
+
+        // Actualizar el monto del ahorro dependiendo del tipo de transacción
+        if (transaccionAhorro.TipoTransaccion === "Deposito") {
+            ahorro.Monto -= transaccionAhorro.Monto; // Si es un depósito, restamos el monto
+        } else if (transaccionAhorro.TipoTransaccion === "Retiro") {
+            ahorro.Monto += transaccionAhorro.Monto; // Si es un retiro, sumamos el monto
+        } else {
+            throw new Error("Tipo de transacción inválido.");
+        }
+
+        // Guardar los cambios en el monto del ahorro
+        await ahorro.save({ transaction: t });
+
+        // Eliminar la transacción de la tabla
+        await transaccionAhorro.destroy({ transaction: t });
+
+        // Confirmar la transacción
+        await t.commit();
+        console.log(`Transacción con ID ${idTransaccion} eliminada y monto actualizado en Ahorro.`);
+
+        return { success: true, message: "Transacción eliminada y monto actualizado." };
+    } catch (error) {
+        await t.rollback();
+        console.error("Error al eliminar la transacción:", error.message);
+        throw new Error("Error al eliminar la transacción y actualizar el monto.");
+    }
+  });
+
+
 
 
   ipcMain.on('navigate-to', (event, page, usuarioId = null) => {

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Ahorro</title>
+</head>
+<body>
+    <div id="header"></div>
+    <div id="container">
+        <form id="formSavings">
+            <div class="user-info">
+                <h2 id="userName">Nombre del Usuario: <span id="Nombre"></span></h2>
+                <h3 id="userAccount">Cuenta Contable: <span id="cuenta_contable"></span></h3>
+            </div>
+            <div class="container-inputs">
+                <select name="selectTypeTransaction" id="selectTypeTransaction">
+                    <option value="Deposito">Depositar a ahorro</option>
+                    <option value="Retiro">Retirar</option>
+                </select>
+                <select name="selectPayMethod" id="selectPayMethod">
+                    <option value="Cheque">Cheque</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Efectivo">Efectivo</option>
+                </select>
+                <input type="number" name="amount" id="amount">
+            </div>
+            <div class="containerSubmit">
+                <button type="submit">Guardar</button>
+            </div>
+
+            <div class="total-container">
+                <h3>Total en cuenta de ahorro: <span id="totalAmount">0.00</span></h3>
+            </div>
+        </form>
+        <div class="table-container">
+            <table class="saving-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo de Transaccion</th>
+                        <th>Monto</th>
+                        <th>Medio de pago</th>
+                        <th>Opciones</th>
+                    </tr>
+                </thead>
+                <tbody id="saving-table-body">
+                    <!-- Aquí se insertarán los usuarios dinámicamente -->
+                </tbody>
+            </table>
+            <div id="infoTable"></div>
+        </div>
+    </div>
+</body>
+<script src="./renderer.js"></script>
+<script src="./../../components/header/renderer.js"></script>
+<script>
+    addHeader('./../../components/header/header.html');
+ </script>
+</html>

@@ -34,7 +34,7 @@ async function fetchAndDisplayUsers(users) {
                         <td>${user.Correo_Electronico}</td>
                         <td>
                             <button class="action-btn" id="addButton">Agregar Préstamo</button>
-                            <button class="action-btn">Ahorro</button>
+                            <button class="action-btn" onclick="goSavings(${user.ID})" >Ahorro</button>
                             <button class="action-btn detail-button" id="${user.ID}" onclick="goDetail(${user.ID})"  >Ver Detalle</button>
                             <button class="action-btn detail-button" id="${user.ID}" onclick="goEditUser(${user.ID})"  >Editar Usuario</button>
                         </td>
@@ -61,6 +61,15 @@ async function fetchAndDisplayUsers(users) {
         // Manejar errores
         console.error('Error al obtener usuarios:', error);
         document.getElementById('info').innerText = 'Error al cargar los usuarios.';
+    }
+}
+
+const goSavings = (userId) =>{
+    console.log('savings', userId);
+    if (window.api) {
+        window.api.send('navigate-to', 'src/pages/Savings/index.html', userId);
+    } else {
+        console.error('window.api is not available!');
     }
 }
 
@@ -109,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault()
         window.api.send('navigate-to', 'src/pages/Users/AddUser/index.html')
     });
+
+  
 
     searchFunction()
     fetchAndDisplayUsers(null);

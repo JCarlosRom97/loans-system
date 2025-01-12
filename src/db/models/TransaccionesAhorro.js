@@ -12,7 +12,7 @@ const TransaccionesAhorro = sequelize.define('TransaccionesAhorro', {
     allowNull: false,
   },
   Fecha: {
-    type: DataTypes.DATE,
+    type: DataTypes.STRING(150),
     allowNull: false,
   },
   TipoTransaccion: {

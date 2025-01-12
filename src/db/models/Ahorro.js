@@ -12,7 +12,7 @@ const Ahorro = sequelize.define('Ahorro', {
     allowNull: false,
   },
   FechaUltimaActualizacion: {
-    type: DataTypes.DATE,
+    type: DataTypes.STRING(150),
     allowNull: false,
   },
 }, {

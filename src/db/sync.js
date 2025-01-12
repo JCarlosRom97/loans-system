@@ -1,8 +1,7 @@
 const sequelize = require('./index');
 const fs = require('fs');
-const path = require('path');
 
-// Importar todos los modelos
+// Importar modelos
 const Usuario = require('./models/Usuario');
 const Domicilio = require('./models/Domicilio');
 const ActividadEconomica = require('./models/ActividadEconomica');
@@ -11,13 +10,36 @@ const TransaccionesAhorro = require('./models/TransaccionesAhorro');
 const Prestamo = require('./models/Prestamo');
 const Pagos = require('./models/Pagos');
 
-// Ruta de la base de datos en producción
+// Ruta de la base de datos
 const dbPath = sequelize.options.storage;
 
-// Verifica si la base de datos ya existe antes de sincronizar
-const shouldSync = !fs.existsSync(dbPath);
+// Lista de tablas que deben existir
+const requiredTables = [
+  'Usuario', 
+  'Domicilio', 
+  'ActividadEconomica', 
+  'Ahorro', 
+  'TransaccionesAhorro', 
+  'Prestamo', 
+  'Pagos'
+];
 
-// Establecer las relaciones entre los modelos
+// Función para verificar si las tablas existen
+const checkTablesExist = async () => {
+  try {
+    const result = await sequelize.query(`
+      SELECT name FROM sqlite_master WHERE type='table' AND name IN (${requiredTables.map(name => `'${name}'`).join(', ')});
+    `, { type: sequelize.QueryTypes.SELECT });
+
+    const existingTables = result.map(row => row.name);
+    return requiredTables.every(table => existingTables.includes(table)); // Retorna true si todas existen
+  } catch (error) {
+    console.error('Error checking database tables:', error);
+    return false;
+  }
+};
+
+// Definir relaciones entre modelos
 const defineRelations = () => {
   try {
     Usuario.belongsTo(Domicilio, { foreignKey: 'id_Domicilio_fk', as: 'Domicilio', onDelete: 'CASCADE' });
@@ -37,16 +59,25 @@ const defineRelations = () => {
   }
 };
 
-// Función para sincronizar la base de datos
+// Sincronizar base de datos
 const syncDatabase = async () => {
   try {
     defineRelations();
-    
-    if (shouldSync) {
-      await sequelize.sync({ force: true }); // ⚠️ Usa { force: true } solo en desarrollo
-      console.log('Database synced successfully.');
+
+    if (!fs.existsSync(dbPath)) {
+      console.log('Database does not exist. Creating new database...');
+      await sequelize.sync({ force: true });
+      console.log('Database created and synced successfully.');
     } else {
-      console.log('Database already exists. Skipping sync.');
+      const tablesExist = await checkTablesExist();
+      
+      if (!tablesExist) {
+        console.log('Database found but missing tables. Synchronizing...');
+        await sequelize.sync({ force: true }); // ⚠️ Esto borra y recrea las tablas
+        console.log('Database structure synced successfully.');
+      } else {
+        console.log('Database and tables already exist. No sync needed.');
+      }
     }
   } catch (error) {
     console.error('Error syncing the database:', error);
