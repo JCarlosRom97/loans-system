@@ -19,6 +19,10 @@ const Domicilio = sequelize.define('Domicilio', {
     type: DataTypes.STRING(10),
     allowNull: false,
   },
+  CodigoPostal: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  }
 }, {
   tableName: 'Domicilio',
   timestamps: false,

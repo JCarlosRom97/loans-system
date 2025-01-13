@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Prestamos</title>
+</head>
+<body>
+    <div id="header"></div>
+    <div class="container">
+        <h2>Formulario Prestamo y Pagos</h2>
+
+        <!-- Prestamo Section -->
+        <form action="/submit-prestamo" method="POST">
+            <div class="form-section">
+            <h3>Información del Préstamo</h3>
+            <div class="section">
+                <div class="form-group">
+                    <label for="monto">Monto:</label>
+                    <input type="number" id="monto" name="monto" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="interes">Interés:</label>
+                    <input type="number" id="interes" name="interes" step="0.01" value="10" disabled>
+                </div>
+            </div>
+            <div class="section">
+                <div class="form-group">
+                    <label for="totalPrestamo">Total del Préstamo:</label>
+                    <input type="number" id="totalPrestamo" name="totalPrestamo" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="abono">Abono:</label>
+                    <input type="text" id="abono" name="abono" step="0.01" disabled>
+                </div>
+            </div>
+            <div class="section">
+                <div class="form-group">
+                    <label for="noCatorcenas">Número de Catorcenas:</label>
+                    <input type="number" id="noCatorcenas" name="noCatorcenas" required>
+                </div>
+            </div>
+            <button type="submit">Registrar Préstamo</button>
+            </div>
+        </form>
+
+        <!-- Pagos Section -->
+        <form action="/submit-pago" method="POST">
+            <div class="form-section">
+            <h3>Información de Pagos</h3>
+            <div class="section">
+                <div class="form-group">
+                    <label for="fechaPago">Fecha de Pago:</label>
+                    <input type="datetime-local" id="fechaPago" name="fechaPago" required>
+                </div>
+                <div class="form-group">
+                    <label for="montoPago">Monto del Pago:</label>
+                    <input type="number" id="montoPago" name="montoPago" step="0.01" required>
+                </div>
+            </div>
+            <div class="section">
+                <div class="form-group">
+                    <label for="periodoCatorcenal">Período Catorcenal:</label>
+                    <input type="number" id="periodoCatorcenal" name="periodoCatorcenal">
+                </div>
+                <div class="form-group">
+                    <label for="metodoPago">Método de Pago:</label>
+                    <select id="metodoPago" name="metodoPago" required>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Tarjeta">Tarjeta</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit">Registrar Pago</button>
+            </div>
+        </form>
+    </div>
+</body>
+<script src="./renderer.js"></script>
+<script src="./../../components/header/renderer.js"></script>
+<script>
+    addHeader("./../../components/header/header.html")
+</script>
+</html>

@@ -29,3 +29,21 @@ h2 {
     font-weight: bold;
     color: #555;
 }
+
+/* Estilo para la sección del total */
+.total-container {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+  
+  .total-container h3 {
+    margin: 0;
+  }
+  
+  #totalAmount {
+    color: #2e8b57;
+  }

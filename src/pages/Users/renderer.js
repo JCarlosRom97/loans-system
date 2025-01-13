@@ -24,7 +24,8 @@ async function fetchAndDisplayUsers(users) {
                 console.log(user);
             tableHTML += `
                 <tr>
-                        <td>${user.CTA_CONTABLE}</td>
+                        <td>${user.CTA_CONTABLE_PRESTAMO  || 'N/A'}</td>
+                        <td>${user.CTA_CONTABLE_AHORRO  || 'N/A'}</td>
                         <td>${user.Nombre}</td>
                         <td>${user.Apellido_Paterno}</td>
                         <td>${user.Apellido_Materno || 'N/A'}</td>
@@ -33,7 +34,7 @@ async function fetchAndDisplayUsers(users) {
                         <td>${user.Nacionalidad || 'N/A'}</td>
                         <td>${user.Correo_Electronico}</td>
                         <td>
-                            <button class="action-btn" id="addButton">Agregar Préstamo</button>
+                            <button class="action-btn" id="addButton" onclick="goLoans(${user.ID})">Agregar Préstamo</button>
                             <button class="action-btn" onclick="goSavings(${user.ID})" >Ahorro</button>
                             <button class="action-btn detail-button" id="${user.ID}" onclick="goDetail(${user.ID})"  >Ver Detalle</button>
                             <button class="action-btn detail-button" id="${user.ID}" onclick="goEditUser(${user.ID})"  >Editar Usuario</button>
@@ -64,6 +65,43 @@ async function fetchAndDisplayUsers(users) {
     }
 }
 
+
+
+const searchFunction = () =>{
+    const categorySelect= document.getElementById('categorySearch');
+    const searchInput = document.getElementById('searchValue');
+    searchInput.addEventListener('keyup', async (e) =>{
+        const categoryValue = categorySelect.value;
+        const searchInputValue = searchInput.value;
+        if(categoryValue === "1"){
+            const users = await window.db.searchUsersbyName(searchInputValue); // Llamada a la API expuesta en preload
+            fetchAndDisplayUsers(users)
+        }else{
+            const users = await window.db.searchUsersbyCTA(searchInputValue); // Llamada a la API expuesta en preload
+            fetchAndDisplayUsers(users) 
+        }
+        
+    })
+}
+
+// Listener botón de agregar usuario
+document.addEventListener('DOMContentLoaded', () => {
+    
+    const addUserBtn = document.getElementById('addUserBtn');
+    
+    addUserBtn.addEventListener('click', (e) => {
+        e.preventDefault()
+        window.api.send('navigate-to', 'src/pages/Users/AddUser/index.html')
+    });
+    
+    
+    
+    searchFunction()
+    fetchAndDisplayUsers(null);
+    
+});
+
+
 const goSavings = (userId) =>{
     console.log('savings', userId);
     if (window.api) {
@@ -91,46 +129,11 @@ const goEditUser = (userId) => {
     }
 }
 
-
-const searchFunction = () =>{
-    const categorySelect= document.getElementById('categorySearch');
-    const searchInput = document.getElementById('searchValue');
-    searchInput.addEventListener('keyup', async (e) =>{
-        const categoryValue = categorySelect.value;
-        const searchInputValue = searchInput.value;
-        if(categoryValue === "1"){
-            const users = await window.db.searchUsersbyName(searchInputValue); // Llamada a la API expuesta en preload
-            fetchAndDisplayUsers(users)
-        }else{
-            const users = await window.db.searchUsersbyCTA(searchInputValue); // Llamada a la API expuesta en preload
-            fetchAndDisplayUsers(users) 
-        }
-
-    })
-}
-    
-// Listener botón de agregar usuario
-document.addEventListener('DOMContentLoaded', () => {
-
-    const addUserBtn = document.getElementById('addUserBtn');
-
-    addUserBtn.addEventListener('click', (e) => {
-        e.preventDefault()
-        window.api.send('navigate-to', 'src/pages/Users/AddUser/index.html')
-    });
-
-  
-
-    searchFunction()
-    fetchAndDisplayUsers(null);
-    
-    const modalOpenActividad = document.getElementById('actividadModal');
-    if (modalOpenActividad) {
-        modalOpenActividad.addEventListener('click', () => {
-            ipcRenderer.invoke('modal:open', modalData);
-        });
+const goLoans = (userId) =>{
+    console.log('loan', userId);
+    if (window.api) {
+        window.api.send('navigate-to', 'src/pages/Loans/index.html', userId);
+    } else {
+        console.error('window.api is not available!');
     }
-
-});
-
-
+}

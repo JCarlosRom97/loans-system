@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Usuarios</title>
 
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="form-container">
@@ -13,8 +13,12 @@
     <form id="userForm">
       <h1>Agregar Usuario</h1>
       <div class="form-group">
-        <label for="ctaContable">CTA Contable</label>
-        <input type="text" id="ctaContable" name="ctaContable" maxlength="20">
+        <label for="ctaContable">CTA Contable Prestamo</label>
+        <input type="text" id="ctaContablePrestamo" name="ctaContablePrestamo" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label for="ctaContable">CTA Contable Ahorro</label>
+        <input type="text" id="ctaContableAhorro" name="ctaContableAhorro" maxlength="20">
       </div>
       <div class="form-group">
         <label for="nombre">Nombre</label>
@@ -53,12 +57,6 @@
         <input type="email" id="correoElectronico" name="correoElectronico" maxlength="100" required>
       </div>
       <div class="form-group">
-        <label for="idActividadEconomica">Actividad Económica</label>
-        <select id="activityDropdown">
-          <option value="">Loading...</option>
-        </select>
-      </div>
-      <div class="form-group">
         <label for="Colonia">Colonia</label>
         <input type="text" id="Colonia" name="Colonia">
       </div>
@@ -67,8 +65,12 @@
         <input type="text" id="Calle" name="Calle">
       </div>
       <div class="form-group">
-        <label for="Numero">Numero</label>
+        <label for="Numero">Número</label>
         <input type="text" id="Numero" name="Numero">
+      </div>
+      <div class="form-group">
+        <label for="CodigoPostal">Código Postal</label>
+        <input type="number" id="CodigoPostal" name="CodigoPostal">
       </div>
       <div class="form-actions">
         <button type="submit">Agregar Usuario</button>

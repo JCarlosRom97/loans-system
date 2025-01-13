@@ -8,7 +8,7 @@ window.addHeader = (path) => {
         document.getElementById('header').innerHTML = data;
   
         const userPageLink = document.getElementById('Usuarios');
-        const modalOpenActividad = document.getElementById('actividadModal');
+
         if (userPageLink) {
           userPageLink.addEventListener('click', () => {
             if (window.api) {
@@ -16,12 +16,6 @@ window.addHeader = (path) => {
             } else {
               console.error('window.api is not available!');
             }
-          });
-        }
-
-        if (modalOpenActividad) {
-          modalOpenActividad.addEventListener('click', () => {
-            window.modal.open([]);
           });
         }
       })

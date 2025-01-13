@@ -22,19 +22,4 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.error('No se encontró el botón de cerrar modal');
     }
-
-    const formActividad = document.getElementById("ActividadForm");
-    formActividad.addEventListener("submit", async (event)=>{
-        event.preventDefault();
-        const ActividadEconomica = document.getElementById('ActividadEconomica').value
-        console.log(ActividadEconomica);
-        const Actividad =  await ipcRenderer.invoke('db:addActividad', ActividadEconomica);
-        formActividad.reset();
-        // Show Notification
-        document.getElementById('info').innerText = `¡La actividad ${Actividad} ha sido exitosamente añadida!`;
-        setTimeout(() =>{
-            document.getElementById('info').innerText = ``;
-        }, 3000)
-     
-    })
 });

@@ -4,7 +4,6 @@ const { pathToFileURL } = require('url');
 const useWindowSize = require('./src/hooks/useWindowSize');
 const fs = require('fs');
 const Usuario = require('./src/db/models/Usuario');
-const ActividadEconomica = require('./src/db/models/ActividadEconomica');
 const Domicilio = require('./src/db/models/Domicilio');
 const Ahorro = require('./src/db/models/Ahorro');
 const TransaccionesAhorro = require('./src/db/models/TransaccionesAhorro');
@@ -82,13 +81,11 @@ app.whenReady().then(async()=>{
 
           const DomicilioResponse = await Domicilio.findByPk(user.id_Domicilio_fk);
           
-          const ActividadEconomicaResponse = await ActividadEconomica.findByPk(user.id_ActividadEconomica_fk)
-
-          console.log(DomicilioResponse, ActividadEconomicaResponse, user);
+          console.log(DomicilioResponse, user);
 
           let userJSON = user.toJSON();
 
-          userJSON= {...userJSON, domicilio:{...DomicilioResponse.dataValues}, ActividadEconomica:{...ActividadEconomicaResponse.dataValues}};
+          userJSON= {...userJSON, domicilio:{...DomicilioResponse.dataValues}};
 
           if (!user) {
               throw new Error(`User with ID ${userId} not found`);
@@ -134,20 +131,20 @@ app.whenReady().then(async()=>{
 
 
   ipcMain.handle('db:getUsersByAccount', async (event, searchTerm) => {
-    console.log(searchTerm,'SearchAccount');
-    try {  
+    console.log(searchTerm, 'SearchAccount');
+    try {
       const users = await Usuario.findAll({
         where: {
           [Sequelize.Op.or]: [
-            { CTA_CONTABLE: { [Sequelize.Op.like]: `%${searchTerm}%` } },
-          
+            { CTA_CONTABLE_PRESTAMO: { [Sequelize.Op.like]: `%${searchTerm}%` } },
+            { CTA_CONTABLE_AHORRO: { [Sequelize.Op.like]: `%${searchTerm}%` } },
           ],
         },
       });
       return users.map(user => user.toJSON());
     } catch (error) {
-      console.error('Error fetching users by CTA ipcMain:', error);
-      throw new Error('Error fetching users by CTA');
+      console.error('Error fetching users by account in ipcMain:', error);
+      throw new Error('Error fetching users by account');
     }
   });
     
@@ -212,43 +209,29 @@ app.whenReady().then(async()=>{
       throw new Error('Error adding address');
     }
   });
-  // Actividad economica
-  ipcMain.handle('db:getEconomicActivities', async () => {
-    try {
-      const activities = await ActividadEconomica.findAll();
-      return activities.map(activity => activity.toJSON());
-    } catch (error) {
-      console.error('Error fetching activities:', error);
-      return [];
-    }
-  });
-
-  ipcMain.handle('db:addActividad', async (_, data) => {
-    try {
-      console.log(data);
-      const newActividad = await ActividadEconomica.create({Actividad: data});
-      return newActividad.dataValues.Actividad;
-    } catch (error) {
-      console.error('Error adding Actividad:', error);
-      throw new Error('Error adding Actividad');
-    }
-  });
-
 
   //Savings
 
-  ipcMain.handle('db:getAllSavingsTransactions', async () => {
+  ipcMain.handle('db:getAllSavingsTransactions', async (_, idAhorro) => {
     try {
+      console.log(idAhorro);
+
+      if(idAhorro){
         const transacciones = await TransaccionesAhorro.findAll({
+            where: { id_Ahorro_fk: idAhorro }, // Filtra por el id_ahorro_fk
             order: [['Fecha', 'DESC']] // Ordena las transacciones de más reciente a más antigua
         });
-
+  
         return transacciones.map(t => t.toJSON()); // Retorna un array de objetos JSON
+      }else{
+        return []
+      }
     } catch (error) {
-        console.error('Error al obtener las transacciones de ahorro:', error);
-        throw new Error('Error al obtener las transacciones de ahorro');
+      console.error('Error al obtener las transacciones de ahorro:', error);
+      throw new Error('Error al obtener las transacciones de ahorro');
     }
   });
+
 
   ipcMain.handle('db:getAmmountSaving', async (_, idUsuario) => {
     try {
@@ -266,8 +249,8 @@ app.whenReady().then(async()=>{
   });
 
 
-  ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, tipo, medioPago }) => {
-    console.log({ idUsuario, monto, tipo, medioPago });
+  ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, tipo, medioPago, Fecha }) => {
+    console.log({ idUsuario, monto, tipo, medioPago, Fecha });
     const t = await sequelize.transaction();
     
     try {
@@ -288,7 +271,7 @@ app.whenReady().then(async()=>{
           // Crear una nueva cuenta de ahorro
           ahorro = await Ahorro.create({
               Monto: 0,
-              FechaUltimaActualizacion: formatDate(),
+              FechaUltimaActualizacion: Fecha,
               id_Usuario_fk: idUsuario
           }, { transaction: t });
       }
@@ -309,7 +292,7 @@ app.whenReady().then(async()=>{
       // Registrar la transacción
       const transaccionAhorro = await TransaccionesAhorro.create({
           Monto: monto,
-          Fecha: formatDate(),
+          Fecha: Fecha,
           TipoTransaccion: tipo,
           MedioPago: medioPago,
           id_Ahorro_fk: ahorro.ID

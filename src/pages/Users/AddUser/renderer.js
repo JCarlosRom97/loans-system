@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Colonia: document.getElementById('Colonia').value,
             Calle: document.getElementById('Calle').value,
             Numero: document.getElementById('Numero').value,
+            CodigoPostal: document.getElementById('CodigoPostal').value
         }
 
         console.log(`addressData ${addressData}`);
@@ -22,7 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('fechaNacimiento',fechaNacimiento);
         const userData = {
             // Collect your form data here (example below)
-            CTA_CONTABLE: document.getElementById('ctaContable').value,
+            CTA_CONTABLE_PRESTAMO: document.getElementById('ctaContablePrestamo').value,
+            CTA_CONTABLE_AHORRO: document.getElementById('ctaContableAhorro').value,
             Nombre: document.getElementById('nombre').value,
             Apellido_Paterno: document.getElementById('apellidoPaterno').value,
             Apellido_Materno: document.getElementById('apellidoMaterno').value,
@@ -32,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
             CURP: document.getElementById('curp').value,
             RFC: document.getElementById('rfc').value,
             Correo_Electronico: document.getElementById('correoElectronico').value,
-            id_ActividadEconomica_fk: document.getElementById('activityDropdown').value,
             id_Domicilio_fk: addressID
             // Add other form fields as needed
         };
@@ -63,32 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    getActivities();
-
 });
 
-const getActivities = async() =>{
-    try {
-        const Activities = await window.db.getEconomicActivities();
-        console.log('Activities'+Activities)
 
-         // Get the element
-        const dropdown = document.getElementById('activityDropdown');
-
-        // Clean 
-        dropdown.innerHTML = '';
-
-        // fill with options
-        Activities.forEach((activitie) => {
-            const option = document.createElement('option');
-            option.value = activitie.ID;
-            option.textContent = activitie.Actividad;
-            dropdown.appendChild(option);
-        });
-    } catch (error) {
-        console.error(`Error: ${error}`)
-    }
-}
 
 function formatDate(date) {
     console.log(date);

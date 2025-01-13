@@ -5,16 +5,16 @@ document.addEventListener('DOMContentLoaded', async() => {
     idUser = params.get('idUsuario');
     console.log(idUser);
 
-    getSavingInfo(idUser);
+    const idAhorro = await getSavingInfo();
 
     const user = await window.db.getUser(idUser);
 
     document.getElementById('Nombre').innerText = `${user.Nombre} ${user.Apellido_Paterno} ${user.Apellido_Materno} `;
-    document.getElementById('cuenta_contable').innerText = `${user.CTA_CONTABLE} `;
+    document.getElementById('cuenta_contable_ahorro').innerText = `${user.CTA_CONTABLE_AHORRO} `;
 
     console.log(user);
 
-    fetchAndDisplaySavings();
+    fetchAndDisplaySavings(idAhorro);
 
     const formSavings = document.getElementById("formSavings");
 
@@ -23,12 +23,14 @@ document.addEventListener('DOMContentLoaded', async() => {
         const typeTransaction = document.getElementById('selectTypeTransaction').value; 
         const amount = document.getElementById("amount").value;
         const medioPago = document.getElementById('selectPayMethod').value;
+        const fecha = document.getElementById('fecha').value;
 
         const saveObject = {
             idUsuario: idUser,
             monto: amount,
             tipo: typeTransaction,
-            medioPago
+            medioPago,
+            Fecha: fecha
         }
 
         console.log(typeTransaction, amount);
@@ -50,8 +52,8 @@ document.addEventListener('DOMContentLoaded', async() => {
                 }
 
                 formSavings.reset();
-                fetchAndDisplaySavings();
-                getSavingInfo(idUser);
+                const idAhorro = await getSavingInfo();
+                fetchAndDisplaySavings(idAhorro);
         
             }
            
@@ -75,9 +77,10 @@ document.addEventListener('DOMContentLoaded', async() => {
 });
 
 // Función para obtener y mostrar los usuarios en una tabla
-async function fetchAndDisplaySavings() {
+async function fetchAndDisplaySavings(idAhorro) {
     try {
-        const savings = await window.db.getSavings();
+        console.log(idAhorro);
+        const savings = await window.db.getSavings(idAhorro);
         // Verificar si hay usuarios
         if (savings.length > 0) {
             // Generar el HTML para la tabla
@@ -127,12 +130,14 @@ async function getSavingInfo () {
     console.log('dataSaving', dataSaving);
 
     document.getElementById('totalAmount').innerText = `${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(dataSaving?.Monto || 0)}`;
+
+    return dataSaving?.ID;
 }
 
 async function deleteTransaction (idUser) {
     console.log(idUser);
     const deletedSaving = await window.db.removeSavingTransaction(idUser);
     console.log(deletedSaving);
-    fetchAndDisplaySavings()
-    getSavingInfo();
+    const idAhorro = await getSavingInfo();
+    fetchAndDisplaySavings(idAhorro)
 }

@@ -67,22 +67,6 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error adding address');
     }
   },
-  getEconomicActivities: async () => {
-    try {
-      return await ipcRenderer.invoke('db:getEconomicActivities');
-    } catch (error) {
-      console.error('Error getting activities:', error);
-      return [];
-    }
-  },
-  addEconomicActivities: async (data) =>{
-    try {
-      return await ipcRenderer.invoke('db:addActividad', data);
-    } catch (error) {
-      console.error('Error adding Activity:', error);
-      throw new Error('Error adding Activity');
-    }
-  },
   //Savings
   getAmmountSaving: async (idUser) =>{
     try {
@@ -92,9 +76,9 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error getting savings');
     }
   },
-  getSavings: async () =>{
+  getSavings: async (id_Ahorro_fk) =>{
     try {
-      return await ipcRenderer.invoke('db:getAllSavingsTransactions');
+      return await ipcRenderer.invoke('db:getAllSavingsTransactions', id_Ahorro_fk);
     } catch (error) {
       console.error('Error getting savings:', error);
       throw new Error('Error getting savings', error);

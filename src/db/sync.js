@@ -4,7 +4,6 @@ const fs = require('fs');
 // Importar modelos
 const Usuario = require('./models/Usuario');
 const Domicilio = require('./models/Domicilio');
-const ActividadEconomica = require('./models/ActividadEconomica');
 const Ahorro = require('./models/Ahorro');
 const TransaccionesAhorro = require('./models/TransaccionesAhorro');
 const Prestamo = require('./models/Prestamo');
@@ -17,7 +16,6 @@ const dbPath = sequelize.options.storage;
 const requiredTables = [
   'Usuario', 
   'Domicilio', 
-  'ActividadEconomica', 
   'Ahorro', 
   'TransaccionesAhorro', 
   'Prestamo', 
@@ -43,9 +41,8 @@ const checkTablesExist = async () => {
 const defineRelations = () => {
   try {
     Usuario.belongsTo(Domicilio, { foreignKey: 'id_Domicilio_fk', as: 'Domicilio', onDelete: 'CASCADE' });
-    Usuario.belongsTo(ActividadEconomica, { foreignKey: 'id_ActividadEconomica_fk', as: 'ActividadEconomica', onDelete: 'CASCADE' });
     Domicilio.hasMany(Usuario, { foreignKey: 'id_Domicilio_fk', as: 'Usuarios' });
-    ActividadEconomica.hasMany(Usuario, { foreignKey: 'id_ActividadEconomica_fk', as: 'Usuarios' });
+
 
     Ahorro.belongsTo(Usuario, { foreignKey: 'id_Usuario_fk', as: 'Usuario', onDelete: 'CASCADE' });
     TransaccionesAhorro.belongsTo(Ahorro, { foreignKey: 'id_Ahorro_fk', as: 'Ahorro', onDelete: 'CASCADE' });

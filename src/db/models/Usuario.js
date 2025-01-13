@@ -9,7 +9,11 @@ const Usuario = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    CTA_CONTABLE: {
+    CTA_CONTABLE_PRESTAMO: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    CTA_CONTABLE_AHORRO: {
       type: DataTypes.STRING(20),
       allowNull: true,
     },
@@ -51,10 +55,6 @@ const Usuario = sequelize.define(
       validate: {
         isEmail: true,
       },
-    },
-    id_ActividadEconomica_fk: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
     },
     id_Domicilio_fk: {
       type: DataTypes.INTEGER,

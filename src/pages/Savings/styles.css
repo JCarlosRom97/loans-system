@@ -28,8 +28,8 @@
   align-items: center;  /* Centrar el botón */
 }
 
-input[type="number"], select {
-  width: 250px;
+input[type="number"], input[type="text"], select {
+  width: 200px;
   padding: 10px;
   margin: 10px;
   border: 1px solid #ddd;

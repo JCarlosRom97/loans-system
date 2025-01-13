@@ -12,7 +12,7 @@
         <form id="formSavings">
             <div class="user-info">
                 <h2 id="userName">Nombre del Usuario: <span id="Nombre"></span></h2>
-                <h3 id="userAccount">Cuenta Contable: <span id="cuenta_contable"></span></h3>
+                <h3 id="userAccount">Cuenta Contable: <span id="cuenta_contable_ahorro"></span></h3>
             </div>
             <div class="container-inputs">
                 <select name="selectTypeTransaction" id="selectTypeTransaction">
@@ -24,7 +24,8 @@
                     <option value="Transferencia">Transferencia</option>
                     <option value="Efectivo">Efectivo</option>
                 </select>
-                <input type="number" name="amount" id="amount">
+                <input type="text" name="fecha" id="fecha" placeholder="Fecha (dd/mm/yyyy)" required>
+                <input type="number" name="amount" id="amount" placeholder="Monto" required>
             </div>
             <div class="containerSubmit">
                 <button type="submit">Guardar</button>

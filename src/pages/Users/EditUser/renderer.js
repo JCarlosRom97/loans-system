@@ -6,12 +6,11 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     if(idUser){
 
-        getActivities();
-
         const user = await window.db.getUser(idUser);
         console.log(user);
         console.log(user.Fecha_De_Nacimiento);
-        const cuentaContable =  document.getElementById("ctaContable");
+        const cuentaContablePrestamo =  document.getElementById("ctaContablePrestamo");
+        const cuentaContableAhorro =  document.getElementById("ctaContableAhorro");
         const ID =  document.getElementById("ID");
         const nombre =  document.getElementById("Nombre");
         const apellidoPaterno = document.getElementById("apellidoPaterno");
@@ -22,12 +21,12 @@ document.addEventListener('DOMContentLoaded', async() => {
         const curp = document.getElementById("curp");
         const rfc = document.getElementById("rfc");
         const correoElectronico = document.getElementById("correoElectronico");
-        const actividadEconomica = document.getElementById("activityDropdown");
         const colonia = document.getElementById("Colonia");
         const calle = document.getElementById("Calle");
         const numero = document.getElementById("Numero");
 
-        cuentaContable.value = user.CTA_CONTABLE;
+        cuentaContablePrestamo.value = user.CTA_CONTABLE_PRESTAMO;
+        cuentaContableAhorro.value = user.CTA_CONTABLE_AHORRO;
         ID.value = user.ID; 
         nombre.value = user.Nombre; 
         apellidoPaterno.value = user.Apellido_Paterno;
@@ -38,7 +37,6 @@ document.addEventListener('DOMContentLoaded', async() => {
         curp.value = user.CURP; 
         rfc.value = user.RFC; 
         correoElectronico.value = user.Correo_Electronico;
-        actividadEconomica.value = user.ActividadEconomica.ID;
         // Domicilio 
         colonia.value = user.domicilio.Colonia; 
         calle.value = user.domicilio.Calle;
@@ -65,7 +63,8 @@ document.addEventListener('DOMContentLoaded', async() => {
         const userData = {
             // Collect your form data here (example below)
             ID,
-            CTA_CONTABLE: document.getElementById('ctaContable').value,
+            CTA_CONTABLE_PRESTAMO: document.getElementById('ctaContablePrestamo').value,
+            CTA_CONTABLE_AHORRO: document.getElementById('ctaContableAhorro').value,
             Nombre: document.getElementById('Nombre').value,
             Apellido_Paterno: document.getElementById('apellidoPaterno').value,
             Apellido_Materno: document.getElementById('apellidoMaterno').value,
@@ -75,7 +74,6 @@ document.addEventListener('DOMContentLoaded', async() => {
             CURP: document.getElementById('curp').value,
             RFC: document.getElementById('rfc').value,
             Correo_Electronico: document.getElementById('correoElectronico').value,
-            id_ActividadEconomica_fk: document.getElementById('activityDropdown').value,
             // Add other form fields as needed
         };
 
@@ -102,6 +100,8 @@ document.addEventListener('DOMContentLoaded', async() => {
                 const address = await window.db.updateAddress(addressData);
 
                 console.log('address updated!', address);
+
+                form.reset();
             }
            
 
@@ -113,29 +113,6 @@ document.addEventListener('DOMContentLoaded', async() => {
     })
 });
 
-
-const getActivities = async() =>{
-    try {
-        const Activities = await window.db.getEconomicActivities();
-        console.log('Activities'+Activities)
-
-         // Get the element
-        const dropdown = document.getElementById('activityDropdown');
-
-        // Clean 
-        dropdown.innerHTML = '';
-
-        // fill with options
-        Activities.forEach((activitie) => {
-            const option = document.createElement('option');
-            option.value = activitie.ID;
-            option.textContent = activitie.Actividad;
-            dropdown.appendChild(option);
-        });
-    } catch (error) {
-        console.error(`Error: ${error}`)
-    }
-}
 
 function formatDateSelect(date) {
     const [day, month, year] = date.split('/'); // Divide la fecha por "/"

@@ -23,6 +23,11 @@ const Pagos = sequelize.define('Pagos', {
     type: DataTypes.ENUM('Transferencia', 'Cheque'),
     allowNull: false,
   },
+  Saldo_Actual: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: false,
+    comment: 'Saldo restante del préstamo después de este pago.',
+  },
 }, {
   tableName: 'Pagos',
   timestamps: false,
