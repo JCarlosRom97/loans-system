@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         const colonia = document.getElementById("Colonia");
         const calle = document.getElementById("Calle");
         const numero = document.getElementById("Numero");
+        const CodigoPostal = document.getElementById("CodigoPostal");
 
         cuentaContablePrestamo.value = user.CTA_CONTABLE_PRESTAMO;
         cuentaContableAhorro.value = user.CTA_CONTABLE_AHORRO;
@@ -41,6 +42,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         colonia.value = user.domicilio.Colonia; 
         calle.value = user.domicilio.Calle;
         numero.value = user.domicilio.Numero; 
+        CodigoPostal.value = user.domicilio.CodigoPostal;
     }
 
     const form = document.getElementById('userForm');
@@ -93,6 +95,7 @@ document.addEventListener('DOMContentLoaded', async() => {
                     Colonia: document.getElementById('Colonia').value,
                     Calle: document.getElementById('Calle').value,
                     Numero: document.getElementById('Numero').value,
+                    CodigoPostal: document.getElementById('CodigoPostal').value
                 }
         
                 console.log(`addressData ${addressData}`);

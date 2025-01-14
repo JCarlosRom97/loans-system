@@ -19,8 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`addressData ${addressData}`);
 
         const addressID = await window.db.addAddress(addressData);
-        const fechaNacimiento  = formatDate(document.getElementById('fechaNacimiento').value)
-        console.log('fechaNacimiento',fechaNacimiento);
         const userData = {
             // Collect your form data here (example below)
             CTA_CONTABLE_PRESTAMO: document.getElementById('ctaContablePrestamo').value,
@@ -29,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Apellido_Paterno: document.getElementById('apellidoPaterno').value,
             Apellido_Materno: document.getElementById('apellidoMaterno').value,
             Codigo_Empleado: document.getElementById('codigoEmpleado').value,
-            Fecha_De_Nacimiento: fechaNacimiento,
+            Fecha_De_Nacimiento: document.getElementById('fechaNacimiento').value,
             Nacionalidad: document.getElementById('nacionalidad').value,
             CURP: document.getElementById('curp').value,
             RFC: document.getElementById('rfc').value,

@@ -16,7 +16,7 @@ const TransaccionesAhorro = sequelize.define('TransaccionesAhorro', {
     allowNull: false,
   },
   TipoTransaccion: {
-    type: DataTypes.ENUM('Deposito', 'Retiro'),
+    type: DataTypes.ENUM('Ahorro', 'Desahogo'),
     allowNull: false,
   },
   MedioPago: {

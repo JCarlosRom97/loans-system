@@ -12,23 +12,37 @@
         <h2>Formulario Prestamo y Pagos</h2>
 
         <!-- Prestamo Section -->
-        <form action="/submit-prestamo" method="POST">
+        <form id="formLoan">
             <div class="form-section">
             <h3>Información del Préstamo</h3>
+            <div class="form-group">
+                <div class="form-group">
+                    <label for="fechaNacimiento">Fecha primer abono</label>
+                    <input type="text" id="fechaNacimiento" name="fechaNacimiento" placeholder="(dd/mm/aaaa)" required>
+                </div>
+            </div>
             <div class="section">
                 <div class="form-group">
                     <label for="monto">Monto:</label>
                     <input type="number" id="monto" name="monto" step="0.01" required>
                 </div>
                 <div class="form-group">
-                    <label for="interes">Interés:</label>
-                    <input type="number" id="interes" name="interes" step="0.01" value="10" disabled>
+                    <label for="noAnios">Años:</label>
+                    <input type="number" id="noAnios" name="noAnios" required>
+                </div>
+                <div class="form-group">
+                    <label for="interes">Interés mensual:</label>
+                    <input type="number" id="interes" name="interes" step="0.01" value="" >
+                </div>
+                <div class="form-group">
+                    <label for="cantidadMeses">Cantidad de meses:</label>
+                    <input type="number" id="cantidadMeses" name="cantidadMeses"  value="" disabled>
                 </div>
             </div>
             <div class="section">
                 <div class="form-group">
                     <label for="totalPrestamo">Total del Préstamo:</label>
-                    <input type="number" id="totalPrestamo" name="totalPrestamo" step="0.01" required>
+                    <input type="text" id="totalPrestamo" name="totalPrestamo" step="0.01" required disabled>
                 </div>
                 <div class="form-group">
                     <label for="abono">Abono:</label>
@@ -38,10 +52,26 @@
             <div class="section">
                 <div class="form-group">
                     <label for="noCatorcenas">Número de Catorcenas:</label>
-                    <input type="number" id="noCatorcenas" name="noCatorcenas" required>
+                    <input type="number" id="noCatorcenas" name="noCatorcenas" required disabled>
                 </div>
             </div>
-            <button type="submit">Registrar Préstamo</button>
+
+            <div class="table-container hidden" id="tablePagos">
+                <table class="user-table">
+                  <thead>
+                    <tr>
+                      <th>No.</th>
+                      <th>Fecha</th>
+                      <th>Monto</th>
+                    </tr>
+                  </thead>
+                  <tbody id="user-table-body">
+                    <!-- Aquí se insertarán los usuarios dinámicamente -->
+                  </tbody>
+                </table>
+                <div id="info"></div>
+              </div>
+            <button type="submit">Nuevo Prestamo</button>
             </div>
         </form>
 

@@ -122,3 +122,8 @@ input[type="number"], input[type="text"], select {
   word-wrap: break-word;
   max-width: 200px;
 }
+
+.less-red{
+  color: red;
+  font-size: 24px;
+}

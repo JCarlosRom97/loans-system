@@ -93,7 +93,8 @@ async function fetchAndDisplaySavings(idAhorro) {
                 <tr>
                     <td>${saving.Fecha}</td>
                     <td>${saving.TipoTransaccion}</td>
-                    <td>${saving.TipoTransaccion =='Deposito'? `+ ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}`: `- ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}` }</td>
+                    <td>${saving.TipoTransaccion =='Ahorro'? `+ ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}`: 
+                    `<span class="less-red">-</span> ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}` }</td>
                     <td>${saving.MedioPago || 'N/A'}</td>
                     <td>
                         <button class="delete-btn" id="${saving.ID}" onclick="deleteTransaction(${saving.ID})"  >Eliminar</button>

@@ -84,6 +84,14 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error getting savings', error);
     }
   },
+  addLoan: async (data) =>{
+    try {
+      return await ipcRenderer.invoke('db:addLoan', data);
+    } catch (error) {
+       // Muestra el mensaje de error completo para depuración
+       console.error('Error adding Loan:', error.message);
+    }
+  },
   addSavings: async (data) =>{
     try {
       return await ipcRenderer.invoke('db:addSaving', data);

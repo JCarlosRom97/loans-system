@@ -5,6 +5,7 @@ const useWindowSize = require('./src/hooks/useWindowSize');
 const fs = require('fs');
 const Usuario = require('./src/db/models/Usuario');
 const Domicilio = require('./src/db/models/Domicilio');
+const Prestamo = require('./src/db/models/Prestamo');
 const Ahorro = require('./src/db/models/Ahorro');
 const TransaccionesAhorro = require('./src/db/models/TransaccionesAhorro');
 const { Sequelize } = require('sequelize');
@@ -158,7 +159,6 @@ app.whenReady().then(async()=>{
     }
   });
 
-
   ipcMain.handle('db:updateUser', async (_, data) => {
     try {
       console.log('Update User data', data);
@@ -248,6 +248,16 @@ app.whenReady().then(async()=>{
     }
   });
 
+  ipcMain.handle('db:addLoan', async (_, data) => {
+    try {
+      // Crear un nuevo registro en el modelo Prestamo
+      const newPrestamo = await Prestamo.create(data);
+      return newPrestamo.toJSON(); // Convertir a JSON y devolver el resultado
+    } catch (error) {
+      console.error('Error adding Prestamo:', error);
+      throw new Error('Error adding Prestamo');
+    }
+  });
 
   ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, tipo, medioPago, Fecha }) => {
     console.log({ idUsuario, monto, tipo, medioPago, Fecha });
@@ -264,7 +274,7 @@ app.whenReady().then(async()=>{
       let ahorro = await Ahorro.findOne({ where: { id_Usuario_fk: idUsuario }, transaction: t });
 
       if (!ahorro) {
-          if (tipo === "Retiro") {
+          if (tipo === "Desahogo") {
               throw new Error("No existe una cuenta de ahorro para retirar dinero.");
           }
 
@@ -276,9 +286,9 @@ app.whenReady().then(async()=>{
           }, { transaction: t });
       }
 
-      if (tipo === "Deposito") {
+      if (tipo === "Ahorro") {
           ahorro.Monto += monto;
-      } else if (tipo === "Retiro") {
+      } else if (tipo === "Desahogo") {
           if (ahorro.Monto < monto) {
               throw new Error("Fondos insuficientes para retirar.");
           }
@@ -336,10 +346,10 @@ app.whenReady().then(async()=>{
         const ahorro = transaccionAhorro.Ahorro;  // Accede usando el alias
 
         // Actualizar el monto del ahorro dependiendo del tipo de transacción
-        if (transaccionAhorro.TipoTransaccion === "Deposito") {
+        if (transaccionAhorro.TipoTransaccion === "Ahorro") {
             ahorro.Monto -= transaccionAhorro.Monto; // Si es un depósito, restamos el monto
-        } else if (transaccionAhorro.TipoTransaccion === "Retiro") {
-            ahorro.Monto += transaccionAhorro.Monto; // Si es un retiro, sumamos el monto
+        } else if (transaccionAhorro.TipoTransaccion === "Desahogo") {
+            ahorro.Monto += transaccionAhorro.Monto; // Si es un Desahogo, sumamos el monto
         } else {
             throw new Error("Tipo de transacción inválido.");
         }

@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         const colonia = document.getElementById("Colonia");
         const calle = document.getElementById("Calle");
         const numero = document.getElementById("Numero");
+        const CodigoPostal = document.getElementById("CodigoPostal");
 
         cuentaContablePrestamo.innerText = user.CTA_CONTABLE_PRESTAMO;
         cuentaContableAhorro.innerText = user.CTA_CONTABLE_AHORRO;
@@ -38,6 +39,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         colonia.innerText = user.domicilio.Colonia; 
         calle.innerText = user.domicilio.Calle;
         numero.innerText = user.domicilio.Numero; 
+        CodigoPostal.innerText = user.domicilio.CodigoPostal;
 
     }
 });
