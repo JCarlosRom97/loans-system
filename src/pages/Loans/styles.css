@@ -6,7 +6,7 @@ body {
   }
 
   .container {
-    max-width: 900px;
+    max-width: 1100px;
     margin: 20px auto;
     background: #fff;
     padding: 30px;
@@ -23,6 +23,47 @@ body {
     display: flex;
     flex-direction: row;
   }
+
+  /* Prestamo Activo Seccion */
+
+  .active-loan-section {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.active-loan-section h3 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.loan-info {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    flex-basis: calc(50% - 15px);
+    margin-bottom: 10px;
+}
+
+.label {
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.value {
+    color: #000;
+    font-size: 1rem;
+}
+
 
   .form-section {
     border: 1px solid #ddd;
@@ -44,8 +85,8 @@ body {
     width: 180px;
   }
 
-  #fechaNacimiento{
-    width: 180px;
+  #fecha{
+    width: 80px;
   }
 
   #noAnios{
@@ -57,6 +98,18 @@ body {
   }
 
   #cantidadMeses{
+    width: 30px;
+  }
+
+  #interesesPrestamo{
+    width: 80px;
+  }
+
+  #restanteAbonoSection{
+    width: 225px;
+  }
+
+  #restanteAbono{
     width: 30px;
   }
 
@@ -101,7 +154,7 @@ body {
     display: none; /* Hides the element */
   }
   .visible {
-    display: block; /* Makes the element visible */
+    display: inherit; /* Makes the element visible */
   }
   
   .user-table {
@@ -137,16 +190,42 @@ body {
   }
 
   button {
-    width: 100%;
+    width: 30%;
     padding: 15px;
     margin-top: 20px;
-    background-color: #007BFF;
+    background-color: rgb(0, 145, 0);
     color: white;
     border: none;
     border-radius: 4px;
     font-size: 18px;
     cursor: pointer;
     transition: background-color 0.3s;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .refinanciar-button{
+    margin-left: 0px;
+    width: 10%;
+    font-size: 16px;
+    padding: 5px;
+  }
+
+  .refinanciar-button:hover{
+    background-color: rgb(3, 203, 3);
+  }
+
+
+  .button-delete{
+    background-color: red;
+    width: 100%;
+    font-size: 16px;
+    padding: 5px;
+  }
+
+  .button-delete:hover{
+    background-color: rgb(249, 90, 90);
   }
 
   button:hover {

@@ -8,10 +8,18 @@ const Pagos = sequelize.define('Pagos', {
     autoIncrement: true,
   },
   Fecha_Pago: {
-    type: DataTypes.DATE,
+    type: DataTypes.STRING(20),
     allowNull: false,
   },
   Monto_Pago: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: false,
+  },
+  Monto_Pago_Capital: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: false,
+  },
+  Monto_Pago_Intereses: {
     type: DataTypes.DECIMAL(15, 2),
     allowNull: false,
   },

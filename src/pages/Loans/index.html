@@ -10,22 +10,76 @@
     <div id="header"></div>
     <div class="container">
         <h2>Formulario Prestamo y Pagos</h2>
-
+        <div class="active-loan-section" id="detailLoanSection">
+            <h3>Préstamo Activo</h3>
+            <div class="loan-info">
+                <div class="section">
+                    <div class="info-item">
+                        <span class="label">Fecha Inicio:</span>
+                        <span class="value" id="fecha-inicio"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Fecha Pago:</span>
+                        <span class="value" id="fecha-pago"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Monto:</span>
+                        <span class="value" id="loan-amount"></span>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="info-item">
+                        <span class="label">Interés:</span>
+                        <span class="value" id="loan-interest"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Total Préstamo:</span>
+                        <span class="value" id="loan-total"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Abono:</span>
+                        <span class="value" id="loan-abono"></span>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="info-item">
+                        <span class="label">Saldo:</span>
+                        <span class="value" id="loan-saldo"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Estado:</span>
+                        <span class="value" id="loan-status"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Pagos Completados:</span>
+                        <span class="value" id="loan-payments"></span>
+                    </div>
+                </div>
+                <div class="section">        
+                    <div class="info-item">
+                        <span class="label">Número de Catorcenas:</span>
+                        <span class="value" id="loan-catorcenas"></span>
+                    </div>
+                </div>
+            </div>
+            <button class="refinanciar-button" id="refinanciarButton">Refinanciar</button>
+        </div>
+        
         <!-- Prestamo Section -->
         <form id="formLoan">
             <div class="form-section">
-            <h3>Información del Préstamo</h3>
+            <h3 id="prestamo-title">Nuevo Préstamo</h3>
             <div class="form-group">
                 <div class="form-group">
-                    <label for="fechaNacimiento">Fecha primer abono</label>
-                    <input type="text" id="fechaNacimiento" name="fechaNacimiento" placeholder="(dd/mm/aaaa)" required>
+                    <label for="fecha">Fecha primer abono</label>
+                    <input type="text" id="fecha" name="fecha" placeholder="(dd/mm/aaaa)" required>
+                </div>
+                <div class="form-group">
+                    <label for="monto" id="montoPagoTitle">Monto:</label>
+                    <input type="number" id="monto" name="monto" step="0.01" required max="250000">
                 </div>
             </div>
             <div class="section">
-                <div class="form-group">
-                    <label for="monto">Monto:</label>
-                    <input type="number" id="monto" name="monto" step="0.01" required>
-                </div>
                 <div class="form-group">
                     <label for="noAnios">Años:</label>
                     <input type="number" id="noAnios" name="noAnios" required>
@@ -38,8 +92,16 @@
                     <label for="cantidadMeses">Cantidad de meses:</label>
                     <input type="number" id="cantidadMeses" name="cantidadMeses"  value="" disabled>
                 </div>
+                <div class="form-group">
+                    <label for="interesesPrestamo">Intereses del prestamo:</label>
+                    <input type="text" id="interesesPrestamo" name="interesesPrestamo" step="0.01" required disabled>
+                </div>
             </div>
             <div class="section">
+                <div class="form-group hidden" id="totalRefinanciadoInput">
+                    <label for="totalPrestamoRefinanciado">Monto del Préstamo + (Saldo Anterior: <span id="saldoAnterior"></span>):</label>
+                    <input type="text" id="totalPrestamoRefinanciado" name="totalPrestamoRefinanciado" step="0.01" required disabled>
+                </div>
                 <div class="form-group">
                     <label for="totalPrestamo">Total del Préstamo:</label>
                     <input type="text" id="totalPrestamo" name="totalPrestamo" step="0.01" required disabled>
@@ -71,18 +133,26 @@
                 </table>
                 <div id="info"></div>
               </div>
-            <button type="submit">Nuevo Prestamo</button>
+            <button type="submit" id="nuevoPrestamo">Nuevo Prestamo</button>
             </div>
         </form>
+        <input type="text" id="idUser" name="idUser" disabled hidden>
+        <input type="text" id="idPrestamo" name="idPrestamo" disabled hidden>
 
         <!-- Pagos Section -->
-        <form action="/submit-pago" method="POST">
+        <form id="pagosForm">
             <div class="form-section">
-            <h3>Información de Pagos</h3>
+            <h3>Pagos</h3>
+            <div class="section hidden" id="restanteAbonoSection">
+                <div class="form-group">
+                    <label for="restanteAbono">Saldo Pendiente Anterior:</label>
+                    <input type="text" id="restanteAbono" name="restanteAbono" disabled>
+                </div>
+            </div>
             <div class="section">
                 <div class="form-group">
                     <label for="fechaPago">Fecha de Pago:</label>
-                    <input type="datetime-local" id="fechaPago" name="fechaPago" required>
+                    <input type="text" id="fechaPago" name="fechaPago" placeholder="(dd/mm/aaaa)" required disabled>
                 </div>
                 <div class="form-group">
                     <label for="montoPago">Monto del Pago:</label>
@@ -92,19 +162,39 @@
             <div class="section">
                 <div class="form-group">
                     <label for="periodoCatorcenal">Período Catorcenal:</label>
-                    <input type="number" id="periodoCatorcenal" name="periodoCatorcenal">
+                    <input type="number" id="periodoCatorcenal" name="periodoCatorcenal" disabled>
                 </div>
                 <div class="form-group">
                     <label for="metodoPago">Método de Pago:</label>
                     <select id="metodoPago" name="metodoPago" required>
-                    <option value="Efectivo">Efectivo</option>
-                    <option value="Transferencia">Transferencia</option>
-                    <option value="Tarjeta">Tarjeta</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia">Transferencia</option>
+                        <option value="Tarjeta">Tarjeta</option>
                     </select>
                 </div>
             </div>
             <button type="submit">Registrar Pago</button>
             </div>
+            <div class="table-container hidden" id="tablePagosPrestamos">
+                <table class="user-table">
+                  <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Periodo Catorcenal</th>
+                        <th>Fecha</th>
+                        <th>Monto</th>
+                        <th>Monto a Capital</th>
+                        <th>Monto a Intereses</th>
+                        <th>Método de Pago</th>
+                        <th>Saldo Actual</th>
+                    </tr>
+                  </thead>
+                  <tbody id="user-table-body-pays">
+                    <!-- Aquí se insertarán los usuarios dinámicamente -->
+                  </tbody>
+                </table>
+                <div id="info"></div>
+              </div>
         </form>
     </div>
 </body>

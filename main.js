@@ -6,6 +6,7 @@ const fs = require('fs');
 const Usuario = require('./src/db/models/Usuario');
 const Domicilio = require('./src/db/models/Domicilio');
 const Prestamo = require('./src/db/models/Prestamo');
+const Pagos = require('./src/db/models/Pagos')
 const Ahorro = require('./src/db/models/Ahorro');
 const TransaccionesAhorro = require('./src/db/models/TransaccionesAhorro');
 const { Sequelize } = require('sequelize');
@@ -71,7 +72,7 @@ const createModal = (parentWindow, options = {}) => {
 app.whenReady().then(async()=>{
   await syncDatabase();
   createWindow();
-  //Usuarios
+  //USERS
   ipcMain.handle('db:getUser', async (event, userId) => {
       try {
           if (!userId) {
@@ -248,6 +249,8 @@ app.whenReady().then(async()=>{
     }
   });
 
+  //Prestamos
+
   ipcMain.handle('db:addLoan', async (_, data) => {
     try {
       // Crear un nuevo registro en el modelo Prestamo
@@ -256,6 +259,274 @@ app.whenReady().then(async()=>{
     } catch (error) {
       console.error('Error adding Prestamo:', error);
       throw new Error('Error adding Prestamo');
+    }
+  });
+
+  ipcMain.handle('db:refinanceLoan', async (_, data) => {
+    try {
+      console.log(data);
+      const prestamoActual = await Prestamo.findByPk(data.id);
+  
+      if (!prestamoActual) {
+        throw new Error('Préstamo no encontrado');
+      }
+  
+      // Calcular el monto del nuevo préstamo
+      const nuevoMonto = parseFloat(prestamoActual.Saldo);
+  
+      if (nuevoMonto > 250000) {
+        throw new Error('El monto del nuevo préstamo no puede exceder 250,000.');
+      }
+  
+      const totalPagadoCapital = parseFloat(prestamoActual.Monto) - parseFloat(prestamoActual.Saldo);
+      const totalPagadoIntereses = parseFloat(prestamoActual.TotalPrestamo_Intereses || 0) - parseFloat(prestamoActual.Saldo);
+  
+      // Actualizar el préstamo actual
+      await prestamoActual.update({
+        TotalPagadoCapital: totalPagadoCapital,
+        TotalPagadoIntereses: totalPagadoIntereses,
+        EstadoPrestamo: 'Refinanciado',
+      });
+  
+      // Crear el nuevo préstamo
+      const nuevoPrestamo = await Prestamo.create(data);
+  
+      return {
+        message: 'Préstamo refinanciado exitosamente.',
+        loan: nuevoPrestamo.dataValues,
+      };
+    } catch (error) {
+      console.error('Error refinanciando el préstamo:', error);
+      throw new Error(error.message || 'Error refinanciando el préstamo.');
+    }
+  });
+  
+
+  ipcMain.handle('db:getLoansByUserId', async (_, userId) => {
+    try {
+      // Buscar todos los préstamos asociados al id_Usuario_fk con estado 'Activo'
+      const prestamos = await Prestamo.findAll({
+        where: {
+          id_Usuario_fk: userId, // Buscar por id_Usuario_fk
+          EstadoPrestamo: 'Activo', // Solo préstamos con estado 'Activo'
+        },
+      });
+  
+      if (!prestamos || prestamos.length === 0) {
+        return []; // Retornar un array vacío si no hay resultados
+      }
+  
+      return prestamos.map((prestamo) => prestamo.toJSON()); // Convertir a JSON y devolver la lista de resultados
+    } catch (error) {
+      console.error('Error fetching Prestamos by User ID and EstadoPrestamo:', error);
+      throw new Error('Error fetching Prestamos by User ID and EstadoPrestamo');
+    }
+  });
+
+  ipcMain.handle('db:updateLoanCapitalIntereses', async (_, { id, Total_Pagado_Capital = 0, Total_Pagado_Intereses = 0 }) => {
+    try {
+      console.log({ id, Total_Pagado_Capital , Total_Pagado_Intereses  });
+      // Buscar el préstamo por su ID
+      const prestamo = await Prestamo.findByPk(id);
+  
+      if (!prestamo) {
+        throw new Error('Préstamo no encontrado');
+      }
+  
+      // Sumar los valores proporcionados a los actuales
+      const nuevoTotalCapital = parseFloat(prestamo.Total_Pagado_Capital || 0) + parseFloat(Total_Pagado_Capital);
+      const nuevoTotalIntereses = parseFloat(prestamo.Total_Pagado_Intereses || 0) + parseFloat(Total_Pagado_Intereses);
+  
+      // Actualizar los campos con los nuevos totales
+      await prestamo.update({
+        Total_Pagado_Capital: nuevoTotalCapital,
+        Total_Pagado_Intereses: nuevoTotalIntereses,
+      });
+  
+      return {
+        message: 'Préstamo actualizado exitosamente.',
+        prestamo: prestamo.toJSON(),
+      };
+    } catch (error) {
+      console.error('Error updating Prestamo:', error);
+      throw new Error('Error updating Prestamo');
+    }
+  });
+
+  ipcMain.handle('db:getPaymentsByLoan', async (_, id_Prestamo_fk) => {
+    try {
+      // Buscar los pagos relacionados con el préstamo
+      const pagos = await Pagos.findAll({
+        where: {
+          id_Prestamo_fk, // Campo relacionado con el préstamo
+        },
+        order: [
+          ['id', 'ASC'], // Ordenar primero por ID ascendente
+          ['Fecha_Pago', 'ASC'], // Luego por Fecha_Pago ascendente
+        ],
+      });
+  
+      if (pagos.length === 0) {
+        return {
+          message: 'No se encontraron pagos para este préstamo.',
+          pagos: [],
+        };
+      }
+  
+      return {
+        message: 'Pagos encontrados exitosamente.',
+        pagos: pagos.map((pago) => pago.toJSON()),
+      };
+    } catch (error) {
+      console.error('Error obteniendo pagos:', error);
+      throw new Error('Error al obtener los pagos relacionados con el préstamo');
+    }
+  });
+
+  ipcMain.handle('db:registerPayment', async (_, data) => {
+    const { id_Prestamo_fk, Fecha_Pago, Monto_Pago, Monto_Pago_Capital, Monto_Pago_Intereses, Periodo_Catorcenal, Metodo_Pago } = data;
+
+    console.log('db:registerPayment',data);
+
+    try {
+        // Buscar el préstamo por su ID
+        const prestamo = await Prestamo.findByPk(id_Prestamo_fk);
+
+        if (!prestamo) {
+            throw new Error('Préstamo no encontrado');
+        }
+
+        let montoRestante = Monto_Pago;
+
+        // Verificar si hay un abono restante en el préstamo
+        let abonoPendiente = parseInt(prestamo.Resto_Abono || 0);
+
+        // Si hay un abono pendiente, intentar cubrirlo
+        if (abonoPendiente > 0) {
+            if (montoRestante >= abonoPendiente) {
+                // Cubrir el abono pendiente completamente
+                montoRestante -= abonoPendiente;
+                abonoPendiente = 0;
+                prestamo.Pagos_Completados = (prestamo.Pagos_Completados || 0) + 1;
+            } else {
+                // Cubrir parcialmente el abono pendiente
+                abonoPendiente -= montoRestante;
+                montoRestante = 0;
+            }
+        }
+
+        // Si queda un monto restante, aplicarlo al abono actual
+        if (montoRestante > 0) {
+            const abonoActual = parseFloat(prestamo.Abono);
+
+            if (montoRestante >= abonoActual) {
+                // Pago completo del abono
+                montoRestante -= abonoActual;
+                abonoPendiente = 0;
+                prestamo.Pagos_Completados = (prestamo.Pagos_Completados || 0) + 1;
+            } else {
+                // Pago parcial del abono
+                abonoPendiente = abonoActual - montoRestante;
+                montoRestante = 0;
+            }
+        }
+
+        // Calcular el nuevo saldo del préstamo
+        const nuevoSaldo = parseFloat(prestamo.Saldo) - Monto_Pago;
+
+        // Registrar el pago
+        const pago = await Pagos.create({
+            Fecha_Pago,
+            Monto_Pago,
+            Monto_Pago_Capital,
+            Monto_Pago_Intereses,
+            Periodo_Catorcenal,
+            Metodo_Pago,
+            Saldo_Actual: nuevoSaldo,
+            id_Prestamo_fk,
+        });
+
+        // Actualizar el préstamo
+        await prestamo.update({
+            Saldo: nuevoSaldo,
+            Resto_Abono: abonoPendiente,
+            Pagos_Completados: prestamo.Pagos_Completados,
+        });
+
+        // Crear mensaje de resultado
+        const mensaje = abonoPendiente === 0
+            ? 'Pago registrado como completo.'
+            : `Pago registrado. Resta ${abonoPendiente.toFixed(2)} para completar el abono.`;
+
+        return {
+            message: mensaje,
+            pago,
+        };
+    } catch (error) {
+        console.error('Error registrando el pago:', error);
+        throw new Error('Error registrando el pago');
+    }
+  });
+
+  ipcMain.handle('db:deletePayment', async (_, idPago) => {
+    try {
+      // Buscar el pago por su ID
+      const pago = await Pagos.findByPk(idPago);
+  
+      if (!pago) {
+        throw new Error('Pago no encontrado');
+      }
+  
+      // Buscar el préstamo relacionado con el pago
+      const prestamo = await Prestamo.findByPk(pago.id_Prestamo_fk);
+  
+      if (!prestamo) {
+        throw new Error('Préstamo relacionado no encontrado');
+      }
+  
+      // Recuperar el monto del pago a eliminar
+      const montoPago = parseFloat(pago.Monto_Pago);
+  
+      // Revertir el saldo del préstamo
+      const nuevoSaldo = parseFloat(prestamo.Saldo) + montoPago;
+  
+      // Determinar ajustes para pagos completados y resto del abono
+      let abonoPendiente = parseFloat(prestamo.Resto_Abono || 0);
+      let pagosCompletados = prestamo.Pagos_Completados || 0;
+  
+      // Si el pago eliminado cubría un abono
+      const abonoActual = parseFloat(prestamo.Abono);
+      if (abonoPendiente === 0) {
+        // Si hay abono pendiente, no debería restar pagos completados, solo ajustar abono
+        abonoPendiente = abonoActual - montoPago;
+        if (abonoPendiente < 0) {
+          abonoPendiente = 0;
+        }
+      } else {
+        // Si no hay abono pendiente, simplemente agregar el monto de vuelta
+        abonoPendiente += montoPago;
+        // Decrementar los pagos completados solo si el pago era completo
+        if (prestamo.Pagos_Completados > 0 && montoPago === abonoActual) {
+          pagosCompletados -= 1;
+        }
+      }
+  
+      // Eliminar el pago
+      await pago.destroy();
+  
+      // Actualizar el préstamo
+      await prestamo.update({
+        Saldo: nuevoSaldo,
+        Resto_Abono: abonoPendiente,
+        Pagos_Completados: pagosCompletados,
+      });
+  
+      return {
+        message: 'Pago eliminado exitosamente.',
+      };
+    } catch (error) {
+      console.error('Error eliminando el pago:', error);
+      throw new Error('Error eliminando el pago');
     }
   });
 
@@ -372,9 +643,6 @@ app.whenReady().then(async()=>{
     }
   });
 
-
-
-
   ipcMain.on('navigate-to', (event, page, usuarioId = null) => {
       try {
           const absolutePath = path.join(__dirname, page);
@@ -409,7 +677,12 @@ app.whenReady().then(async()=>{
       mainWindow.webContents.goBack();
       }
   });
-
+  
+  ipcMain.on('reload', () => {
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.reload(); // Recargar la página actual
+    }
+  });
 
   ipcMain.handle('modal:open', async (event, modalData) => {
     console.log('Opening modal with data:', modalData);

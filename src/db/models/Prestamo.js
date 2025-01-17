@@ -7,15 +7,34 @@ const Prestamo = sequelize.define('Prestamo', {
     primaryKey: true,
     autoIncrement: true,
   },
+  Periodo:{
+    type: DataTypes.DECIMAL(12, 2),
+    allowNull: false,
+  },
+  Cantidad_Meses:{
+    type: DataTypes.DECIMAL(12, 2),
+    allowNull: false,
+  },
   Monto: {
     type: DataTypes.DECIMAL(12, 2),
     allowNull: false,
+    validate: {
+      max: 250000, // Validación directa
+    },
   },
   Interes: {
     type: DataTypes.DECIMAL(12, 2),
     allowNull: true,
   },
+  Interes_Total: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: false,
+  },
   TotalPrestamo: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: true,
+  },
+  TotalPrestamo_Intereses:{
     type: DataTypes.DECIMAL(15, 2),
     allowNull: true,
   },
@@ -28,7 +47,7 @@ const Prestamo = sequelize.define('Prestamo', {
     allowNull: true,
   },
   EstadoPrestamo: {
-    type: DataTypes.ENUM('Activo', 'Pagado', 'Vencido','refinanciado'),
+    type: DataTypes.ENUM('Activo', 'Pagado', 'Vencido','Refinanciado'),
     allowNull: false,
     defaultValue: 'Activo',
   },
@@ -36,9 +55,31 @@ const Prestamo = sequelize.define('Prestamo', {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
+  Fecha_Inicio: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+  },
   No_Catorcenas: {
     type: DataTypes.INTEGER,
     allowNull: true,
+  },
+  Resto_Abono: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    defaultValue: 0, // Asignamos un valor por defecto de 0
+    comment: 'Monto restante para completar el abono mínimo.',
+  },
+  Total_Pagado_Capital: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Monto total pagado hacia el capital antes de refinanciar.',
+  },
+  Total_Pagado_Intereses: {
+      type: DataTypes.DECIMAL(15, 2),
+      allowNull: true,
+      defaultValue: 0,
+      comment: 'Monto total pagado en intereses antes de refinanciar.',
   },
 }, {
   tableName: 'Prestamo',

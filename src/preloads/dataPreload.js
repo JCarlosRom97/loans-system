@@ -34,6 +34,15 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error updating user');
     }
   },
+  //Address
+  addAddress: async (data) => {
+    try {
+      return await ipcRenderer.invoke('db:addAddress', data);
+    } catch (error) {
+      console.error('Error adding address:', error);
+      throw new Error('Error adding address');
+    }
+  },
   updateAddress: async (data) => {
     try {
       return await ipcRenderer.invoke('db:updateAddress', data);
@@ -42,6 +51,7 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error updating address');
     }
   },
+  //Search
   searchUsersbyName: async (data) =>{
     try {
       console.log(data, 'dataPreload');
@@ -59,14 +69,7 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error searching users');
     }
   },
-  addAddress: async (data) => {
-    try {
-      return await ipcRenderer.invoke('db:addAddress', data);
-    } catch (error) {
-      console.error('Error adding address:', error);
-      throw new Error('Error adding address');
-    }
-  },
+
   //Savings
   getAmmountSaving: async (idUser) =>{
     try {
@@ -84,6 +87,7 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error getting savings', error);
     }
   },
+  //LOANS
   addLoan: async (data) =>{
     try {
       return await ipcRenderer.invoke('db:addLoan', data);
@@ -92,6 +96,60 @@ contextBridge.exposeInMainWorld('db', {
        console.error('Error adding Loan:', error.message);
     }
   },
+  refinanceLoan: async (data) =>{
+    try {
+      return await ipcRenderer.invoke('db:refinanceLoan', data);
+    } catch (error) {
+       // Muestra el mensaje de error completo para depuración
+       console.error('Error adding Loan:', error.message);
+    }
+  },
+  getLoan: async (userId) =>{
+    try {
+      return await ipcRenderer.invoke('db:getLoansByUserId', userId);
+    } catch (error) {
+       // Muestra el mensaje de error completo para depuración
+       console.error('Error adding Loan:', error.message);
+    }
+  },
+  updateLoanCapitalIntereses: async (data) => {
+    try {
+      return await ipcRenderer.invoke('db:updateLoanCapitalIntereses', data);
+    } catch (error) {
+       // Muestra el mensaje de error completo para depuración
+       console.error('Error adding Loan:', error.message);
+    }
+  },
+  //Payments
+  getPayments: async (data) => {
+    try {
+      return await ipcRenderer.invoke('db:getPaymentsByLoan', data);
+    } catch (error) {
+      console.error('Error getting User:', error);
+      return [];
+    }
+  },
+  addPayment: async (data) => {
+    try {
+      console.log(data);
+      const response = await ipcRenderer.invoke('db:registerPayment', data);
+      return response;
+    } catch (error) {
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error adding Payment:', error.message);
+    }
+  },
+  removePayment: async (idPay) =>{
+    try {
+      console.log(idPay);
+      const response = await ipcRenderer.invoke('db:deletePayment', idPay);
+      return response;
+    } catch (error) {
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error adding Payment:', error.message);
+    }
+  },
+  //SAVINGS
   addSavings: async (data) =>{
     try {
       return await ipcRenderer.invoke('db:addSaving', data);
