@@ -38,9 +38,67 @@
     nav a:active {
         background-color: #001f4d; /* Azul más oscuro para active */
     }
+
+    .dropdown {
+            position: relative;
+    }
+
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: #003366; /* Azul corporativo oscuro */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .dropdown-menu a {
+        display: block;
+        padding: 10px 15px;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .dropdown-menu a:hover {
+        background-color: #00509e;
+    }
+
+    .dropdown:hover .dropdown-menu {
+        display: block;
+    }
+
+    /* Estilo base para el botón */
+    nav button {
+        color: #ffffff; /* Texto blanco */
+        background: none; /* Sin fondo por defecto */
+        border: none; /* Sin bordes */
+        cursor: pointer; /* Cursor en forma de mano */
+        margin: 0 15px;
+        padding: 10px 15px;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.3s ease; /* Transición suave */
+        border-radius: 4px; /* Bordes redondeados */
+        width: 100%;
+    }
+
+    /* Hover para el botón */
+    nav button:hover {
+        background-color: #00509e; /* Azul más claro */
+    }
 </style>
 <header>
     <nav>
         <a href="#" id="Usuarios">Usuarios</a>
+        <div class="dropdown">
+            <button id="Reportes">Reportes</button>
+            <div class="dropdown-menu">
+                <a href="#" id="Prestamo">Préstamo</a>
+                <a href="#" id="Ahorro">Ahorro</a>
+            </div>
+        </div>
     </nav>
 </header>

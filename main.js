@@ -302,13 +302,13 @@ app.whenReady().then(async()=>{
   });
   
 
-  ipcMain.handle('db:getLoansByUserId', async (_, userId) => {
+  ipcMain.handle('db:getLoansByUserId', async (_, {userId, status}) => {
     try {
       // Buscar todos los préstamos asociados al id_Usuario_fk con estado 'Activo'
       const prestamos = await Prestamo.findAll({
         where: {
           id_Usuario_fk: userId, // Buscar por id_Usuario_fk
-          EstadoPrestamo: 'Activo', // Solo préstamos con estado 'Activo'
+          EstadoPrestamo: status, // Solo préstamos con estado 'Activo'
         },
       });
   

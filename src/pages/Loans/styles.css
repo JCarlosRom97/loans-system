@@ -24,9 +24,64 @@ body {
     flex-direction: row;
   }
 
+  /* Prestamos refinanciados */
+
+  /* CSS para la sección de préstamos refinanciados */
+.refinanciados-section {
+  margin-bottom: 30px;
+}
+
+.accordion {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.accordion-item {
+  border-bottom: 1px solid #ddd;
+}
+
+.accordion-header {
+  background-color: #07509d;
+  cursor: pointer;
+  padding: 15px;
+  text-align: left;
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.accordion-header:hover {
+  background-color: #3067a2;
+}
+
+.accordion-header[aria-expanded="true"] {
+  background-color: #087ff6;
+}
+
+.accordion-body {
+  padding-left: 40px;
+  padding-top: 10px;
+  background-color: #fff;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease-out;
+}
+
+
+
+.accordion-body p {
+  margin: 5px;
+  padding-bottom: 5px;
+  margin-left: 15px;
+}
+
   /* Prestamo Activo Seccion */
 
-  .active-loan-section {
+.active-loan-section {
     margin: 20px 0;
     padding: 20px;
     border: 1px solid #ccc;

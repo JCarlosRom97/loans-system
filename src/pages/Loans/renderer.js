@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     document.getElementById('idUser').value = idUser;
 
     getLoan();
+    getLoanRefinance();
 
     const fecha = document.getElementById('fecha');
     const monto = document.getElementById('monto');
@@ -43,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     // Form create loan
     form.addEventListener('submit', async(e)=>{
         e.preventDefault();
-        const isRefinanciar = await window.db.getLoan(document.getElementById('idUser').value);
+        const isRefinanciar = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Activo'});
 
 
         const interes = parsefromMXN(document.getElementById('interes').value);
@@ -85,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async() => {
                 document.getElementById('tablePagos').classList.remove('visible');
 
                 getLoan();
+                getLoanRefinance();
                 
             }
 
@@ -115,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     formPago.addEventListener('submit', async(e) =>{
         e.preventDefault();
 
-        const newLoan = await window.db.getLoan(document.getElementById('idUser').value);
+        const newLoan = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Activo'});
         const {Interes_Total} = newLoan[0];
         const monto = parseInt(document.getElementById('montoPago').value);
         const porcentaje = (Interes_Total)/ 100;
@@ -162,7 +164,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         // SHOW 
         if(document.getElementById('formLoan').classList.contains('hidden')){
             
-            const newLoan = await window.db.getLoan(document.getElementById('idUser').value);
+            const newLoan = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Activo'});
             // FORM 
             document.getElementById('formLoan').classList.remove('hidden')
             document.getElementById('formLoan').classList.add('visible')
@@ -203,7 +205,7 @@ const parsefromMXN = (string) => parseInt(string.replace(/[^\d.-]/g, ''));
 const parseTOMXN = (number) => Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(number || 0);
 
 const processFormInformation  = async () =>{
-    const isRefinanciar = await window.db.getLoan(document.getElementById('idUser').value);
+    const isRefinanciar = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Activo'});
     const montoValue =  parseFloat(document.getElementById('monto').value);
     const mesesValue = parseInt(document.getElementById('cantidadMeses').value);
     const interesValue = parseFloat(document.getElementById('interes').value);
@@ -231,7 +233,7 @@ const processFormInformation  = async () =>{
 
 const getLoan = async () => {
     console.log(document.getElementById('idUser').value);
-    const newLoan = await window.db.getLoan(document.getElementById('idUser').value);
+    const newLoan = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Activo'});
 
     console.log('getLoan',newLoan);
 
@@ -274,6 +276,116 @@ const getLoan = async () => {
     document.getElementById('idPrestamo').value = newLoan[0].ID;
 }
 
+const getLoanRefinance = async() =>{
+    const loansRefinance = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Refinanciado'});
+    console.log('accordion-body', loansRefinance[0]);
+    if(loansRefinance.length >0){
+         // Generar el HTML para la tabla
+         let tableHTML = ``;
+
+         // Recorrer los usuarios y agregar filas
+        loansRefinance.forEach((loan, index) => {
+            tableHTML += `
+            <div class="accordion-item">
+                <button class="accordion-header" aria-expanded="false">Préstamo Refinanciado ${index+1}</button>
+                <div class="accordion-body">
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Fecha de Inicio:</strong> ${loan.Fecha_Inicio}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Monto Original:</strong> ${parseTOMXN(loan.Monto)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Interés Préstamo:</strong> ${parseTOMXN(loan.TotalPrestamo_Intereses)}</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Total Préstamo:</strong> ${parseTOMXN(loan.TotalPrestamo)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Saldo Anterior:</strong> ${parseTOMXN(loan.Saldo)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Total Pagado Interés:</strong> ${parseTOMXN(loan.Total_Pagado_Intereses)}</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Total Pagado Capital:</strong> ${parseTOMXN(loan.Total_Pagado_Capital)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Periodo:</strong> ${loan.Periodo}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Interés:</strong> ${loan.Interes}</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Pagos Completados:</strong> ${loan.Pagos_Completados}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Estado:</strong> ${loan.EstadoPrestamo}</p>
+                        </div>
+                        <div class="info-item">
+                           
+                        </div>
+                    </div>
+                    <div class="table-container" >
+                        <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Periodo Catorcenal</th>
+                                <th>Fecha</th>
+                                <th>Monto</th>
+                                <th>Monto a Capital</th>
+                                <th>Monto a Intereses</th>
+                                <th>Método de Pago</th>
+                                <th>Saldo Actual</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pays-table-body-refinance${loan.ID}">
+                            <!-- Aquí se insertarán los usuarios dinámicamente -->
+                        </tbody>
+                        </table>
+                        <div id="info"></div>
+                    </div>
+                </div>
+            </div>
+            `;
+
+            generateTablePays(loan.ID, `pays-table-body-refinance${loan.ID}`);
+        });
+ 
+ 
+         // Insertar la tabla en el div con ID "info"
+         const accordionBody = document.getElementById('accordion-body');
+         accordionBody.innerHTML = tableHTML;
+
+           // Acordeón
+        document.querySelectorAll('.accordion-header').forEach(button => {
+            button.addEventListener('click', () => {
+                const expanded = button.getAttribute('aria-expanded') === 'true';
+                button.setAttribute('aria-expanded', !expanded);
+
+                const body = button.nextElementSibling;
+                if (!expanded) {
+                    body.style.maxHeight = body.scrollHeight + 'px';
+                } else {
+                    body.style.maxHeight = 0;
+                }
+            });
+        });
+    }else{
+        const accordionBody = document.getElementById('accordion-body');
+        accordionBody.innerHTML = '';
+    }
+
+}
+
 const fillLoanDataUI = (loan) =>{
     const fechaPago = getDateAfterPays( loan[0].Fecha_Inicio,loan[0].Pagos_Completados);;
     document.getElementById('fecha-inicio').innerText = loan[0].Fecha_Inicio;
@@ -292,7 +404,7 @@ const fillLoanDataUI = (loan) =>{
 
     console.log('fillLoanDataUI', loan[0].Resto_Abono);
 
-    generateTablePays(loan[0].ID);
+    generateTablePays(loan[0].ID, 'user-table-body-pays');
 
     if(loan[0].Resto_Abono > 0){
         document.getElementById('restanteAbonoSection').classList.add('visible');
@@ -401,8 +513,8 @@ const generateTableCatorcena = (dates, pay) =>{
     }
 }
 
-const generateTablePays = async(idPrestamo)=>{
-    console.log(idPrestamo);
+const generateTablePays = async(idPrestamo, idTable)=>{
+    console.log(idPrestamo, idTable);
     const {pagos} = await window.db.getPayments(idPrestamo);
     console.log('generateTablePays', pagos);
 
@@ -434,7 +546,7 @@ const generateTablePays = async(idPrestamo)=>{
         tableHTML += '</tbody></table>';
 
         // Insertar la tabla en el div con ID "info"
-        const infoDiv = document.getElementById('user-table-body-pays');
+        const infoDiv = document.getElementById(idTable);
         infoDiv.innerHTML = tableHTML;
 
         const tablePagosPrestamos = document.getElementById('tablePagosPrestamos');
@@ -442,7 +554,7 @@ const generateTablePays = async(idPrestamo)=>{
         tablePagosPrestamos.classList.remove('hidden');
         tablePagosPrestamos.classList.add('visible');
     }else{
-        const infoDiv = document.getElementById('user-table-body-pays');
+        const infoDiv = document.getElementById(idTable);
         infoDiv.innerHTML = ""
     }
 }
@@ -451,13 +563,14 @@ const deletePay  = async(idPay) =>{
     const response = await window.db.removePayment(idPay);
     console.log(response);
     if(response){
-        generateTablePays(document.getElementById('idPrestamo').value);
+        generateTablePays(document.getElementById('idPrestamo').value, 'user-table-body-pays');
         getLoan()
         const tablePagosPrestamos = document.getElementById('tablePagosPrestamos');
         tablePagosPrestamos.classList.remove('visible');
         tablePagosPrestamos.classList.add('hidden');
     }
 }
+
 
 
   
