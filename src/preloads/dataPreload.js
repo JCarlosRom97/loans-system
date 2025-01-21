@@ -112,6 +112,15 @@ contextBridge.exposeInMainWorld('db', {
        console.error('Error adding Loan:', error.message);
     }
   },
+  getLoanReport: async ({Status, Fecha_Inicio, Fecha_Final, Nombre}) =>{
+    try {
+      console.log({Status, Fecha_Inicio, Fecha_Final, Nombre});
+      return await ipcRenderer.invoke('db:getLoansReport', {Status, Fecha_Inicio, Fecha_Final, Nombre}, );
+    } catch (error) {
+       // Muestra el mensaje de error completo para depuración
+       console.error('Error adding Loan:', error.message);
+    }
+  },
   updateLoanCapitalIntereses: async (data) => {
     try {
       return await ipcRenderer.invoke('db:updateLoanCapitalIntereses', data);
@@ -170,9 +179,76 @@ contextBridge.exposeInMainWorld('db', {
   }
 });
 
+
 contextBridge.exposeInMainWorld('api', {
   send: (channel, ...args) => ipcRenderer.send(channel, ...args),
   on: (channel, callback) => ipcRenderer.on(channel, (event, ...args) => callback(...args)),
+  formatDateToDisplay: (dateInput) => {
+
+    console.log('dateInput',dateInput);
+    if (!dateInput) {
+      throw new Error("La fecha no puede estar vacía.");
+    }
+  
+    const date = new Date(dateInput);
+  
+    if (isNaN(date.getTime())) {
+      throw new Error("Formato de fecha no válido.");
+    }
+  
+    const day = String(date.getDate()).padStart(2, '0'); // Día con dos dígitos
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Mes con dos dígitos (0 indexado)
+    const year = date.getFullYear(); // Año completo
+  
+    return `${day}/${month}/${year}`;
+  },
+  getDateAfterPays:(startDate, pays) => {
+
+    console.log('getDateAfterPays', pays, startDate);
+    const [startDay, startMonth, startYear] = startDate.split('/').map(Number);
+    let currentFriday = new Date(startYear, startMonth - 1, startDay);
+
+    // Asegurarse de que la fecha inicial sea un viernes
+    while (currentFriday.getDay() !== 5) {
+        currentFriday.setDate(currentFriday.getDate() + 1);
+    }
+
+    // Calcular la fecha después de recorrer las catorcenas
+    const daysToAdd = pays * 14; // Cada catorcena son 14 días
+    currentFriday.setDate(currentFriday.getDate() + daysToAdd);
+
+    // Formatear la fecha resultante como dd/mm/aaaa
+    const formattedDate = 
+        `${currentFriday.getDate().toString().padStart(2, '0')}/` +
+        `${(currentFriday.getMonth() + 1).toString().padStart(2, '0')}/` +
+        `${currentFriday.getFullYear()}`;
+
+        console.log(formattedDate);
+
+    return formattedDate;
+  },
+  hasOneYearPassed:(dateInput) => {
+    // Verificar que la fecha de entrada sea válida
+    const inputDate = new Date(dateInput);
+  
+    if (isNaN(inputDate.getTime())) {
+      throw new Error("La fecha proporcionada no es válida.");
+    }
+  
+    // Obtener la fecha actual
+    const currentDate = new Date();
+  
+    // Calcular la diferencia en milisegundos
+    const timeDifference = currentDate - inputDate;
+  
+    // Convertir milisegundos a días
+    const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
+  
+    // Verificar si ha pasado un año (aproximadamente 365 días)
+
+    console.log(daysDifference >= 365);
+    return daysDifference >= 365;
+  }
 });
 
 contextBridge.exposeInMainWorld('modal', {

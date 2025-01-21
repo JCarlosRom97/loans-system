@@ -18,9 +18,6 @@ const Prestamo = sequelize.define('Prestamo', {
   Monto: {
     type: DataTypes.DECIMAL(12, 2),
     allowNull: false,
-    validate: {
-      max: 250000, // Validación directa
-    },
   },
   Interes: {
     type: DataTypes.DECIMAL(12, 2),
@@ -56,7 +53,7 @@ const Prestamo = sequelize.define('Prestamo', {
     allowNull: true,
   },
   Fecha_Inicio: {
-    type: DataTypes.STRING(20),
+    type: DataTypes.DATE,
     allowNull: false,
   },
   No_Catorcenas: {
@@ -68,6 +65,15 @@ const Prestamo = sequelize.define('Prestamo', {
     allowNull: true,
     defaultValue: 0, // Asignamos un valor por defecto de 0
     comment: 'Monto restante para completar el abono mínimo.',
+  },
+  Total_Capital: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Monto total capital.',
+    validate: {
+      max: 250000, // Validación directa
+    },
   },
   Total_Pagado_Capital: {
     type: DataTypes.DECIMAL(15, 2),

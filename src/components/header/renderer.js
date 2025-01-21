@@ -18,6 +18,18 @@ window.addHeader = (path) => {
             }
           });
         }
+
+        const prestamoPageLink = document.getElementById('Prestamo');
+        
+        if(prestamoPageLink){
+          prestamoPageLink.addEventListener('click', ()=>{
+            if(window.api){
+              window.api.send('navigate-to', 'src/pages/Reports/Loans/index.html')
+            }else{
+              console.error('window.api is not available!');
+            }
+          })
+        }
       })
       .catch((error) => console.error('Error loading external HTML:', error));
   };

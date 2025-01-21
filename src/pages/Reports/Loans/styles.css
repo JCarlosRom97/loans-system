@@ -1,0 +1,98 @@
+h2 {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+input {
+    padding: 8px;
+    font-size: 16px;
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.select-status{
+    width: 10%;
+}
+
+.container {
+    max-width: 100%;
+    margin: 20px auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+
+    /* Search bar */
+
+.searchTableContainer{
+    display: flex;
+    flex-direction: row;
+}
+
+.input-search{
+    margin-left: 40px;
+    width: 250px;
+}
+
+.name-input{
+    width: 400px;
+}
+
+    /* Table Styling */
+
+.table-container {
+    overflow-x: auto;
+}
+
+.loans-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 16px;
+}
+
+
+.loans-table th,
+.loans-table td {
+  padding: 15px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.loans-table th {
+  background-color: #122443ce;
+  color: white;
+}
+
+.loans-table tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.loans-table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+.loans-table td {
+  word-wrap: break-word;
+  max-width: 200px;
+}
+
+.status-active{
+    color: green;
+    font-weight: bold;
+}
+
+.status-refinance{
+    color:slategray;
+    font-weight: bold;
+}
+
+.status-payed{
+    color:rgb(8, 0, 255);
+    font-weight: bold;
+}

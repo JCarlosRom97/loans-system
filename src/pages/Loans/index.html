@@ -10,9 +10,8 @@
     <div id="header"></div>
     <div class="container">
         <div class="refinanciados-section">
-            <h2>Visualización de Préstamos Refinanciados</h2>
+            <h2 id="" class="hidden">Visualización de Préstamos Refinanciados</h2>
             <div class="accordion" id="accordion-body">
-            
             </div>
         </div>
         <h2>Formulario Prestamo y Pagos</h2>
@@ -21,6 +20,10 @@
             <div class="loan-info">
                 <div class="section">
                     <div class="info-item">
+                        <span class="label">Periodo:</span>
+                        <span class="value" id="periodo"></span>
+                    </div>
+                    <div class="info-item">
                         <span class="label">Fecha Inicio:</span>
                         <span class="value" id="fecha-inicio"></span>
                     </div>
@@ -28,16 +31,22 @@
                         <span class="label">Fecha Pago:</span>
                         <span class="value" id="fecha-pago"></span>
                     </div>
+                </div>
+                <div class="section">
                     <div class="info-item">
                         <span class="label">Monto:</span>
                         <span class="value" id="loan-amount"></span>
                     </div>
-                </div>
-                <div class="section">
                     <div class="info-item">
                         <span class="label">Interés:</span>
                         <span class="value" id="loan-interest"></span>
                     </div>
+                    <div class="info-item">
+                        <span class="label">Intereses $:</span>
+                        <span class="value" id="loan-interest-ammount"></span>
+                    </div>
+                </div>
+                <div class="section">
                     <div class="info-item">
                         <span class="label">Total Préstamo:</span>
                         <span class="value" id="loan-total"></span>
@@ -46,11 +55,15 @@
                         <span class="label">Abono:</span>
                         <span class="value" id="loan-abono"></span>
                     </div>
-                </div>
-                <div class="section">
                     <div class="info-item">
                         <span class="label">Saldo:</span>
                         <span class="value" id="loan-saldo"></span>
+                    </div>
+                </div>
+                <div class="section">        
+                    <div class="info-item">
+                        <span class="label">capital:</span>
+                        <span class="value" id="loan-capital"></span>
                     </div>
                     <div class="info-item">
                         <span class="label">Estado:</span>
@@ -61,7 +74,7 @@
                         <span class="value" id="loan-payments"></span>
                     </div>
                 </div>
-                <div class="section">        
+                <div class="section">
                     <div class="info-item">
                         <span class="label">Número de Catorcenas:</span>
                         <span class="value" id="loan-catorcenas"></span>
@@ -98,18 +111,18 @@
                     <label for="cantidadMeses">Cantidad de meses:</label>
                     <input type="number" id="cantidadMeses" name="cantidadMeses"  value="" disabled>
                 </div>
+                <div class="form-group hidden" id="capital-input-container">
+                    <label for="Capital">Capital:</label>
+                    <input type="text" id="Capital" name="Capital"  value="" disabled>
+                </div>
+            </div>
+            <div class="section">
                 <div class="form-group">
                     <label for="interesesPrestamo">Intereses del prestamo:</label>
                     <input type="text" id="interesesPrestamo" name="interesesPrestamo" step="0.01" required disabled>
                 </div>
-            </div>
-            <div class="section">
-                <div class="form-group hidden" id="totalRefinanciadoInput">
-                    <label for="totalPrestamoRefinanciado">Monto del Préstamo + (Saldo Anterior: <span id="saldoAnterior"></span>):</label>
-                    <input type="text" id="totalPrestamoRefinanciado" name="totalPrestamoRefinanciado" step="0.01" required disabled>
-                </div>
                 <div class="form-group">
-                    <label for="totalPrestamo">Total del Préstamo:</label>
+                    <label for="totalPrestamo" style="width: 250px;">Total del Préstamo<span id="saldoAnterior"></span>:</label>
                     <input type="text" id="totalPrestamo" name="totalPrestamo" step="0.01" required disabled>
                 </div>
                 <div class="form-group">

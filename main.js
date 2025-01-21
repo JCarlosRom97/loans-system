@@ -272,7 +272,7 @@ app.whenReady().then(async()=>{
       }
   
       // Calcular el monto del nuevo préstamo
-      const nuevoMonto = parseFloat(prestamoActual.Saldo);
+      const nuevoMonto = parseFloat(prestamoActual.Total_Capital);
   
       if (nuevoMonto > 250000) {
         throw new Error('El monto del nuevo préstamo no puede exceder 250,000.');
@@ -323,6 +323,67 @@ app.whenReady().then(async()=>{
     }
   });
 
+
+  ipcMain.handle('db:getLoansReport', async (_, filters) => {
+    try {
+      console.log('filters',filters);
+  
+      // Construir el objeto de condiciones dinámicamente
+      const whereConditions = {};
+  
+      // Aplicar filtro por estado (STATUS) si está presente
+      if (filters.Status) {
+        whereConditions.EstadoPrestamo = filters.Status;
+      }
+  
+      // Convertir fechas de dd/mm/aaaa a aaaa-mm-dd
+      const convertToDate = (dateString) => {
+        const [day, month, year] = dateString.split('/');
+        console.log(`${year}-${month}-${day}`);
+        return `${year}-${month}-${day}`;
+      };
+  
+      // Aplicar filtro por rango de fechas si ambas fechas están presentes
+      if (filters.Fecha_Inicio && filters.Fecha_Final) {
+        whereConditions.Fecha_Inicio = {
+          [Sequelize.Op.between]: [
+            convertToDate(filters.Fecha_Inicio),
+            convertToDate(filters.Fecha_Final),
+          ],
+        };
+      } else if (filters.Fecha_Inicio) {
+        whereConditions.Fecha_Inicio = {
+          [Sequelize.Op.gte]: convertToDate(filters.Fecha_Inicio),
+        };
+      } else if (filters.Fecha_Final) {
+        whereConditions.Fecha_Inicio = {
+          [Sequelize.Op.lte]: convertToDate(filters.Fecha_Final),
+        };
+      }
+  
+      // Aplicar filtro por Nombre si está presente
+      if (filters.Nombre) {
+        whereConditions.Nombre = {
+          [Sequelize.Op.like]: `%${filters.Nombre}%`,
+        };
+      }
+  
+      // Consultar préstamos con los filtros dinámicos
+      const prestamos = await Prestamo.findAll({
+        where: whereConditions,
+      });
+  
+      if (!prestamos || prestamos.length === 0) {
+        return []; // Retornar un array vacío si no hay resultados
+      }
+  
+      return prestamos.map((prestamo) => prestamo.toJSON()); // Convertir a JSON y devolver la lista de resultados
+    } catch (error) {
+      console.error('Error fetching Prestamos with filters:', error);
+      throw new Error('Error fetching Prestamos with filters');
+    }
+  });
+
   ipcMain.handle('db:updateLoanCapitalIntereses', async (_, { id, Total_Pagado_Capital = 0, Total_Pagado_Intereses = 0 }) => {
     try {
       console.log({ id, Total_Pagado_Capital , Total_Pagado_Intereses  });
@@ -341,6 +402,7 @@ app.whenReady().then(async()=>{
       await prestamo.update({
         Total_Pagado_Capital: nuevoTotalCapital,
         Total_Pagado_Intereses: nuevoTotalIntereses,
+        Total_Capital: prestamo.Total_Capital - parseFloat(Total_Pagado_Capital)
       });
   
       return {
