@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             monto: amount,
             tipo: typeTransaction,
             medioPago,
-            Fecha: fecha
+            Fecha: window.api.formatDateForModel(fecha)
         }
 
         console.log(typeTransaction, amount);
@@ -91,7 +91,7 @@ async function fetchAndDisplaySavings(idAhorro) {
                 console.log(saving);
             tableHTML += `
                 <tr>
-                    <td>${saving.Fecha}</td>
+                    <td>${window.api.formatDateToDisplay(saving.Fecha, 0)}</td>
                     <td>${saving.TipoTransaccion}</td>
                     <td>${saving.TipoTransaccion =='Ahorro'? `+ ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}`: 
                     `<span class="less-red">-</span> ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}` }</td>

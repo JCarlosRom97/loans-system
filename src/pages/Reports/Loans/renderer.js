@@ -27,6 +27,33 @@ document.addEventListener('DOMContentLoaded', async() => {
             getLoansSearch({Status, Fecha_Inicio, Fecha_Final, Nombre})
         }
     })
+
+    const searchDateTo = document.getElementById('search-date-to');
+
+    searchDateTo.addEventListener('keyup', (e) =>{
+        e.preventDefault();
+        const Status = document.getElementById('statusSearch').value || '';
+        const Fecha_Inicio = document.getElementById('search-date-from').value || '';
+        const Fecha_Final = document.getElementById('search-date-to').value || '';
+        const Nombre = document.getElementById('search-name').value || '';
+        if(regexDate(Fecha_Final)){
+            getLoansSearch({Status, Fecha_Inicio, Fecha_Final, Nombre})
+        }else if(Fecha_Final ===''){
+            getLoansSearch({Status, Fecha_Inicio, Fecha_Final, Nombre})
+        }
+    })
+
+    const searchName = document.getElementById('search-name');
+    searchName.addEventListener('keyup', (e) =>{
+        e.preventDefault();
+        const Status = document.getElementById('statusSearch').value || '';
+        const Fecha_Inicio = document.getElementById('search-date-from').value || '';
+        const Fecha_Final = document.getElementById('search-date-to').value || '';
+        const Nombre = document.getElementById('search-name').value || '';
+       
+        getLoansSearch({Status, Fecha_Inicio, Fecha_Final, Nombre})
+       
+    })
 });
 
 const getLoansSearch = async({Status, Fecha_Inicio, Fecha_Final, Nombre}) =>{
@@ -43,24 +70,25 @@ const generateTableSearch = async (loans) => {
     if (loans.length > 0) {
         // Generar el HTML para la tabla
         let tableHTML = '';
-
+        console.log('loans',loans);
+        processInformation(loans)
         // Recorrer los préstamos y agregar filas
         for (const loan of loans) {
             try {
-                const user = await window.db.getUser(loan.id_Usuario_fk);
 
                 tableHTML += `
                     <tr>
                         <td>${generateStatusElement(loan.EstadoPrestamo)}</td>
-                        <td>${user.Nombre} ${user.Apellido_Paterno} ${user.Apellido_Materno}</td>
+                        <td>${loan.Usuario.Nombre} ${loan.Usuario.Apellido_Paterno} ${loan.Usuario.Apellido_Materno}</td>
                         <td>${loan.Periodo || 'N/A'} años</td>
-                        <td>${loan.Fecha_Inicio || 'N/A'}</td>
+                        <td>${window.api.formatDateToDisplay(loan.Fecha_Inicio) || 'N/A'}</td>
                         <td>${parseTOMXN(loan.Monto) || 'N/A'}</td>
                         <td>Interes mensual ${loan.Interes}% : ${parseTOMXN(loan.TotalPrestamo_Intereses)}</td>
                         <td>${parseTOMXN(loan.TotalPrestamo)}</td>
                         <td>${loan.Pagos_Completados} x abono: ${parseTOMXN(loan.Abono)}</td>
                         <td>${parseTOMXN(loan.Total_Pagado_Intereses)}</td>
                         <td>${parseTOMXN(loan.Total_Pagado_Capital)}</td>
+                        <td>${parseTOMXN(loan.Total_Capital)}</td>
                     </tr>
                 `;
             } catch (error) {
@@ -79,6 +107,22 @@ const generateTableSearch = async (loans) => {
         document.getElementById('info').innerText = 'No se encontraron préstamos.';
     }
 };
+
+const processInformation = (loans) =>{
+  
+    const montoTotalPrestado = loans.reduce((accumulator ,loan) => {
+        return accumulator += loan.Monto;
+    }, 0)
+
+    const interesesTotal = loans.reduce ((accumulator, loan)=>{
+        return accumulator += loan.TotalPrestamo_Intereses
+    }, 0)
+
+    document.getElementById('monto-total-prestamo').innerText = parseTOMXN(montoTotalPrestado);
+    document.getElementById('intereses-total').innerText = parseTOMXN(interesesTotal);
+    document.getElementById('monto-total-prestamo-intereses').innerText = parseTOMXN(montoTotalPrestado+interesesTotal);
+   
+}
 
 const generateStatusElement = (EstadoPrestamo) =>{
     if(EstadoPrestamo =='Activo'){

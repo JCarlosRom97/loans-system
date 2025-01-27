@@ -8,7 +8,7 @@ const Pagos = sequelize.define('Pagos', {
     autoIncrement: true,
   },
   Fecha_Pago: {
-    type: DataTypes.STRING(20),
+    type: DataTypes.DATE,
     allowNull: false,
   },
   Monto_Pago: {

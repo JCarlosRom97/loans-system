@@ -86,8 +86,8 @@ document.addEventListener('DOMContentLoaded', async() => {
 
 
 const fillLoanDataUI = (loan) =>{
-    const fechaPago = getDateAfterPays( loan[0].Fecha_Inicio,loan[0].Pagos_Completados);;
-    document.getElementById('fecha-inicio').innerText = loan[0].Fecha_Inicio;
+    const fechaPago = getDateAfterPays( window.api.formatDateToDisplay(loan[0].Fecha_Inicio),loan[0].Pagos_Completados +1);;
+    document.getElementById('fecha-inicio').innerText = window.api.formatDateToDisplay(loan[0].Fecha_Inicio);
     document.getElementById('fecha-pago').innerText = fechaPago;
     document.getElementById('loan-amount').innerText = parseTOMXN(loan[0].Monto);
     document.getElementById('loan-interest').innerText = `${loan[0].Interes}%`;

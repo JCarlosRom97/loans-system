@@ -12,65 +12,81 @@
     <div id="header"></div>
     <form id="userForm">
       <h1>Agregar Usuario</h1>
-      <div class="form-group">
-        <label for="ctaContable">CTA Contable Prestamo</label>
-        <input type="text" id="ctaContablePrestamo" name="ctaContablePrestamo" maxlength="20">
-      </div>
-      <div class="form-group">
-        <label for="ctaContable">CTA Contable Ahorro</label>
-        <input type="text" id="ctaContableAhorro" name="ctaContableAhorro" maxlength="20">
-      </div>
-      <div class="form-group">
-        <label for="nombre">Nombre</label>
-        <input type="text" id="nombre" name="nombre" maxlength="100" required>
-      </div>
-      <div class="form-group">
-        <label for="apellidoPaterno">Apellido Paterno</label>
-        <input type="text" id="apellidoPaterno" name="apellidoPaterno" maxlength="100" required>
-      </div>
-      <div class="form-group">
-        <label for="apellidoMaterno">Apellido Materno</label>
-        <input type="text" id="apellidoMaterno" name="apellidoMaterno" maxlength="100">
-      </div>
-      <div class="form-group">
-        <label for="codigoEmpleado">Código Empleado</label>
-        <input type="text" id="codigoEmpleado" name="codigoEmpleado" maxlength="20">
-      </div>
-      <div class="form-group">
-        <label for="fechaNacimiento">Fecha de Nacimiento</label>
-        <input type="text" id="fechaNacimiento" name="fechaNacimiento" placeholder="(dd/mm/aaaa)" required>
-      </div>
-      <div class="form-group">
-        <label for="nacionalidad">Nacionalidad</label>
-        <input type="text" id="nacionalidad" name="nacionalidad" maxlength="100">
-      </div>
-      <div class="form-group">
-        <label for="curp">CURP</label>
-        <input type="text" id="curp" name="curp" maxlength="18">
-      </div>
-      <div class="form-group">
-        <label for="rfc">RFC</label>
-        <input type="text" id="rfc" name="rfc" maxlength="13">
-      </div>
-      <div class="form-group">
-        <label for="correoElectronico">Correo Electrónico</label>
-        <input type="email" id="correoElectronico" name="correoElectronico" maxlength="100" required>
-      </div>
-      <div class="form-group">
-        <label for="Colonia">Colonia</label>
-        <input type="text" id="Colonia" name="Colonia">
-      </div>
-      <div class="form-group">
-        <label for="Calle">Calle</label>
-        <input type="text" id="Calle" name="Calle">
-      </div>
-      <div class="form-group">
-        <label for="Numero">Número</label>
-        <input type="text" id="Numero" name="Numero">
-      </div>
-      <div class="form-group">
-        <label for="CodigoPostal">Código Postal</label>
-        <input type="number" id="CodigoPostal" name="CodigoPostal">
+      <div class="user-info">
+        <div class="section">
+          <div class="form-group">
+            <label for="ctaContable">CTA Contable Prestamo</label>
+            <input type="text" id="ctaContablePrestamo" name="ctaContablePrestamo" maxlength="20">
+          </div>
+          <div class="form-group">
+            <label for="ctaContable">CTA Contable Ahorro</label>
+            <input type="text" id="ctaContableAhorro" name="ctaContableAhorro" maxlength="20">
+          </div>
+          <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" maxlength="100" required>
+          </div>
+        </div>
+        <div class="section">
+          <div class="form-group">
+            <label for="apellidoPaterno">Apellido Paterno</label>
+            <input type="text" id="apellidoPaterno" name="apellidoPaterno" maxlength="100" required>
+          </div>
+          <div class="form-group">
+            <label for="apellidoMaterno">Apellido Materno</label>
+            <input type="text" id="apellidoMaterno" name="apellidoMaterno" maxlength="100">
+          </div>
+          <div class="form-group">
+            <label for="codigoEmpleado">Código Empleado</label>
+            <input type="text" id="codigoEmpleado" name="codigoEmpleado" maxlength="20">
+          </div>
+        </div>
+        <div class="section">
+          <div class="form-group">
+            <label for="fechaNacimiento">Fecha de Nacimiento</label>
+            <input type="text" id="fechaNacimiento" name="fechaNacimiento" placeholder="(dd/mm/aaaa)" required>
+          </div>
+          <div class="form-group">
+            <label for="nacionalidad">Nacionalidad</label>
+            <input type="text" id="nacionalidad" name="nacionalidad" maxlength="100">
+          </div>
+          <div class="form-group">
+            <label for="correoElectronico">Correo Electrónico</label>
+            <input type="email" id="correoElectronico" name="correoElectronico" maxlength="100" required>
+          </div>
+        </div>
+        <div class="section">
+          <div class="form-group">
+            <label for="curp">CURP</label>
+            <input type="text" id="curp" name="curp" maxlength="18">
+          </div>
+          <div class="form-group">
+            <label for="rfc">RFC</label>
+            <input type="text" id="rfc" name="rfc" maxlength="13">
+          </div>
+       
+        </div>
+        <h3>Dómicilio:</h3>
+        <div class="section">
+          <div class="form-group">
+            <label for="Calle">Calle</label>
+            <input type="text" id="Calle" name="Calle">
+          </div>
+          <div class="form-group">
+            <label for="Numero">Número</label>
+            <input type="text" id="Numero" name="Numero">
+          </div>
+          <div class="form-group">
+            <label for="Colonia">Colonia</label>
+            <input type="text" id="Colonia" name="Colonia">
+          </div>
+        </div>
+        <div class="section">         
+          <div class="form-group">
+            <label for="CodigoPostal">Código Postal</label>
+            <input type="number" id="CodigoPostal" name="CodigoPostal">
+          </div>
+        </div>
       </div>
       <div class="form-actions">
         <button type="submit">Agregar Usuario</button>

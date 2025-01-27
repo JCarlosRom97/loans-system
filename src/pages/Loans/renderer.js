@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async() => {
 
         const paymentData = {
             id_Prestamo_fk: document.getElementById('idPrestamo').value,
-            Fecha_Pago: document.getElementById('fechaPago').value,
+            Fecha_Pago:formatDateForModel(document.getElementById('fechaPago').value),
             Monto_Pago: monto,
             Periodo_Catorcenal: parseInt(document.getElementById('periodoCatorcenal').value) ,
             Metodo_Pago: document.getElementById('metodoPago').value,
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         try {
 
             const newPayment = await window.db.addPayment(paymentData);
-            const loanUpdated = await window.db.updateLoanCapitalIntereses({   
+            await window.db.updateLoanCapitalIntereses({   
                 id:document.getElementById('idPrestamo').value,
                 Total_Pagado_Capital:paymentData.Monto_Pago_Capital,  
                 Total_Pagado_Intereses: paymentData.Monto_Pago_Intereses
@@ -298,7 +298,7 @@ const getLoanRefinance = async() =>{
                 <div class="accordion-body">
                     <div class="section">
                         <div class="info-item">
-                            <p><strong>Fecha de Inicio:</strong> ${loan.Fecha_Inicio}</p>
+                            <p><strong>Fecha de Inicio:</strong> ${ window.api.formatDateToDisplay(loan.Fecha_Inicio)}</p>
                         </div>
                         <div class="info-item">
                             <p><strong>Monto Original:</strong> ${parseTOMXN(loan.Monto)}</p>
@@ -337,7 +337,7 @@ const getLoanRefinance = async() =>{
                             <p><strong>Estado:</strong> ${loan.EstadoPrestamo}</p>
                         </div>
                         <div class="info-item">
-                           
+                            <p><strong>Capital:</strong> ${parseTOMXN(loan.Total_Capital)}</p>
                         </div>
                     </div>
                     <div class="table-container" >
@@ -519,7 +519,7 @@ const generateTablePays = async(idPrestamo, idTable)=>{
             <tr>
                 <td>${index + 1}</td>
                 <td>${pago.Periodo_Catorcenal}</td>
-                <td>${pago.Fecha_Pago}</td>
+                <td>${window.api.formatDateToDisplay(pago.Fecha_Pago, 0)}</td>
                 <td>${parseTOMXN(pago.Monto_Pago)}</td>
                 <td>${parseTOMXN(pago.Monto_Pago_Capital)}</td>
                 <td>${parseTOMXN(pago.Monto_Pago_Intereses)}</td>

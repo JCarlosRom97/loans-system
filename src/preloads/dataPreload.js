@@ -118,7 +118,16 @@ contextBridge.exposeInMainWorld('db', {
       return await ipcRenderer.invoke('db:getLoansReport', {Status, Fecha_Inicio, Fecha_Final, Nombre}, );
     } catch (error) {
        // Muestra el mensaje de error completo para depuración
-       console.error('Error adding Loan:', error.message);
+       console.error('Error getting loans:', error.message);
+    }
+  },
+  getAllSavingsTransactionsReport: async ({Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago}) =>{
+    try {
+      console.log({Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago});
+      return await ipcRenderer.invoke('db:getAllSavingsTransactionsReport', {Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago}, );
+    } catch (error) {
+       // Muestra el mensaje de error completo para depuración
+       console.error('Error getting savings:', error.message);
     }
   },
   updateLoanCapitalIntereses: async (data) => {
@@ -133,6 +142,14 @@ contextBridge.exposeInMainWorld('db', {
   getPayments: async (data) => {
     try {
       return await ipcRenderer.invoke('db:getPaymentsByLoan', data);
+    } catch (error) {
+      console.error('Error getting User:', error);
+      return [];
+    }
+  },
+  getPaymentsReport: async ({Fecha_Inicio, Fecha_Final}) => {
+    try {
+      return await ipcRenderer.invoke('db:getPaymentsReport', {Fecha_Inicio, Fecha_Final});
     } catch (error) {
       console.error('Error getting User:', error);
       return [];
@@ -185,7 +202,6 @@ contextBridge.exposeInMainWorld('api', {
   on: (channel, callback) => ipcRenderer.on(channel, (event, ...args) => callback(...args)),
   formatDateToDisplay: (dateInput) => {
 
-    console.log('dateInput',dateInput);
     if (!dateInput) {
       throw new Error("La fecha no puede estar vacía.");
     }
@@ -248,7 +264,39 @@ contextBridge.exposeInMainWorld('api', {
 
     console.log(daysDifference >= 365);
     return daysDifference >= 365;
+  },
+  formatDateForModel:( dateString) => {
+    if (!dateString) {
+        throw new Error("La fecha no puede estar vacía.");
+      }
+    
+      const parts = dateString.split('/');
+      if (parts.length !== 3) {
+        throw new Error("El formato de fecha debe ser dd/mm/aaaa.");
+      }
+    
+      const [day, month, year] = parts;
+    
+      // Validar que día, mes y año son numéricos
+      if (isNaN(day) || isNaN(month) || isNaN(year)) {
+        throw new Error("El día, mes o año no son válidos.");
+      }
+    
+      // Validar valores de día, mes y año
+      if (+day < 1 || +day > 31 || +month < 1 || +month > 12 || +year < 1000) {
+        throw new Error("El rango de día, mes o año no es válido.");
+      }
+    
+      // Crear un objeto Date en UTC y ajustar a CST (UTC-6)
+      const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0)); // Mes es 0-indexado
+      date.setUTCHours(date.getUTCHours() + 6); // Ajuste a CST
+    
+      // Retornar en formato aaaa-mm-dd con horario CST
+      const formattedDate = date.toISOString().replace('T', ' ').split('.')[0];
+
+      return `${formattedDate} -06:00`;
   }
+
 });
 
 contextBridge.exposeInMainWorld('modal', {

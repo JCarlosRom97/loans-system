@@ -4,13 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportes: Ahorro</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="header"></div>
+    <div class="container">
+        <h2>Reporte ahorro</h2>
+        <div class="active-loan-section" id="detailLoanSection">
+            <h3>Cálculos</h3>
+            <div class="loan-info">
+                <div class="section">
+                    <div class="info-item">
+                        <span class="label">Monto Total Ahorro:</span>
+                        <span class="value" id="monto-total-pay-ahorro"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Monto Total Desahogo:</span>
+                        <span class="value" id="desahogo-total-pay"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Monto Total:</span>
+                        <span class="value" id="monto-total-pay"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="searchTableContainer">
+            <div class="search-container">
+                <p>Tipo de Transacción</p>
+                <select name="" id="search-tipo-transaccion" class="input select-status">
+                    <option value="">Todos</option>
+                    <option value="Ahorro">Ahorro</option>
+                    <option value="Desahogo">Desahogo</option>
+                </select>
+            </div>
+            <div class="search-container">
+                <p>Medio de Pago</p>
+                <select name="" id="search-medio-pago"  class="input select-status">
+                    <option value="">Todos</option>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Cheque">Cheque</option>
+                </select>
+              
+            </div>
+            <div class="search-container">
+                <p>Fecha Inicio</p>
+                <input type="text"  id="search-date-from" class="input-search" placeholder="(dd/mm/aaaa)">
+            </div>
+            <div class="search-container">
+                <p>Fecha Final</p>
+                <input type="text"  id="search-date-to" class="input-search" placeholder="(dd/mm/aaaa)">
+            </div>  
+            <div class="search-container">
+                <button id="searchPaysButton">Buscar</button>
+            </div>
+
+        </div>
+        <div class="table-container">
+            <table class="saving-table">
+              <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Fecha</th>
+                    <th>Monto</th>
+                    <th>Tipo de Transacción</th>
+                    <th>Medio de Pago</th>
+                </tr>
+              </thead>
+              <tbody id="savings-table-body">
+                <!-- Aquí se insertarán los usuarios dinámicamente -->
+              </tbody>
+            </table>
+            <div id="info"></div>
+        </div>
+    </div>
 </body>
 <script src="./../../../components/header/renderer.js"></script>
 <script>
     
     addHeader('./../../../components/header/header.html')
 </script>
+<script src="./renderer.js"></script>
 </html>

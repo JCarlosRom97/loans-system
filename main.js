@@ -233,6 +233,41 @@ app.whenReady().then(async()=>{
     }
   });
 
+  ipcMain.handle('db:getAllSavingsTransactionsReport', async (_, { Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago }) => {
+    try {
+      console.log({ Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago });
+      
+      // Validar y convertir fechas de dd/mm/aaaa a aaaa-mm-dd
+      const convertToDate = (dateString) => {
+      const regex = /^\d{2}\/\d{2}\/\d{4}$/; // Validar formato dd/mm/aaaa
+        if (!regex.test(dateString)) {
+          throw new Error(`Fecha inválida: ${dateString}. Use el formato dd/mm/aaaa.`);
+        }
+        const [day, month, year] = dateString.split('/');
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      };
+      // Construir la cláusula "where" dinámicamente
+      const whereClause = {
+        ...(Fecha_Inicio && { Fecha: { [Sequelize.Op.gte]: convertToDate(Fecha_Inicio) } }), // Fecha mayor o igual a Fecha_Inicio
+        ...(Fecha_Final && { Fecha: { [Sequelize.Op.lte]: convertToDate(Fecha_Final) } }), // Fecha menor o igual a Fecha_Final
+        ...(TipoTransaccion && { TipoTransaccion }), // Filtra por TipoTransaccion si se proporciona
+        ...(MedioPago && { MedioPago }) // Filtra por MedioPago si se proporciona
+      };
+  
+      // Consultar la base de datos
+      const transacciones = await TransaccionesAhorro.findAll({
+        where: whereClause,
+        order: [['Fecha', 'DESC']] // Ordenar de más reciente a más antigua
+      });
+  
+      // Retornar los resultados en formato JSON
+      return transacciones.map(t => t.toJSON());
+    } catch (error) {
+      console.error('Error al obtener las transacciones de ahorro:', error);
+      throw new Error('Error al obtener las transacciones de ahorro');
+    }
+  });
+
 
   ipcMain.handle('db:getAmmountSaving', async (_, idUsuario) => {
     try {
@@ -323,66 +358,98 @@ app.whenReady().then(async()=>{
     }
   });
 
-
   ipcMain.handle('db:getLoansReport', async (_, filters) => {
     try {
-      console.log('filters',filters);
+      console.log('filters', filters);
   
-      // Construir el objeto de condiciones dinámicamente
-      const whereConditions = {};
+      // Construir el objeto de condiciones dinámicamente para préstamos
+      const prestamoConditions = {};
+  
+      // Validar y convertir fechas de dd/mm/aaaa a aaaa-mm-dd
+      const convertToDate = (dateString) => {
+        const regex = /^\d{2}\/\d{2}\/\d{4}$/; // Validar formato dd/mm/aaaa
+        if (!regex.test(dateString)) {
+          throw new Error(`Fecha inválida: ${dateString}. Use el formato dd/mm/aaaa.`);
+        }
+        const [day, month, year] = dateString.split('/');
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      };
   
       // Aplicar filtro por estado (STATUS) si está presente
       if (filters.Status) {
-        whereConditions.EstadoPrestamo = filters.Status;
+        prestamoConditions.EstadoPrestamo = filters.Status;
       }
-  
-      // Convertir fechas de dd/mm/aaaa a aaaa-mm-dd
-      const convertToDate = (dateString) => {
-        const [day, month, year] = dateString.split('/');
-        console.log(`${year}-${month}-${day}`);
-        return `${year}-${month}-${day}`;
-      };
   
       // Aplicar filtro por rango de fechas si ambas fechas están presentes
       if (filters.Fecha_Inicio && filters.Fecha_Final) {
-        whereConditions.Fecha_Inicio = {
+        prestamoConditions.Fecha_Inicio = {
           [Sequelize.Op.between]: [
             convertToDate(filters.Fecha_Inicio),
             convertToDate(filters.Fecha_Final),
           ],
         };
       } else if (filters.Fecha_Inicio) {
-        whereConditions.Fecha_Inicio = {
+        prestamoConditions.Fecha_Inicio = {
           [Sequelize.Op.gte]: convertToDate(filters.Fecha_Inicio),
         };
       } else if (filters.Fecha_Final) {
-        whereConditions.Fecha_Inicio = {
+        prestamoConditions.Fecha_Inicio = {
           [Sequelize.Op.lte]: convertToDate(filters.Fecha_Final),
         };
       }
   
-      // Aplicar filtro por Nombre si está presente
-      if (filters.Nombre) {
-        whereConditions.Nombre = {
-          [Sequelize.Op.like]: `%${filters.Nombre}%`,
-        };
-      }
-  
-      // Consultar préstamos con los filtros dinámicos
+      // Consultar préstamos con las condiciones dinámicas
       const prestamos = await Prestamo.findAll({
-        where: whereConditions,
+        where: prestamoConditions,
       });
   
       if (!prestamos || prestamos.length === 0) {
         return []; // Retornar un array vacío si no hay resultados
       }
   
-      return prestamos.map((prestamo) => prestamo.toJSON()); // Convertir a JSON y devolver la lista de resultados
+      // Extraer IDs únicos de los usuarios de los préstamos
+      const usuarioIDs = [...new Set(prestamos.map((prestamo) => prestamo.id_Usuario_fk))];
+  
+      // Construir las condiciones para buscar en el modelo Usuario
+      const usuarioConditions = {};
+      if (filters.Nombre) {
+        usuarioConditions[Sequelize.Op.or] = [
+          { Nombre: { [Sequelize.Op.like]: `%${filters.Nombre}%` } },
+          { Apellido_Paterno: { [Sequelize.Op.like]: `%${filters.Nombre}%` } },
+          { Apellido_Materno: { [Sequelize.Op.like]: `%${filters.Nombre}%` } },
+        ];
+      }
+      usuarioConditions.ID = { [Sequelize.Op.in]: usuarioIDs };
+  
+      // Consultar usuarios que coincidan con las condiciones
+      const usuarios = await Usuario.findAll({
+        where: usuarioConditions,
+        attributes: ['ID', 'Nombre', 'Apellido_Paterno', 'Apellido_Materno'], // Ajusta los campos necesarios
+      });
+  
+      if (!usuarios || usuarios.length === 0) {
+        return []; // Retornar un array vacío si no hay resultados
+      }
+  
+      // Crear un mapa para asociar los usuarios por ID
+      const usuarioMap = usuarios.reduce((map, usuario) => {
+        map[usuario.ID] = usuario.toJSON();
+        return map;
+      }, {});
+  
+      // Asociar los usuarios a los préstamos y retornar los resultados
+      return prestamos
+        .filter((prestamo) => usuarioMap[prestamo.id_Usuario_fk])
+        .map((prestamo) => ({
+          ...prestamo.toJSON(),
+          Usuario: usuarioMap[prestamo.id_Usuario_fk],
+        }));
     } catch (error) {
       console.error('Error fetching Prestamos with filters:', error);
       throw new Error('Error fetching Prestamos with filters');
     }
   });
+
 
   ipcMain.handle('db:updateLoanCapitalIntereses', async (_, { id, Total_Pagado_Capital = 0, Total_Pagado_Intereses = 0 }) => {
     try {
@@ -444,6 +511,60 @@ app.whenReady().then(async()=>{
       throw new Error('Error al obtener los pagos relacionados con el préstamo');
     }
   });
+
+  ipcMain.handle('db:getPaymentsReport', async (_, { Fecha_Inicio, Fecha_Final }) => {
+    try {
+      console.log({ Fecha_Inicio, Fecha_Final });
+  
+      // Función para convertir fechas de dd/mm/aaaa a aaaa-mm-dd
+      const convertToDate = (dateString) => {
+        const regex = /^\d{2}\/\d{2}\/\d{4}$/; // Validar formato dd/mm/aaaa
+        if (!regex.test(dateString)) {
+          throw new Error(`Fecha inválida: ${dateString}. Use el formato dd/mm/aaaa.`);
+        }
+        const [day, month, year] = dateString.split('/');
+
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      };
+  
+      // Construir las condiciones dinámicas para la consulta
+      const whereConditions = {};
+  
+      if (Fecha_Inicio.trim() !== '' && Fecha_Final.trim() !== '') {
+        const formattedStartDate = convertToDate(Fecha_Inicio);
+        const formattedEndDate = convertToDate(Fecha_Final);
+        console.log(formattedStartDate, formattedEndDate);
+        whereConditions.Fecha_Pago = {
+          [Sequelize.Op.between]: [formattedStartDate, formattedEndDate], // Rango de fechas
+        };
+      }
+  
+      // Buscar los pagos con las condiciones construidas
+      const pagos = await Pagos.findAll({
+        where: whereConditions,
+        order: [
+          ['ID', 'ASC'], // Ordenar primero por ID ascendente
+          ['Fecha_Pago', 'ASC'], // Luego por Fecha_Pago ascendente
+        ],
+      });
+  
+      if (pagos.length === 0) {
+        return {
+          message: 'No se encontraron pagos con este filtro.',
+          pagos: [],
+        };
+      }
+  
+      return {
+        message: 'Pagos encontrados exitosamente.',
+        pagos: pagos.map((pago) => pago.toJSON()),
+      };
+    } catch (error) {
+      console.error('Error obteniendo pagos:', error);
+      throw new Error('Error al obtener los pagos relacionados con el préstamo');
+    }
+  });
+  
 
   ipcMain.handle('db:registerPayment', async (_, data) => {
     const { id_Prestamo_fk, Fecha_Pago, Monto_Pago, Monto_Pago_Capital, Monto_Pago_Intereses, Periodo_Catorcenal, Metodo_Pago } = data;
@@ -617,6 +738,10 @@ app.whenReady().then(async()=>{
               FechaUltimaActualizacion: Fecha,
               id_Usuario_fk: idUsuario
           }, { transaction: t });
+      }else{
+        ahorro.update({
+          FechaUltimaActualizacion: Fecha,
+        },{transaccion: t})
       }
 
       if (tipo === "Ahorro") {

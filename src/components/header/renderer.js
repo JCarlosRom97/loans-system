@@ -30,6 +30,19 @@ window.addHeader = (path) => {
             }
           })
         }
+
+        const savingPageLink = document.getElementById('Ahorro');
+
+        if(savingPageLink){
+          savingPageLink.addEventListener('click', ()=>{
+            if(window.api){
+              window.api.send('navigate-to', 'src/pages/Reports/Savings/index.html')
+            }else{
+              console.error('window.api is not available!');
+            }
+          })
+        }
+
       })
       .catch((error) => console.error('Error loading external HTML:', error));
   };
