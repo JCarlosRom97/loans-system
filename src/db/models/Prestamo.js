@@ -7,6 +7,10 @@ const Prestamo = sequelize.define('Prestamo', {
     primaryKey: true,
     autoIncrement: true,
   },
+  Numero_Cheque: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
   Periodo:{
     type: DataTypes.DECIMAL(12, 2),
     allowNull: false,
@@ -39,6 +43,10 @@ const Prestamo = sequelize.define('Prestamo', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true,
   },
+  Ultimo_Abono: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
   Saldo: {
     type: DataTypes.DECIMAL(15, 2),
     allowNull: true,
@@ -53,6 +61,10 @@ const Prestamo = sequelize.define('Prestamo', {
     allowNull: true,
   },
   Fecha_Inicio: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  Fecha_Termino: {
     type: DataTypes.DATE,
     allowNull: false,
   },

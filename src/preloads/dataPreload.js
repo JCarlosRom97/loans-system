@@ -112,10 +112,10 @@ contextBridge.exposeInMainWorld('db', {
        console.error('Error adding Loan:', error.message);
     }
   },
-  getLoanReport: async ({Status, Fecha_Inicio, Fecha_Final, Nombre}) =>{
+  getLoanReport: async ({Status, Year, Nombre}) =>{
     try {
-      console.log({Status, Fecha_Inicio, Fecha_Final, Nombre});
-      return await ipcRenderer.invoke('db:getLoansReport', {Status, Fecha_Inicio, Fecha_Final, Nombre}, );
+      console.log({Status, Year, Nombre});
+      return await ipcRenderer.invoke('db:getLoansReport', {Status, Year, Nombre}, );
     } catch (error) {
        // Muestra el mensaje de error completo para depuración
        console.error('Error getting loans:', error.message);

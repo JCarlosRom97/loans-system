@@ -7,109 +7,89 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="header"></div>
-    <div class="container">
-        <h2>Pagos</h2>
-        <div class="active-loan-section" id="detailLoanSection">
-            <h3>Cálculos</h3>
-            <div class="loan-info">
-                <div class="section">
-                    <div class="info-item">
-                        <span class="label">Monto Total:</span>
-                        <span class="value" id="monto-total-pay"></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Monto Total Intereses:</span>
-                        <span class="value" id="monto-total-pay-intereses"></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Monto Total Capital:</span>
-                        <span class="value" id="intereses-total-pay"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="searchTableContainer">
-            <input type="text"  id="search-date-from-pays" class="input-search" placeholder="Fecha de Inicio (dd/mm/aaaa)">
-            <input type="text"  id="search-date-to-pays" class="input-search" placeholder="Fecha Fin (dd/mm/aaaa)">
-            <button id="searchPaysButton">Buscar</button>
-        </div>
-        <div class="table-container" id="tablePagos">
-            <table class="loans-table">
-              <thead>
-                <tr>
-                  <th>No.</th>
-                  <th>Fecha</th>
-                  <th>Monto</th>
-                  <th>Monto Pago a Capital</th>
-                  <th>Monto Pago a Intereses</th>
-                  <th>Periodo Caterconal</th>
-                  <th>Metodo de Pago</th>
-                  <th>Saldo</th>
-                </tr>
-              </thead>
-              <tbody id="pays-table-body">
-                <!-- Aquí se insertarán los usuarios dinámicamente -->
-              </tbody>
-            </table>
-            <div id="infoPays"></div>
+  <div id="header"></div>
+  <div class="container">
+    <h2>Reportes prestamo</h2>
+    <div class="active-loan-section" id="detailLoanSection">
+      <h3>Cálculos</h3>
+      <div class="loan-info">
+          <div class="section">
+              <div class="info-item">
+                  <span class="label">Monto Total Prestado:</span>
+                  <span class="value" id="monto-total-prestamo"></span>
+              </div>
+              <div class="info-item">
+                  <span class="label">Intereses Totales:</span>
+                  <span class="value" id="intereses-total"></span>
+              </div>
+              <div class="info-item"></div>
+              <div class="info-item"> </div>
           </div>
-        <h2>Reportes prestamo</h2>
-        <div class="active-loan-section" id="detailLoanSection">
+      </div>
+    </div>
+    <div class="searchTableContainer">
+        <select name="" id="statusSearch" class="input select-status">
+            <option value="">Todos</option>
+            <option value="Activo">Activo</option>
+            <option value="Refinanciado">Refinanciados</option>
+            <option value="Pagado">Pagado</option>
+          </select>
+        <input type="text"  id="search-date-year" class="input-search" placeholder="Ingresa el Año">
+      
+        <input type="text"  id="search-name" class="input-search name-input" placeholder="Nombre Cliente (dd/mm/aaaa)">
+    </div>
+    <div class="table-container" id="tables-container">
+    </div>
+    <div id="info"></div>
+
+      <h2>Pagos</h2>
+      <div class="active-loan-section" id="detailLoanSection">
           <h3>Cálculos</h3>
           <div class="loan-info">
               <div class="section">
                   <div class="info-item">
-                      <span class="label">Monto Total Prestado:</span>
-                      <span class="value" id="monto-total-prestamo"></span>
+                      <span class="label">Monto Total:</span>
+                      <span class="value" id="monto-total-pay"></span>
                   </div>
                   <div class="info-item">
-                      <span class="label">Intereses Totales:</span>
-                      <span class="value" id="intereses-total"></span>
+                      <span class="label">Monto Total Intereses:</span>
+                      <span class="value" id="monto-total-pay-intereses"></span>
                   </div>
                   <div class="info-item">
-                      <span class="label">Monto Total Con Intereses:</span>
-                      <span class="value" id="monto-total-prestamo-intereses"></span>
+                      <span class="label">Monto Total Capital:</span>
+                      <span class="value" id="intereses-total-pay"></span>
                   </div>
               </div>
           </div>
+      </div>
+      <div class="searchTableContainer">
+          <input type="text"  id="search-date-from-pays" class="input-search" placeholder="Fecha de Inicio (dd/mm/aaaa)">
+          <input type="text"  id="search-date-to-pays" class="input-search" placeholder="Fecha Fin (dd/mm/aaaa)">
+          <button id="searchPaysButton">Buscar</button>
+      </div>
+      <div class="table-container" id="tablePagos">
+          <table class="loans-table">
+            <thead>
+              <tr>
+                <th>No.</th>
+                <th>Fecha</th>
+                <th>Monto</th>
+                <th>Monto Pago a Capital</th>
+                <th>Monto Pago a Intereses</th>
+                <th>Periodo Caterconal</th>
+                <th>Metodo de Pago</th>
+                <th>Saldo</th>
+              </tr>
+            </thead>
+            <tbody id="pays-table-body">
+              <!-- Aquí se insertarán los usuarios dinámicamente -->
+            </tbody>
+          </table>
+          <div id="infoPays"></div>
         </div>
-        <div class="searchTableContainer">
-            <select name="" id="statusSearch" class="input select-status">
-                <option value="">Todos</option>
-                <option value="Activo">Activo</option>
-                <option value="Refinanciado">Refinanciados</option>
-                <option value="Pagado">Pagado</option>
-              </select>
-            <input type="text"  id="search-date-from" class="input-search" placeholder="Fecha de Inicio (dd/mm/aaaa)">
-            <input type="text"  id="search-date-to" class="input-search" placeholder="Fecha Fin (dd/mm/aaaa)">
-            <input type="text"  id="search-name" class="input-search name-input" placeholder="Nombre Cliente (dd/mm/aaaa)">
-        </div>
-        <div class="table-container">
-            <table class="loans-table">
-              <thead>
-                <tr>
-                    <th>Estatus</th>
-                    <th>Nombre</th>
-                    <th>Periodo</th>
-                    <th>Fecha Inicio</th>
-                    <th>Monto</th>
-                    <th>Total Préstamo (Intereses)</th>
-                    <th>Total Préstamo</th>
-                    <th>Pagos Completados</th>
-                    <th>Intereses Pagados</th>
-                    <th>Capital Pagado</th>
-                    <th>Capital</th>
-                </tr>
-              </thead>
-              <tbody id="loans-table-body">
-                <!-- Aquí se insertarán los usuarios dinámicamente -->
-              </tbody>
-            </table>
-            <div id="info"></div>
-        </div>
-     
-    </div>
+  
+    
+  </div>
 </body>
 <script src="./renderer.js"></script>
 <script src="./rendererPays.js"></script>

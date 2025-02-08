@@ -5,8 +5,16 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     document.getElementById('idUser').value = idUser;
 
+    const user = await window.db.getUser(idUser);
+
+    document.getElementById('name-user').innerText = 
+    `${user.Nombre} ${user.Apellido_Paterno} ${user.Apellido_Materno}`
+
+    console.log(user);
+
     getLoan();
     getLoanRefinance();
+    getLoanPagados();
 
     const fecha = document.getElementById('fecha');
     const monto = document.getElementById('monto');
@@ -52,18 +60,23 @@ document.addEventListener('DOMContentLoaded', async() => {
         const interes = parsefromMXN(document.getElementById('interes').value);
         const interesTotal = interes * document.getElementById('cantidadMeses').value;
 
+        console.log(document.getElementById('numero-cheque-input'));
+
         const loanData = {
             id_Usuario_fk: idUser,
+            Numero_Cheque: document.getElementById('numero-cheque-input').value,
             Periodo: document.getElementById('noAnios').value,
             Cantidad_Meses: document.getElementById('cantidadMeses').value,
             Monto: isRefinanciar.length > 0 ? parsefromMXN(document.getElementById('Capital').value)  : document.getElementById('monto').value,
             Total_Capital:isRefinanciar.length > 0 ? parsefromMXN(document.getElementById('Capital').value) : parsefromMXN(document.getElementById('monto').value),
             Fecha_Inicio: formatDateForModel(document.getElementById('fecha').value),
+            Fecha_Termino: formatDateForModel(document.getElementById('fecha-termino-input').value),
             Interes: interes, 
             Interes_Total: interesTotal,
             TotalPrestamo: parsefromMXN(document.getElementById('totalPrestamo').value),
             TotalPrestamo_Intereses:parsefromMXN(document.getElementById('interesesPrestamo').value),
             Abono: parsefromMXN(document.getElementById('abono').value),
+            Ultimo_Abono: parsefromMXN(document.getElementById('last-pay').textContent),
             Saldo: parsefromMXN(document.getElementById('totalPrestamo').value),
             EstadoPrestamo: 'Activo',
             Pagos_Completados: 0,
@@ -71,6 +84,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             Total_Pagado_Capital: 0,
             Total_Pagado_Intereses:0
         }
+        console.log(loanData);
 
         if(isRefinanciar.length >0){
          
@@ -120,15 +134,22 @@ document.addEventListener('DOMContentLoaded', async() => {
     formPago.addEventListener('submit', async(e) =>{
         e.preventDefault();
 
-        const newLoan = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Activo'});
-        const {Interes_Total} = newLoan[0];
+        const newLoan = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
+        const { No_Catorcenas, Monto, TotalPrestamo_Intereses, Abono } = newLoan[0];
         const monto = parseInt(document.getElementById('montoPago').value);
-        const porcentaje = (Interes_Total)/ 100;
-        const porcentajeInteres = 1 - porcentaje;
-    
-        const montoCapital = monto - (monto * porcentaje);
-    
-        const montoIntereses = monto - (monto *  porcentajeInteres);
+
+        // Calcular el porcentaje del pago en relación con el abono
+        const porcentajePago = monto / Abono;
+
+        // Calcular el monto capital ajustado por el porcentaje del pago
+        const montoCapital = Math.floor((Monto / No_Catorcenas) * porcentajePago);
+
+        // Calcular el monto intereses ajustado por el porcentaje del pago
+        const montoIntereses = Math.floor((TotalPrestamo_Intereses / No_Catorcenas) * porcentajePago);
+
+        console.log(`Porcentaje de pago: ${Math.round(porcentajePago * 100)}%`);
+        console.log(`Monto capital: ${montoCapital}`);
+        console.log(`Monto intereses: ${montoIntereses}`);
 
         const paymentData = {
             id_Prestamo_fk: document.getElementById('idPrestamo').value,
@@ -137,7 +158,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             Periodo_Catorcenal: parseInt(document.getElementById('periodoCatorcenal').value) ,
             Metodo_Pago: document.getElementById('metodoPago').value,
             Monto_Pago_Capital:  parseInt(montoCapital),
-            Monto_Pago_Intereses: parseInt(montoIntereses)
+            Monto_Pago_Intereses: parseInt(montoIntereses) +1
         };
         try {
 
@@ -283,18 +304,23 @@ const getLoan = async () => {
     document.getElementById('idPrestamo').value = newLoan[0]?.ID || 0;
 }
 
-const getLoanRefinance = async() =>{
-    const loansRefinance = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Refinanciado'});
 
-    if(loansRefinance.length >0){
+const getLoanPagados = async() =>{
+    const loansPagados = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Pagado'});
+    console.log(loansPagados);
+    if(loansPagados.length >0){
+
+        document.getElementById('accordion-body-title-pagados').classList.remove('hidden');
+        document.getElementById('accordion-body-title-pagados').classList.remove('visible');
+
          // Generar el HTML para la tabla
          let tableHTML = ``;
 
          // Recorrer los usuarios y agregar filas
-        loansRefinance.forEach((loan, index) => {
+        loansPagados.forEach((loan, index) => {
             tableHTML += `
             <div class="accordion-item">
-                <button class="accordion-header" aria-expanded="false">Préstamo Refinanciado ${index+1}</button>
+                <button class="accordion-header-pagados" aria-expanded="false">Préstamo Pagado ${index+1}</button>
                 <div class="accordion-body">
                     <div class="section">
                         <div class="info-item">
@@ -340,6 +366,143 @@ const getLoanRefinance = async() =>{
                             <p><strong>Capital:</strong> ${parseTOMXN(loan.Total_Capital)}</p>
                         </div>
                     </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Número de Cheque:</strong> ${loan.Numero_Cheque}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Fecha de Termino:</strong> ${window.api.formatDateToDisplay(loan.Fecha_Termino)}</p>
+                        </div>
+                        <div class="info-item">
+                        
+                        </div>
+                    </div>
+                    <div class="table-container" >
+                        <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Periodo Catorcenal</th>
+                                <th>Fecha</th>
+                                <th>Monto</th>
+                                <th>Monto a Capital</th>
+                                <th>Monto a Intereses</th>
+                                <th>Método de Pago</th>
+                                <th>Saldo Actual</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pays-table-body-pagados${loan.ID}">
+                            <!-- Aquí se insertarán los usuarios dinámicamente -->
+                        </tbody>
+                        </table>
+                        <div id="info"></div>
+                    </div>
+                </div>
+            </div>
+            `;
+
+            generateTablePays(loan.ID, `pays-table-body-pagados${loan.ID}`, true);
+        });
+ 
+ 
+         // Insertar la tabla en el div con ID "info"
+         const accordionBody = document.getElementById('accordion-body-pagado');
+         accordionBody.innerHTML = tableHTML;
+
+           // Acordeón
+        document.querySelectorAll('.accordion-header-pagados').forEach(button => {
+            button.addEventListener('click', () => {
+                const expanded = button.getAttribute('aria-expanded') === 'true';
+                button.setAttribute('aria-expanded', !expanded);
+
+                const body = button.nextElementSibling;
+                if (!expanded) {
+                    body.style.maxHeight = body.scrollHeight + 'px';
+                } else {
+                    body.style.maxHeight = 0;
+                }
+            });
+        });
+    }else{
+        const accordionBody = document.getElementById('accordion-body-pagado');
+        accordionBody.innerHTML = '';
+    }
+
+}
+
+const getLoanRefinance = async() =>{
+    const loansRefinance = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Refinanciado'});
+
+    if(loansRefinance.length >0){
+
+        document.getElementById('accordion-body-title-refinanciado').classList.remove('hidden');
+        document.getElementById('accordion-body-title-refinanciado').classList.remove('visible');
+
+        // Generar el HTML para la tabla
+        let tableHTML = ``;
+        
+ 
+         // Recorrer los usuarios y agregar filas
+        loansRefinance.forEach((loan, index) => {
+            tableHTML += `
+            <div class="accordion-item">
+                <button class="accordion-header-refinanciado" aria-expanded="false">Préstamo Refinanciado ${index+1}</button>
+                <div class="accordion-body">
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Fecha de Inicio:</strong> ${ window.api.formatDateToDisplay(loan.Fecha_Inicio)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Monto Original:</strong> ${parseTOMXN(loan.Monto)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Interés Préstamo:</strong> ${parseTOMXN(loan.TotalPrestamo_Intereses)}</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Total Préstamo:</strong> ${parseTOMXN(loan.TotalPrestamo)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Saldo Anterior:</strong> ${parseTOMXN(loan.Saldo)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Total Pagado Interés:</strong> ${parseTOMXN(loan.Total_Pagado_Intereses)}</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Total Pagado Capital:</strong> ${parseTOMXN(loan.Total_Pagado_Capital)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Periodo:</strong> ${loan.Periodo}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Interés:</strong> ${loan.Interes}</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Pagos Completados:</strong> ${loan.Pagos_Completados}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Estado:</strong> ${loan.EstadoPrestamo}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Capital:</strong> ${parseTOMXN(loan.Total_Capital)}</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Número de Cheque:</strong> ${loan.Numero_Cheque}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Fecha de Termino:</strong> ${window.api.formatDateToDisplay(loan.Fecha_Termino)}</p>
+                        </div>
+                        <div class="info-item">
+                        
+                        </div>
+                    </div>
                     <div class="table-container" >
                         <table class="user-table">
                         <thead>
@@ -363,17 +526,19 @@ const getLoanRefinance = async() =>{
                 </div>
             </div>
             `;
-
-            generateTablePays(loan.ID, `pays-table-body-refinance${loan.ID}`);
+            
         });
+
+
+        const accordionBody = document.getElementById('accordion-body-refinanciado');
+        // Insertar la tabla en el div con ID "info"
+        accordionBody.innerHTML = tableHTML;
+
+      
  
- 
-         // Insertar la tabla en el div con ID "info"
-         const accordionBody = document.getElementById('accordion-body');
-         accordionBody.innerHTML = tableHTML;
 
            // Acordeón
-        document.querySelectorAll('.accordion-header').forEach(button => {
+        document.querySelectorAll('.accordion-header-refinanciado').forEach(button => {
             button.addEventListener('click', () => {
                 const expanded = button.getAttribute('aria-expanded') === 'true';
                 button.setAttribute('aria-expanded', !expanded);
@@ -386,8 +551,16 @@ const getLoanRefinance = async() =>{
                 }
             });
         });
+
+        loansRefinance.forEach((loan, index) => {
+            generateTablePays(loan.ID, `pays-table-body-refinance${loan.ID}`, true);
+            
+        });
+        
+
+
     }else{
-        const accordionBody = document.getElementById('accordion-body');
+        const accordionBody = document.getElementById('accordion-body-refinanciado');
         accordionBody.innerHTML = '';
     }
 
@@ -399,7 +572,9 @@ const fillLoanDataUI = (loan) =>{
     const formattedDateDisplay = window.api.formatDateToDisplay(loan[0].Fecha_Inicio); 
     const fechaPago = window.api.getDateAfterPays(formattedDateDisplay,loan[0].Pagos_Completados +1);
     document.getElementById('periodo').innerText = `${loan[0].Periodo} años`;
+    document.getElementById('loan-numero-cheque').innerText = loan[0].Numero_Cheque;
     document.getElementById('fecha-inicio').innerText = window.api.formatDateToDisplay(loan[0].Fecha_Inicio);
+    document.getElementById('fecha-termino').innerText =  window.api.formatDateToDisplay(loan[0].Fecha_Termino);
     document.getElementById('fecha-pago').innerText = fechaPago;
     document.getElementById('loan-amount').innerText = parseTOMXN(loan[0].Monto);
     document.getElementById('loan-interest').innerText = `${loan[0].Interes}% mensual`;
@@ -411,6 +586,7 @@ const fillLoanDataUI = (loan) =>{
     document.getElementById('loan-status').innerText = loan[0].EstadoPrestamo;
     document.getElementById('loan-payments').innerText = loan[0].Pagos_Completados;
     document.getElementById('loan-catorcenas').innerText = loan[0].No_Catorcenas;
+    document.getElementById('loan-ultima-catorcena').innerText = parseTOMXN(loan[0].Ultimo_Abono);
     
     document.getElementById('periodoCatorcenal').value = loan[0].Pagos_Completados +1;
     document.getElementById('fechaPago').value = fechaPago;
@@ -432,38 +608,38 @@ function regexDate (fechaValue, totalPrestamoValue){
     const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
     if (dateRegex.test(fechaValue)) {
         console.log("Valid date format");
-        const dates = generateSecondFridays(fechaValue, parseInt(document.getElementById('noAnios').value))
+        const dates = generateSecondFridays(fechaValue, parseInt(document.getElementById('noAnios').value) *26)
         document.getElementById('tablePagos').classList.remove('hidden');
         document.getElementById('tablePagos').classList.add('visible');
         
         document.getElementById('noCatorcenas').value = dates.length;
-        document.getElementById('abono').value = parseTOMXN( parseInt(totalPrestamoValue / dates.length)+1);
+        const abono = parseTOMXN( parseInt(totalPrestamoValue / dates.length)+1);
+        document.getElementById('abono').value = abono; 
         
-        generateTableCatorcena(dates, document.getElementById('abono').value);
+
+        const differenceLastPay = (parsefromMXN(abono) * dates.length) - totalPrestamoValue ;
+
+        generateTableCatorcena(dates, document.getElementById('abono').value, differenceLastPay);
         
     } else {
         console.log("Invalid date format");
     }
 }
 
-function generateSecondFridays(startDate, years) {
-
+function generateSecondFridays(startDate, count) {
     const dates = [];
   
     // Convertir la fecha inicial de formato dd/mm/aaaa a objeto Date
     const [startDay, startMonth, startYear] = startDate.split('/').map(Number);
     let currentFriday = new Date(startYear, startMonth - 1, startDay);
   
-    // Calcular la fecha final sumando los años al inicio
-    const finalDate = new Date(startYear + years, startMonth - 1, startDay);
-  
     // Asegurarse de que la fecha inicial sea un viernes
     while (currentFriday.getDay() !== 5) {
       currentFriday.setDate(currentFriday.getDate() + 1);
     }
   
-    // Generar fechas hasta la fecha final
-    while (currentFriday <= finalDate) {
+    // Generar el número especificado de fechas
+    for (let i = 0; i < count; i++) {
       dates.push(
         `${currentFriday.getDate().toString().padStart(2, '0')}/` +
         `${(currentFriday.getMonth() + 1).toString().padStart(2, '0')}/` +
@@ -473,11 +649,13 @@ function generateSecondFridays(startDate, years) {
     }
   
     return dates;
-}
+  }
 
 
 
-const generateTableCatorcena = (dates, pay) =>{
+const generateTableCatorcena = (dates, pay, differenceLastPay) =>{
+    const numberPays = dates.length;
+    console.log(differenceLastPay);
     // Verificar si hay usuarios
     if (dates.length > 0) {
         // Generar el HTML para la tabla
@@ -485,14 +663,26 @@ const generateTableCatorcena = (dates, pay) =>{
 
         // Recorrer los usuarios y agregar filas
         dates.forEach((date, index) => {
-        tableHTML += `
-            <tr>
-                    <td>${index +1}</td>
-                    <td>${date}</td>
-                    <td>${pay}</td>
-             
-            </tr>
-        `;
+            if(index != numberPays-1){
+                tableHTML += `
+                    <tr>
+                            <td>${index +1}</td>
+                            <td>${date}</td>
+                            <td>${pay}</td>
+                     
+                    </tr>
+                `;
+            }else{
+                tableHTML += `
+                <tr>
+                        <td>${index +1}</td>
+                        <td>${date}</td>
+                        <td>${parseTOMXN(parsefromMXN(pay) - differenceLastPay)}</td>
+                 
+                </tr>
+                `;
+                document.getElementById('last-pay').innerText = parseTOMXN(parsefromMXN(pay) - differenceLastPay);
+            }
         });
 
         tableHTML += '</tbody></table>';
@@ -503,7 +693,7 @@ const generateTableCatorcena = (dates, pay) =>{
     }
 }
 
-const generateTablePays = async(idPrestamo, idTable)=>{
+const generateTablePays = async(idPrestamo, idTable, isShowOldLoans = false)=>{
 
     const {pagos} = await window.db.getPayments(idPrestamo);
 
@@ -525,6 +715,12 @@ const generateTablePays = async(idPrestamo, idTable)=>{
                 <td>${parseTOMXN(pago.Monto_Pago_Intereses)}</td>
                 <td>${pago.Metodo_Pago}</td>
                 <td>${parseTOMXN(pago.Saldo_Actual)}</td>
+                ${!isShowOldLoans ? `
+                <td>
+                    <button type="button" class="button-delete" id="addButton" onclick="deletePay(${pago.ID})">X</button>
+                </td>
+                `:''}
+               
             </tr>
         `;
         });
@@ -536,6 +732,7 @@ const generateTablePays = async(idPrestamo, idTable)=>{
         tableHTML += '</tbody></table>';
 
         // Insertar la tabla en el div con ID "info"
+        console.log(idTable);
         const infoDiv = document.getElementById(idTable);
         infoDiv.innerHTML = tableHTML;
 
@@ -543,9 +740,6 @@ const generateTablePays = async(idPrestamo, idTable)=>{
 
         tablePagosPrestamos.classList.remove('hidden');
         tablePagosPrestamos.classList.add('visible');
-    }else{
-        const infoDiv = document.getElementById(idTable);
-        infoDiv.innerHTML = ""
     }
 }
 
@@ -592,6 +786,7 @@ const formatDateForModel = (dateString) => {
 
       return `${formattedDate} -06:00`;
   };
+
 
 
   

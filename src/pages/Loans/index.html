@@ -9,9 +9,15 @@
 <body>
     <div id="header"></div>
     <div class="container">
+        <h3 id="name-user"></h3>
+        <div class="pagados-section">
+            <h2 id="accordion-body-title-pagados" class="hidden">Visualización de Préstamos Pagados</h2>
+            <div class="accordion" id="accordion-body-pagado">
+            </div>
+        </div>
         <div class="refinanciados-section">
-            <h2 id="" class="hidden">Visualización de Préstamos Refinanciados</h2>
-            <div class="accordion" id="accordion-body">
+            <h2 id="accordion-body-title-refinanciado" class="hidden">Visualización de Préstamos Refinanciados</h2>
+            <div class="accordion" id="accordion-body-refinanciado">
             </div>
         </div>
         <h2>Formulario Prestamo y Pagos</h2>
@@ -24,15 +30,23 @@
                         <span class="value" id="periodo"></span>
                     </div>
                     <div class="info-item">
+                        <span class="label">Número de Cheque:</span>
+                        <span class="value" id="loan-numero-cheque"></span>
+                    </div>
+                    <div class="info-item">
                         <span class="label">Fecha Inicio:</span>
                         <span class="value" id="fecha-inicio"></span>
                     </div>
                     <div class="info-item">
-                        <span class="label">Fecha Pago:</span>
-                        <span class="value" id="fecha-pago"></span>
+                        <span class="label">Fecha Vigencia:</span>
+                        <span class="value" id="fecha-termino"></span>
                     </div>
                 </div>
                 <div class="section">
+                    <div class="info-item">
+                        <span class="label">Fecha Pago:</span>
+                        <span class="value" id="fecha-pago"></span>
+                    </div>
                     <div class="info-item">
                         <span class="label">Monto:</span>
                         <span class="value" id="loan-amount"></span>
@@ -59,12 +73,12 @@
                         <span class="label">Saldo:</span>
                         <span class="value" id="loan-saldo"></span>
                     </div>
-                </div>
-                <div class="section">        
                     <div class="info-item">
                         <span class="label">capital:</span>
                         <span class="value" id="loan-capital"></span>
                     </div>
+                </div>
+                <div class="section">
                     <div class="info-item">
                         <span class="label">Estado:</span>
                         <span class="value" id="loan-status"></span>
@@ -73,11 +87,13 @@
                         <span class="label">Pagos Completados:</span>
                         <span class="value" id="loan-payments"></span>
                     </div>
-                </div>
-                <div class="section">
                     <div class="info-item">
                         <span class="label">Número de Catorcenas:</span>
                         <span class="value" id="loan-catorcenas"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Pago Última Catorcena:</span>
+                        <span class="value" id="loan-ultima-catorcena"></span>
                     </div>
                 </div>
             </div>
@@ -88,17 +104,25 @@
         <form id="formLoan">
             <div class="form-section">
             <h3 id="prestamo-title">Nuevo Préstamo</h3>
-            <div class="form-group">
+            <div class="section">
                 <div class="form-group">
                     <label for="fecha">Fecha primer abono</label>
                     <input type="text" id="fecha" name="fecha" placeholder="(dd/mm/aaaa)" required>
                 </div>
                 <div class="form-group">
-                    <label for="monto" id="montoPagoTitle">Monto:</label>
-                    <input type="number" id="monto" name="monto" step="0.01" required max="250000">
+                    <label for="fecha-termino-input">Fecha de Vigencia</label>
+                    <input type="text" id="fecha-termino-input" name="fecha-termino-input" placeholder="(dd/mm/aaaa)" required>
+                </div>
+                <div class="form-group">
+                    <label for="numero-cheque-input" >Numero de Cheque:</label>
+                    <input type="text" id="numero-cheque-input" name="numero-cheque-input"  required >
                 </div>
             </div>
             <div class="section">
+                <div class="form-group">
+                    <label for="monto" id="montoPagoTitle">Monto:</label>
+                    <input type="number" id="monto" name="monto" step="0.01" required max="250000">
+                </div>
                 <div class="form-group">
                     <label for="noAnios">Años:</label>
                     <input type="number" id="noAnios" name="noAnios" required>
@@ -111,12 +135,12 @@
                     <label for="cantidadMeses">Cantidad de meses:</label>
                     <input type="number" id="cantidadMeses" name="cantidadMeses"  value="" disabled>
                 </div>
+            </div>
+            <div class="section">
                 <div class="form-group hidden" id="capital-input-container">
                     <label for="Capital">Capital:</label>
                     <input type="text" id="Capital" name="Capital"  value="" disabled>
                 </div>
-            </div>
-            <div class="section">
                 <div class="form-group">
                     <label for="interesesPrestamo">Intereses del prestamo:</label>
                     <input type="text" id="interesesPrestamo" name="interesesPrestamo" step="0.01" required disabled>
@@ -125,12 +149,12 @@
                     <label for="totalPrestamo" style="width: 250px;">Total del Préstamo<span id="saldoAnterior"></span>:</label>
                     <input type="text" id="totalPrestamo" name="totalPrestamo" step="0.01" required disabled>
                 </div>
+            </div>
+            <div class="section">
                 <div class="form-group">
                     <label for="abono">Abono:</label>
                     <input type="text" id="abono" name="abono" step="0.01" disabled>
                 </div>
-            </div>
-            <div class="section">
                 <div class="form-group">
                     <label for="noCatorcenas">Número de Catorcenas:</label>
                     <input type="number" id="noCatorcenas" name="noCatorcenas" required disabled>
@@ -151,6 +175,9 @@
                   </tbody>
                 </table>
                 <div id="info"></div>
+                <div id="last-pay-container">
+                    <p>Ultimo Pago: <span id="last-pay"></span></p>
+                </div>
               </div>
             <button type="submit" id="nuevoPrestamo">Nuevo Prestamo</button>
             </div>
@@ -206,6 +233,7 @@
                         <th>Monto a Intereses</th>
                         <th>Método de Pago</th>
                         <th>Saldo Actual</th>
+                        <th>Opciones</th>
                     </tr>
                   </thead>
                   <tbody id="user-table-body-pays">

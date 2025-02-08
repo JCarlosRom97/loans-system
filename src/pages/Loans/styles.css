@@ -14,7 +14,7 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
 
-  h2 {
+  h2, h3 {
     text-align: center;
     color: #333;
   }
@@ -27,7 +27,7 @@ body {
   /* Prestamos refinanciados */
 
   /* CSS para la sección de préstamos refinanciados */
-.refinanciados-section {
+.refinanciados-section, .pagados-section {
   margin-bottom: 30px;
 }
 
@@ -41,7 +41,7 @@ body {
   border-bottom: 1px solid #ddd;
 }
 
-.accordion-header {
+.accordion-header-refinanciado, .accordion-header-pagados {
   background-color: #07509d;
   cursor: pointer;
   padding: 15px;

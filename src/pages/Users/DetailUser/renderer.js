@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', async() => {
     if(idUser){
         const user = await window.db.getUser(idUser);
         getSavingInfo(idUser);
+
+        document.getElementById('nameUser').innerText = `${user.Nombre} ${user.Apellido_Paterno} ${user.Apellido_Materno}`
+
         console.log(user);
         const cuentaContablePrestamo = document.getElementById("CuentaContablePrestamo");
         const cuentaContableAhorro = document.getElementById("CuentaContableAhorro");
@@ -88,7 +91,9 @@ document.addEventListener('DOMContentLoaded', async() => {
 const fillLoanDataUI = (loan) =>{
     const fechaPago = getDateAfterPays( window.api.formatDateToDisplay(loan[0].Fecha_Inicio),loan[0].Pagos_Completados +1);;
     document.getElementById('fecha-inicio').innerText = window.api.formatDateToDisplay(loan[0].Fecha_Inicio);
+    document.getElementById('numero-cheque').innerText = loan[0].Numero_Cheque;
     document.getElementById('fecha-pago').innerText = fechaPago;
+    document.getElementById('fecha-termino').innerText = window.api.formatDateToDisplay(loan[0].Fecha_Termino);
     document.getElementById('loan-amount').innerText = parseTOMXN(loan[0].Monto);
     document.getElementById('loan-interest').innerText = `${loan[0].Interes}%`;
     document.getElementById('loan-total').innerText = parseTOMXN(loan[0].TotalPrestamo);

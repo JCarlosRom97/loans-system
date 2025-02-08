@@ -11,6 +11,7 @@
     <div class="container">
         <input type="text" id="ID" hidden>
         <h2>Detalle de Usuario</h2>
+        <h3 id="nameUser"></h3>
         <div class="total-container">
             <h3>Total en cuenta de ahorro: <span id="totalAmount">0.00</span></h3>
         </div>
@@ -25,15 +26,23 @@
                         <span class="value" id="fecha-inicio"></span>
                     </div>
                     <div class="info-item">
+                        <span class="label">Fecha de Vigencia:</span>
+                        <span class="value" id="fecha-termino"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Número de Cheque:</span>
+                        <span class="value" id="numero-cheque"></span>
+                    </div>
+                    <div class="info-item">
                         <span class="label">Fecha Pago:</span>
                         <span class="value" id="fecha-pago"></span>
                     </div>
+                </div>
+                <div class="section">
                     <div class="info-item">
                         <span class="label">Monto:</span>
                         <span class="value" id="loan-amount"></span>
                     </div>
-                </div>
-                <div class="section">
                     <div class="info-item">
                         <span class="label">Interés:</span>
                         <span class="value" id="loan-interest"></span>
@@ -60,18 +69,17 @@
                         <span class="label">Pagos Completados:</span>
                         <span class="value" id="loan-payments"></span>
                     </div>
-                </div>
-                <div class="section">  
                     <div class="info-item">
                         <span class="label">Periodo Catorcenal:</span>
                         <span class="value" id="periodoCatorcenal"></span>
                     </div>      
+                </div>
+                <div class="section">  
                     <div class="info-item">
                         <span class="label">Número de Catorcenas:</span>
                         <span class="value" id="loan-catorcenas"></span>
                     </div>
-                    <div class="info-item">
-                    </div>
+             
                 </div>
             </div>
         </div>
