@@ -9,6 +9,7 @@ const Prestamo = require('./src/db/models/Prestamo');
 const Pagos = require('./src/db/models/Pagos')
 const Ahorro = require('./src/db/models/Ahorro');
 const TransaccionesAhorro = require('./src/db/models/TransaccionesAhorro');
+const Cheques = require('./src/db/models/Cheques')
 const { Sequelize } = require('sequelize');
 const sequelize = require('./src/db/index')
 const syncDatabase = require('./src/db/sync');
@@ -44,8 +45,8 @@ const createWindow = () => {
 // Crear una ventana modal
 const createModal = (parentWindow, options = {}) => {
     modalWindow = new BrowserWindow({
-        width: 500,
-        height: 400,
+        width: 900,
+        height: 700,
         parent: parentWindow, // Hace que la ventana sea modal
         modal: true,
         show: false, // Evitar que se muestre inmediatamente
@@ -362,43 +363,37 @@ app.whenReady().then(async()=>{
     try {
       console.log('filters', filters);
   
-      // Construir el objeto de condiciones dinámicamente para préstamos
       const prestamoConditions = {};
   
-      // Aplicar filtro por estado (STATUS) si está presente
       if (filters.Status) {
         prestamoConditions.EstadoPrestamo = filters.Status;
       }
   
-      // Función para convertir fechas almacenadas en formato dd/mm/aaaa al formato ISO (aaaa-mm-dd)
       const convertToISO = (dateString) => {
         const [day, month, year] = dateString.split('/');
         return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
       };
   
-      // Filtro por año
       if (filters.Year) {
-        const yearStart = convertToISO(`01/01/${filters.Year}`); // Inicio del año
-        const yearEnd = convertToISO(`31/12/${filters.Year}`);   // Fin del año
+        const yearStart = convertToISO(`01/01/${filters.Year}`);
+        const yearEnd = convertToISO(`31/12/${filters.Year}`);
   
-        prestamoConditions.Fecha_Inicio = {
-          [Sequelize.Op.between]: [yearStart, yearEnd],
-        };
+        prestamoConditions[Sequelize.Op.and] = [
+          { Fecha_Inicio: { [Sequelize.Op.lte]: yearEnd } },
+          { Fecha_Termino: { [Sequelize.Op.gte]: yearStart } }
+        ];
       }
   
-      // Consultar préstamos con las condiciones dinámicas
       const prestamos = await Prestamo.findAll({
         where: prestamoConditions,
       });
   
       if (!prestamos || prestamos.length === 0) {
-        return []; // Retornar un array vacío si no hay resultados
+        return [];
       }
   
-      // Extraer IDs únicos de los usuarios de los préstamos
       const usuarioIDs = [...new Set(prestamos.map((prestamo) => prestamo.id_Usuario_fk))];
   
-      // Construir las condiciones para buscar en el modelo Usuario
       const usuarioConditions = {};
       if (filters.Nombre) {
         usuarioConditions[Sequelize.Op.or] = [
@@ -409,23 +404,20 @@ app.whenReady().then(async()=>{
       }
       usuarioConditions.ID = { [Sequelize.Op.in]: usuarioIDs };
   
-      // Consultar usuarios que coincidan con las condiciones
       const usuarios = await Usuario.findAll({
         where: usuarioConditions,
-        attributes: ['ID', 'Nombre', 'Apellido_Paterno', 'Apellido_Materno'], // Ajusta los campos necesarios
+        attributes: ['ID', 'Nombre', 'Apellido_Paterno', 'Apellido_Materno','CTA_CONTABLE_PRESTAMO'],
       });
   
       if (!usuarios || usuarios.length === 0) {
-        return []; // Retornar un array vacío si no hay resultados
+        return [];
       }
   
-      // Crear un mapa para asociar los usuarios por ID
       const usuarioMap = usuarios.reduce((map, usuario) => {
         map[usuario.ID] = usuario.toJSON();
         return map;
       }, {});
   
-      // Asociar los usuarios a los préstamos y retornar los resultados
       return prestamos
         .filter((prestamo) => usuarioMap[prestamo.id_Usuario_fk])
         .map((prestamo) => ({
@@ -437,6 +429,7 @@ app.whenReady().then(async()=>{
       throw new Error('Error fetching Prestamos with filters');
     }
   });
+
   
 
 
@@ -556,7 +549,7 @@ app.whenReady().then(async()=>{
   
 
   ipcMain.handle('db:registerPayment', async (_, data) => {
-    const { id_Prestamo_fk, Fecha_Pago, Monto_Pago, Monto_Pago_Capital, Monto_Pago_Intereses, Periodo_Catorcenal, Metodo_Pago } = data;
+    const { id_Prestamo_fk, Fecha_Pago, Fecha_Catorcena, Monto_Pago, Monto_Pago_Capital, Monto_Pago_Intereses, Periodo_Catorcenal, Metodo_Pago } = data;
 
     console.log('db:registerPayment', data);
 
@@ -609,6 +602,7 @@ app.whenReady().then(async()=>{
         // Registrar el pago
         const pago = await Pagos.create({
             Fecha_Pago,
+            Fecha_Catorcena,
             Monto_Pago,
             Monto_Pago_Capital,
             Monto_Pago_Intereses,
@@ -788,6 +782,42 @@ app.whenReady().then(async()=>{
         throw error;
     }
   });
+
+  ipcMain.handle('db:addCheque', async (_, data) => {
+    try {
+      const newCheque = await Cheques.create(data);
+      return newCheque.toJSON();
+    } catch (error) {
+      console.error('Error adding cheque:', error);
+      throw new Error('Error adding cheque');
+    }
+  });
+
+  ipcMain.handle('db:getCheques', async () => {
+    try {
+      const cheques = await Cheques.findAll();
+      return cheques.map(cheque => cheque.toJSON());
+    } catch (error) {
+      console.error('Error getting cheques:', error);
+      throw new Error('Error getting cheques');
+    }
+  });
+  
+  ipcMain.handle('db:deleteCheque', async (_, chequeId) => {
+    try {
+      const cheque = await Cheques.findByPk(chequeId);
+      if (!cheque) {
+        throw new Error('Cheque not found');
+      }
+  
+      await cheque.destroy();
+      return { success: true, message: 'Cheque deleted successfully' };
+    } catch (error) {
+      console.error('Error deleting cheque:', error);
+      throw new Error('Error deleting cheque');
+    }
+  });
+  
 
   ipcMain.handle('db:removeSavingTransaction', async (_, { idTransaccion }) => {
     console.log('removeid', { idTransaccion });

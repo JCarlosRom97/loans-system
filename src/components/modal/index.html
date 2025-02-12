@@ -7,5 +7,55 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <button id="close-modal" title="Cerrar">&times;</button>
+  <form id="form-cheque">
+    <div class="form-section"> 
+      <div class="section">
+        <div class="form-group">
+            <label for="no-cheque" >No. Cheque:</label>
+            <input type="text" id="no-cheque" name="no-cheque"  required >
+        </div>
+        <div class="form-group">
+          <label for="nombre" >Nombre:</label>
+          <input type="text" id="nombre" name="nombre"  required >
+        </div>
+        <div class="form-group">
+          <label for="motivo" >Motivo:</label>
+          <input type="text" id="motivo" name="motivo"  required >
+        </div>
+      </div>
+      <div class="section">
+        <div class="form-group">
+          <label for="fecha" >Fecha:</label>
+          <input type="text" id="fecha" name="fecha"  required >
+        </div>
+        <div class="form-group">
+          <label for="monto" >Monto:</label>
+          <input type="number" id="monto" name="monto"  required >
+        </div>
+      </div>
+      <button type="submit" class="centerButton" id="nuevo-cheque">Nuevo Cheque</button>
+    </div>
+    <div class="table-container" id="tablePagosPrestamos">
+      <table class="user-table">
+        <thead>
+          <tr>
+              <th>No.</th>
+              <th>No. Cheque</th>
+              <th>Nombre</th>
+              <th>Motivo</th>
+              <th>Fecha</th>
+              <th>Monto</th>
+              <th>Opciones</th>
+          </tr>
+        </thead>
+        <tbody id="user-table-body-cheques">
+          <!-- Aquí se insertarán los usuarios dinámicamente -->
+        </tbody>
+      </table>
+      <div id="info"></div>
+    </div>
+  </form>
 </body>
+
 </html>

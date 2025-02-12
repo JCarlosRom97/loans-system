@@ -13,18 +13,67 @@
     <div class="active-loan-section" id="detailLoanSection">
       <h3>Cálculos</h3>
       <div class="loan-info">
-          <div class="section">
-              <div class="info-item">
-                  <span class="label">Monto Total Prestado:</span>
-                  <span class="value" id="monto-total-prestamo"></span>
-              </div>
-              <div class="info-item">
-                  <span class="label">Intereses Totales:</span>
-                  <span class="value" id="intereses-total"></span>
-              </div>
-              <div class="info-item"></div>
-              <div class="info-item"> </div>
+        <div class="section">
+          <div class="info-item">
+              <span class="label">Monto Total Prestado:</span>
+              <span class="value" id="monto-total-prestamo"></span>
           </div>
+          <div class="info-item">
+              <span class="label">Intereses Totales:</span>
+              <span class="value" id="intereses-total"></span>
+          </div>
+        </div>
+        <div class="section">
+            <div class="info-item">
+              <span class="label">Enero:</span>
+              <span class="value" id="enero-total"></span>
+            </div>
+            <div class="info-item">
+              <span class="label">Febrero:</span>
+              <span class="value" id="febrero-total"></span>
+            </div>
+            <div class="info-item">
+              <span class="label">Marzo:</span>
+              <span class="value" id="marzo-total"></span>
+            </div>
+            <div class="info-item">
+              <span class="label">Abril:</span>
+              <span class="value" id="abril-total"></span>
+            </div>
+            <div class="info-item">
+              <span class="label">Mayo:</span>
+              <span class="value" id="mayo-total"></span>
+            </div>
+            <div class="info-item">
+              <span class="label">Junio:</span>
+              <span class="value" id="junio-total"></span>
+            </div>
+            <div class="info-item">
+              <span class="label">Julio:</span>
+              <span class="value" id="julio-total"></span>
+            </div>
+            <div class="info-item">
+              <span class="label">Agosto:</span>
+              <span class="value" id="agosto-total"></span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Septiembre:</span>
+              <span class="value" id="septiembre-total"></span>
+            </div>
+            <div class="info-item">
+              <span class="label">Octubre:</span>
+              <span class="value" id="octubre-total"></span>
+            </div>
+            <div class="info-item">
+              <span class="label">Noviembre:</span>
+              <span class="value" id="noviembre-total"></span>
+            </div>
+            <div class="info-item">
+              <span class="label">Diciembre:</span>
+              <span class="value" id="diciembre-total"></span>
+            </div>
+        </div>
       </div>
     </div>
     <div class="searchTableContainer">
@@ -38,7 +87,42 @@
       
         <input type="text"  id="search-name" class="input-search name-input" placeholder="Nombre Cliente (dd/mm/aaaa)">
     </div>
-    <div class="table-container" id="tables-container">
+    <div class="table-container" >
+      <div class='container-tables' >
+        <table class="loans-table" >
+            <thead>
+                <tr>
+                    <th>Estatus</th>
+                    <th>Nombre</th>
+                    <th>Cuenta Prestamo</th>
+                    <th>Número de Cheque</th>
+                    <th>Periodo</th>
+                    <th>Cantidad Meses</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Termino</th>
+                    <th>Monto</th>
+                    <th>Interes</th>
+                    <th>Total Préstamo (Intereses)</th>
+                    <th>Enero</th>
+                    <th>Febrero</th>
+                    <th>Marzo</th>
+                    <th>Abril</th>
+                    <th>Mayo</th>
+                    <th>Junio</th>
+                    <th>Julio</th>
+                    <th>Agosto</th>
+                    <th>Septiembre</th>
+                    <th>Octubre</th>
+                    <th>Noviembre</th>
+                    <th>Diciembre</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="loans-table-body">
+            </tbody>
+        </table>
+      </div>
+      <hr/>
     </div>
     <div id="info"></div>
 

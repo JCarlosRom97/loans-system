@@ -12,11 +12,11 @@ form {
     flex-direction: column;
     justify-content: center;
     align-items: center; /* Centrar elementos dentro del formulario */
-    width: 100%;
+    width: 95%;
 }
 
 input[type="text"] {
-    width: 60%;
+
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -37,7 +37,7 @@ button {
 }
 
 #info{
-    color: #5ba941;
+    color: #ff0000;
     font-size: 18px;
     font-weight: bold;
 }
@@ -70,3 +70,104 @@ button {
 #close-modal:hover {
     background-color: darkred;
 }
+
+.section{
+    display: flex;
+    flex-direction: row;
+}
+
+.form-group {
+display: flex;
+flex-wrap: wrap;
+gap: 20px;
+padding-top: 10px;
+}
+
+.form-group label {
+flex: 1 1 200px;
+font-weight: bold;
+color: #555;
+}
+
+.form-group input {
+  flex: 2 1 ;
+  padding: 10px;
+  margin: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.form-section {
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #fafafa;
+    margin-bottom: 30px;
+  }
+
+  .centerButton {
+    display: block; /* Para que el botón sea un elemento en bloque */
+    margin: 20px auto; /* Centra el botón horizontalmente */
+    padding: 10px 20px; /* Espaciado interno */
+    background-color: #5ba941; /* Color de fondo */
+    color: white; /* Color del texto */
+    font-size: 16px; /* Tamaño de la fuente */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    cursor: pointer; /* Cambia el cursor a "pointer" al pasar el mouse */
+  }
+  
+  .centerButton:hover {
+    background-color: #4a9136; /* Cambia el color en hover */
+  }
+
+   /* Table Styling */
+   .table-container {
+    overflow-x: auto;
+  }
+
+
+  
+  .user-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 16px;
+  }
+  
+  .user-table th,
+  .user-table td {
+    padding: 15px;
+    text-align: left;
+    border: 1px solid #ddd;
+  }
+  
+  .user-table th {
+    background-color: #122443ce;
+    color: white;
+  }
+  
+  .user-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .user-table tbody tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .user-table td {
+    word-wrap: break-word;
+    max-width: 200px;
+  }
+
+  .button-delete{
+    background-color: red;
+    width: 100%;
+    font-size: 16px;
+    padding: 5px;
+  }
+
+  .button-delete:hover{
+    background-color: rgb(249, 90, 90);
+  }

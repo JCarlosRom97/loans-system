@@ -153,13 +153,16 @@ document.addEventListener('DOMContentLoaded', async() => {
 
         const paymentData = {
             id_Prestamo_fk: document.getElementById('idPrestamo').value,
-            Fecha_Pago:formatDateForModel(document.getElementById('fechaPago').value),
+            Fecha_Catorcena:formatDateForModel(document.getElementById('fechaPagoCatorcena').value),
+            Fecha_Pago: formatDateForModel(document.getElementById('fecha-deposito').value),
             Monto_Pago: monto,
             Periodo_Catorcenal: parseInt(document.getElementById('periodoCatorcenal').value) ,
             Metodo_Pago: document.getElementById('metodoPago').value,
             Monto_Pago_Capital:  parseInt(montoCapital),
             Monto_Pago_Intereses: parseInt(montoIntereses) +1
         };
+
+        console.log('paymentData',paymentData);
         try {
 
             const newPayment = await window.db.addPayment(paymentData);
@@ -570,7 +573,7 @@ const fillLoanDataUI = (loan) =>{
 
     // Convertir la fecha inicial de formato dd/mm/aaaa a objeto Date
     const formattedDateDisplay = window.api.formatDateToDisplay(loan[0].Fecha_Inicio); 
-    const fechaPago = window.api.getDateAfterPays(formattedDateDisplay,loan[0].Pagos_Completados +1);
+    const fechaPago = window.api.getDateAfterPays(formattedDateDisplay,loan[0].Pagos_Completados );
     document.getElementById('periodo').innerText = `${loan[0].Periodo} años`;
     document.getElementById('loan-numero-cheque').innerText = loan[0].Numero_Cheque;
     document.getElementById('fecha-inicio').innerText = window.api.formatDateToDisplay(loan[0].Fecha_Inicio);
@@ -589,7 +592,7 @@ const fillLoanDataUI = (loan) =>{
     document.getElementById('loan-ultima-catorcena').innerText = parseTOMXN(loan[0].Ultimo_Abono);
     
     document.getElementById('periodoCatorcenal').value = loan[0].Pagos_Completados +1;
-    document.getElementById('fechaPago').value = fechaPago;
+    document.getElementById('fechaPagoCatorcena').value = fechaPago;
 
     generateTablePays(loan[0].ID, 'user-table-body-pays');
 
@@ -618,6 +621,8 @@ function regexDate (fechaValue, totalPrestamoValue){
         
 
         const differenceLastPay = (parsefromMXN(abono) * dates.length) - totalPrestamoValue ;
+
+        document.getElementById('fecha-termino-input').value = dates[dates.length -1] || 'N/A';
 
         generateTableCatorcena(dates, document.getElementById('abono').value, differenceLastPay);
         
@@ -709,6 +714,7 @@ const generateTablePays = async(idPrestamo, idTable, isShowOldLoans = false)=>{
             <tr>
                 <td>${index + 1}</td>
                 <td>${pago.Periodo_Catorcenal}</td>
+                <td>${window.api.formatDateToDisplay(pago.Fecha_Catorcena, 0)}</td>
                 <td>${window.api.formatDateToDisplay(pago.Fecha_Pago, 0)}</td>
                 <td>${parseTOMXN(pago.Monto_Pago)}</td>
                 <td>${parseTOMXN(pago.Monto_Pago_Capital)}</td>

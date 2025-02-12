@@ -7,6 +7,10 @@ const Pagos = sequelize.define('Pagos', {
     primaryKey: true,
     autoIncrement: true,
   },
+  Fecha_Catorcena: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
   Fecha_Pago: {
     type: DataTypes.DATE,
     allowNull: false,

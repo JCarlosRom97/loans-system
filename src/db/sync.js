@@ -8,6 +8,7 @@ const Ahorro = require('./models/Ahorro');
 const TransaccionesAhorro = require('./models/TransaccionesAhorro');
 const Prestamo = require('./models/Prestamo');
 const Pagos = require('./models/Pagos');
+const Cheques = require('./models/Cheques')
 
 // Ruta de la base de datos
 const dbPath = sequelize.options.storage;
@@ -19,7 +20,8 @@ const requiredTables = [
   'Ahorro', 
   'TransaccionesAhorro', 
   'Prestamo', 
-  'Pagos'
+  'Pagos',
+  'Cheques'
 ];
 
 // Función para verificar si las tablas existen
@@ -72,12 +74,32 @@ const syncDatabase = async () => {
         console.log('Database found but missing tables. Synchronizing...');
         await sequelize.sync({ force: true }); // ⚠️ Esto borra y recrea las tablas
         console.log('Database structure synced successfully.');
+          // Imprimir las tablas
+    await printTables();
       } else {
         console.log('Database and tables already exist. No sync needed.');
       }
     }
   } catch (error) {
     console.error('Error syncing the database:', error);
+  }
+};
+
+const printTables = async () => {
+  try {
+    const queryInterface = sequelize.getQueryInterface();
+    const tables = await queryInterface.showAllTables();
+
+    if (tables.length === 0) {
+      console.log('No tables found in the database.');
+    } else {
+      console.log('Existing tables in the database:');
+      tables.forEach((table, index) => {
+        console.log(`${index + 1}. ${table}`);
+      });
+    }
+  } catch (error) {
+    console.error('Error retrieving tables:', error);
   }
 };
 

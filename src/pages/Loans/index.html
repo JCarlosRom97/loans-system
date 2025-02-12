@@ -111,7 +111,7 @@
                 </div>
                 <div class="form-group">
                     <label for="fecha-termino-input">Fecha de Vigencia</label>
-                    <input type="text" id="fecha-termino-input" name="fecha-termino-input" placeholder="(dd/mm/aaaa)" required>
+                    <input type="text" id="fecha-termino-input" name="fecha-termino-input" placeholder="(dd/mm/aaaa)" required disabled>
                 </div>
                 <div class="form-group">
                     <label for="numero-cheque-input" >Numero de Cheque:</label>
@@ -197,8 +197,12 @@
             </div>
             <div class="section">
                 <div class="form-group">
-                    <label for="fechaPago">Fecha de Pago:</label>
-                    <input type="text" id="fechaPago" name="fechaPago" placeholder="(dd/mm/aaaa)" required disabled>
+                    <label for="fechaPagoCatorcena">Fecha de Catorcena:</label>
+                    <input type="text" id="fechaPagoCatorcena" name="fechaPagoCatorcena" placeholder="(dd/mm/aaaa)" required disabled>
+                </div>
+                <div class="form-group">
+                    <label for="fecha-deposito">Fecha de Depósito:</label>
+                    <input type="text" id="fecha-deposito" name="fecha-deposito" step="0.01" required>
                 </div>
                 <div class="form-group">
                     <label for="montoPago">Monto del Pago:</label>
@@ -227,7 +231,8 @@
                     <tr>
                         <th>No.</th>
                         <th>Periodo Catorcenal</th>
-                        <th>Fecha</th>
+                        <th>Fecha Catorcena</th>
+                        <th>Fecha de Depósito</th>
                         <th>Monto</th>
                         <th>Monto a Capital</th>
                         <th>Monto a Intereses</th>

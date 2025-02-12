@@ -43,6 +43,18 @@ window.addHeader = (path) => {
           })
         }
 
+        const openModalCheque = document.getElementById('modalCheques');
+
+        if(openModalCheque){
+          openModalCheque.addEventListener('click', ()=>{
+            if(window.modal){
+              window.modal.open();
+            }else{
+              console.error('window.modal is not available!');
+            }
+          })
+        }
+
       })
       .catch((error) => console.error('Error loading external HTML:', error));
   };

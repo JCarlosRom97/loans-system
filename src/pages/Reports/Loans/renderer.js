@@ -1,3 +1,19 @@
+var monthTotals = {
+    enero: 0,
+    febrero: 0,
+    marzo: 0,
+    abril: 0,
+    mayo: 0,
+    junio: 0,
+    julio: 0,
+    agosto: 0,
+    septiembre: 0,
+    octubre: 0,
+    noviembre: 0,
+    diciembre: 0,
+};
+
+
 document.addEventListener('DOMContentLoaded', async() => {
 
     getLoansSearch({Status:'', Year: '',  Nombre: ''})
@@ -9,6 +25,22 @@ document.addEventListener('DOMContentLoaded', async() => {
         const Status = event.target.value || '';
         const Year = document.getElementById('search-date-year').value || '';
         const Nombre = document.getElementById('search-name').value || '';
+
+        monthTotals = {
+            enero: 0,
+            febrero: 0,
+            marzo: 0,
+            abril: 0,
+            mayo: 0,
+            junio: 0,
+            julio: 0,
+            agosto: 0,
+            septiembre: 0,
+            octubre: 0,
+            noviembre: 0,
+            diciembre: 0,
+        };
+
         getLoansSearch({Status, Year, Nombre})
     })
 
@@ -20,6 +52,22 @@ document.addEventListener('DOMContentLoaded', async() => {
         const Year = document.getElementById('search-date-year').value || '';
         const Nombre = document.getElementById('search-name').value || '';
         if(Year.length == 4){
+
+            monthTotals = {
+                enero: 0,
+                febrero: 0,
+                marzo: 0,
+                abril: 0,
+                mayo: 0,
+                junio: 0,
+                julio: 0,
+                agosto: 0,
+                septiembre: 0,
+                octubre: 0,
+                noviembre: 0,
+                diciembre: 0,
+            };
+
             getLoansSearch({Status, Year, Nombre})
         }
     })
@@ -32,6 +80,21 @@ document.addEventListener('DOMContentLoaded', async() => {
         const Status = document.getElementById('statusSearch').value || '';
         const Year = document.getElementById('search-date-year').value || '';
         const Nombre = document.getElementById('search-name').value || '';
+
+        monthTotals = {
+            enero: 0,
+            febrero: 0,
+            marzo: 0,
+            abril: 0,
+            mayo: 0,
+            junio: 0,
+            julio: 0,
+            agosto: 0,
+            septiembre: 0,
+            octubre: 0,
+            noviembre: 0,
+            diciembre: 0,
+        };
        
         getLoansSearch({Status, Year, Nombre})
        
@@ -41,13 +104,13 @@ document.addEventListener('DOMContentLoaded', async() => {
 const getLoansSearch = async({Status, Year, Nombre}) =>{
     try {
         const searchResult = await window.db.getLoanReport({Status, Year, Nombre});
-        generateTableSearch(searchResult);
+        generateTableSearch(searchResult, Year);
     } catch (error) {
         console.error(error)
     }
 }
 
-const generateTableSearch = async (loans) => {
+const generateTableSearch = async (loans, Year) => {
     // Verificar si hay préstamos
     if (loans.length > 0) {
         // Generar el HTML para la tabla
@@ -58,54 +121,30 @@ const generateTableSearch = async (loans) => {
         // Recorrer los préstamos y agregar filas
         for (const loan of loans) {
             try {
-                const concilitionData = generateConciliation(loan);
-                console.log(concilitionData);
+                const concilitionData = generateConciliation(loan, Year);
+
+                calculateMonthTotal(concilitionData)
 
                 tableHTML += `
-                <div class='container-tables' >
-                    <table class="loans-table" id="loans-table-body">
-                        <thead>
-                            <tr>
-                                <th>Estatus</th>
-                                <th>Nombre</th>
-                                <th>Número de Cheque</th>
-                                <th>Periodo</th>
-                                <th>Fecha Inicio</th>
-                                <th>Fecha Termino</th>
-                                <th>Monto</th>
-                                <th>Total Préstamo (Intereses)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="loans-table-body">
+    
                             <tr>
                                 <td>${generateStatusElement(loan.EstadoPrestamo)}</td>
                                 <td>${loan.Usuario.Nombre} ${loan.Usuario.Apellido_Paterno} ${loan.Usuario.Apellido_Materno}</td>
+                                <td>${loan.Usuario.CTA_CONTABLE_PRESTAMO || 'N/A'}</td>
                                 <td>${loan.Numero_Cheque || 'N/A'}</td>
                                 <td>${loan.Periodo || 'N/A'} </td>
+                                <td>${loan.Cantidad_Meses || 'N/A'} </td>
                                 <td>${window.api.formatDateToDisplay(loan.Fecha_Inicio) || 'N/A'}</td>
                                 <td>${window.api.formatDateToDisplay(loan.Fecha_Termino) || 'N/A'}</td>
                                 <td>${parseTOMXN(loan.Monto) || 'N/A'}</td>
-                                <td>Interes mensual ${loan.Interes}% : ${parseTOMXN(loan.TotalPrestamo_Intereses)}</td>
+                                <td>${loan.Interes +'%' || 'N/A'}</td>
+                                <td>${parseTOMXN(loan.TotalPrestamo_Intereses)}</td>
+                                ${concilitionData.meses.map((month) =>(`<td>${ parseTOMXN(month.interes)}</td>`)).join('')}
+                                <td>${parseTOMXN(concilitionData.totalIntereses)}</td>
                             </tr>
-                        </tbody>
-                    </table>
-                    <table  class="loans-table month-table">
-                        <thead>
-                        <tr>
-                            ${concilitionData.meses.map((month) =>(`<th>${month.mes}</th>`)).join('')}
-                            <th>Total:</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            ${concilitionData.meses.map((month) =>(`<td>${ parseTOMXN(month.interes)}</td>`)).join('')}
-                            <td>${parseTOMXN(concilitionData.totalIntereses)}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    </div>
-                <hr/>
-                `;
+
+                    `;
+
             
                 TotalIntereses += concilitionData.totalIntereses;
             } catch (error) {
@@ -114,49 +153,110 @@ const generateTableSearch = async (loans) => {
         }
         document.getElementById('intereses-total').innerText = parseTOMXN(TotalIntereses);
         // Insertar la tabla en el div con ID "loans-table-body"
-        const infoDiv = document.getElementById('tables-container');
+        const infoDiv = document.getElementById('loans-table-body');
+
+
+        tableHTML += `
+
+                        <tr>
+                            <td colspan="11"></td>
+                            <td id='report-table-enero'></td>
+                            <td id='report-table-febrero'></td>
+                            <td id='report-table-marzo'></td>
+                            <td id='report-table-abril'></td>
+                            <td id='report-table-mayo'></td>
+                            <td id='report-table-junio'></td>
+                            <td id='report-table-julio'></td>
+                            <td id='report-table-agosto'></td>
+                            <td id='report-table-septiembre'></td>
+                            <td id='report-table-octubre'></td>
+                            <td id='report-table-noviembre'></td>
+                            <td id='report-table-diciembre'></td>
+                            <td id='report-table-total'></td>
+                        </tr>
+
+                `;
+        
+
         infoDiv.innerHTML = tableHTML;
         document.getElementById('info').innerText = '';
+        let totalTableMonth = 0;
+        // Actualizar los elementos en el DOM con los totales
+        for (const [month, total] of Object.entries(monthTotals)) {
+            const element = document.getElementById(`report-table-${month}`);
+            if (element) {
+                totalTableMonth += total; 
+                element.textContent = `${parseTOMXN(total)}`; // Actualizar con el valor acumulado formateado
+            }
+        }
+
+        document.getElementById('report-table-total').textContent = parseTOMXN(totalTableMonth);
     } else {
-        const infoDiv = document.getElementById('tables-container');
+        const infoDiv = document.getElementById('loans-table-body');
         infoDiv.innerHTML = '';
         // Mostrar mensaje si no hay préstamos
         document.getElementById('info').innerText = 'No se encontraron préstamos.';
+
+
+        monthTotals = {
+            enero: 0,
+            febrero: 0,
+            marzo: 0,
+            abril: 0,
+            mayo: 0,
+            junio: 0,
+            julio: 0,
+            agosto: 0,
+            septiembre: 0,
+            octubre: 0,
+            noviembre: 0,
+            diciembre: 0,
+        };
+
+        cleanTotals();
     }
 };
 
-const generateConciliation = (loan) => {
-    const { Fecha_Inicio, Monto, Interes } = loan;
+const generateConciliation = (loan, Year) => {
+    const { Fecha_Inicio, Monto, Interes, Fecha_Termino } = loan;
     const tasaMensual = Interes / 100; // Interés como decimal
     const fechaInicio = new Date(Fecha_Inicio);
-    const añoFin = fechaInicio.getFullYear(); // Tomamos el año de la fecha de inicio
+    const fechaTermino = new Date(Fecha_Termino);
+
+    // Si Year es vacío o null, se asigna el año en curso
+    Year = Year || new Date().getFullYear();
 
     const resultado = [];
     let totalIntereses = 0; // Acumulador para la suma de intereses
 
-    // Recorremos los 12 meses del año
+    // Recorremos los 12 meses del año especificado
     for (let mes = 0; mes < 12; mes++) {
-        const primerDiaMes = new Date(añoFin, mes, 1); // Primer día del mes
-        const ultimoDiaMes = new Date(añoFin, mes + 1, 0); // Último día del mes
+        const primerDiaMes = new Date(Year, mes, 1); // Primer día del mes del año especificado
+        const ultimoDiaMes = new Date(Year, mes + 1, 0); // Último día del mes del año especificado
         const diasMes = ultimoDiaMes.getDate(); // Días totales del mes
 
-        let diasAplicables;
+        let diasAplicables = 0;
 
-        // Si el mes actual es el de inicio, calculamos los días restantes
+        // Validar si el mes está dentro del rango entre Fecha_Inicio y Fecha_Termino
         if (
-            mes === fechaInicio.getMonth() &&
-            añoFin === fechaInicio.getFullYear()
+            (primerDiaMes >= fechaInicio && primerDiaMes <= fechaTermino) ||
+            (ultimoDiaMes >= fechaInicio && ultimoDiaMes <= fechaTermino)
         ) {
-            diasAplicables = diasMes - fechaInicio.getDate() + 1;
-        } else if (mes < fechaInicio.getMonth() && añoFin === fechaInicio.getFullYear()) {
-            // Para los meses antes de la fecha de inicio, no se considera ningún interés
-            diasAplicables = 0;
-        } else {
-            // Meses completos
-            diasAplicables = diasMes;
+            if (parseInt(Year) === fechaInicio.getFullYear() && mes === fechaInicio.getMonth()) {
+                // Días proporcionales si es el mes de inicio
+                diasAplicables = diasMes - fechaInicio.getDate() + 1; // Desde el día inicial hasta el final del mes
+            } else if (parseInt(Year) === fechaTermino.getFullYear() && mes === fechaTermino.getMonth()) {
+                // Días proporcionales si es el mes de término
+                diasAplicables = fechaTermino.getDate(); // Hasta el último día del mes de término
+                console.log('2', diasAplicables);
+            } else {
+                // Mes completo dentro del rango
+                diasAplicables = diasMes;
+                console.log('3', diasAplicables);
+            }
         }
 
-        // Calcular el interés proporcional
+        // Calcular el interés proporcional solo si hay días aplicables
         const interesMensual = (Monto * tasaMensual * diasAplicables) / diasMes;
 
         // Sumar el interés mensual al total
@@ -164,7 +264,7 @@ const generateConciliation = (loan) => {
 
         // Agregar al resultado
         resultado.push({
-            mes: `${primerDiaMes.toLocaleString('es-ES', { month: 'long' })} `,
+            mes: `${primerDiaMes.toLocaleString("es-ES", { month: "long" })} `,
             diasAplicables,
             interes: Math.round(interesMensual), // Redondear a entero
         });
@@ -176,6 +276,41 @@ const generateConciliation = (loan) => {
         totalIntereses: Math.round(totalIntereses), // Redondear la suma total
     };
 };
+
+
+const calculateMonthTotal = (conciliationData) => {
+    // Acumuladores para cada mes
+
+    // Iterar sobre los datos de conciliación y acumular los valores de interés por mes
+    conciliationData.meses.forEach(({ mes, interes }) => {
+        const mesKey = mes.trim().toLowerCase();
+        if (monthTotals.hasOwnProperty(mesKey)) {
+            monthTotals[mesKey] += interes; // Acumular el interés
+        }
+    });
+
+    
+
+    // Actualizar los elementos en el DOM con los totales
+    for (const [month, total] of Object.entries(monthTotals)) {
+        const element = document.getElementById(`${month}-total`);
+        if (element) {
+            element.textContent = `$${total}`; // Actualizar con el valor acumulado formateado
+        }
+    }
+
+};
+
+const cleanTotals = () =>{
+        // Actualizar los elementos en el DOM con los totales
+        for (const [month, total] of Object.entries(monthTotals)) {
+            const element = document.getElementById(`${month}-total`);
+            if (element) {
+                element.textContent = `$${total}`; // Actualizar con el valor acumulado formateado
+            }
+        }
+}
+
 
 const processInformation = (loans) =>{
   

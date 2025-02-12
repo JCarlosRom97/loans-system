@@ -193,7 +193,17 @@ contextBridge.exposeInMainWorld('db', {
         console.error('Error removing saving transaction:', error.message);
         alert("Error al eliminar la transacción.");
     }
-  }
+  },
+  //Cheques
+  addCheques: async (data) =>{
+    try {
+      return await ipcRenderer.invoke('db:addCheque', data);
+    } catch (error) {
+        // Muestra el mensaje de error completo para depuración
+        console.error('Error adding Cheques:', error.message);
+
+    }
+  },
 });
 
 
