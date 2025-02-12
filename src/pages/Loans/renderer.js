@@ -633,28 +633,27 @@ function regexDate (fechaValue, totalPrestamoValue){
 
 function generateSecondFridays(startDate, count) {
     const dates = [];
-  
+
     // Convertir la fecha inicial de formato dd/mm/aaaa a objeto Date
     const [startDay, startMonth, startYear] = startDate.split('/').map(Number);
-    let currentFriday = new Date(startYear, startMonth - 1, startDay);
-  
-    // Asegurarse de que la fecha inicial sea un viernes
-    while (currentFriday.getDay() !== 5) {
-      currentFriday.setDate(currentFriday.getDate() + 1);
-    }
-  
-    // Generar el número especificado de fechas
+    let currentDate = new Date(startYear, startMonth - 1, startDay);
+
+    // Generar las fechas sumando exactamente 14 días cada vez
     for (let i = 0; i < count; i++) {
-      dates.push(
-        `${currentFriday.getDate().toString().padStart(2, '0')}/` +
-        `${(currentFriday.getMonth() + 1).toString().padStart(2, '0')}/` +
-        `${currentFriday.getFullYear()}`
-      ); // Formatea la fecha como dd/mm/aaaa
-      currentFriday.setDate(currentFriday.getDate() + 14); // Avanza 14 días
+        // Formatear la fecha como dd/mm/aaaa
+        const formattedDate = currentDate.toLocaleDateString("es-MX", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        });
+
+        dates.push(formattedDate);
+        currentDate.setDate(currentDate.getDate() + 14); // Sumar 14 días exactos
     }
-  
+
     return dates;
-  }
+}
+
 
 
 

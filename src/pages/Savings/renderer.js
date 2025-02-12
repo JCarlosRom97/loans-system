@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', async() => {
     idUser = params.get('idUsuario');
     console.log(idUser);
 
-    const idAhorro = await getSavingInfo();
 
     const user = await window.db.getUser(idUser);
 
@@ -14,7 +13,9 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     console.log(user);
 
-    fetchAndDisplaySavings(idAhorro);
+    const ID = await setFechaCatorcena()
+
+    fetchAndDisplaySavings(ID);
 
     const formSavings = document.getElementById("formSavings");
 
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         const amount = document.getElementById("amount").value;
         const medioPago = 'Cheque';
         const fecha = document.getElementById('fecha').value;
+        const fechaDeposito = document.getElementById('fecha-deposito').value;
         const numeroCheque = typeTransaction =="Desahogo" ?
          document.getElementById('numero-cheque').value:
          "";
@@ -34,7 +36,8 @@ document.addEventListener('DOMContentLoaded', async() => {
             monto: amount,
             tipo: typeTransaction,
             medioPago,
-            Fecha: window.api.formatDateForModel(fecha)
+            Fecha: window.api.formatDateForModel(fecha),
+            Fecha_Deposito: window.api.formatDateForModel(fechaDeposito)
         }
 
         console.log(saveObject);
@@ -56,8 +59,10 @@ document.addEventListener('DOMContentLoaded', async() => {
                 }
 
                 formSavings.reset();
-                const idAhorro = await getSavingInfo();
-                fetchAndDisplaySavings(idAhorro);
+                const {ID}  = await getSavingInfo();
+                fetchAndDisplaySavings(ID);
+
+                await setFechaCatorcena()
         
             }
            
@@ -112,6 +117,7 @@ async function fetchAndDisplaySavings(idAhorro) {
             tableHTML += `
                 <tr>
                     <td>${window.api.formatDateToDisplay(saving.Fecha, 0)}</td>
+                    <td>${window.api.formatDateToDisplay(saving.Fecha_Deposito, 0)}</td>
                     <td>${saving.Numero_Cheque || 'N/A'}</td>
                     <td>${saving.TipoTransaccion}</td>
                     <td>${saving.TipoTransaccion =='Ahorro'? `<span class="more-green">+</span> ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}`: 
@@ -153,13 +159,30 @@ async function getSavingInfo () {
 
     document.getElementById('totalAmount').innerText = `${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(dataSaving?.Monto || 0)}`;
 
-    return dataSaving?.ID;
+    return {ID: dataSaving?.ID, FechaUltimaActualizacion: dataSaving?.FechaUltimaActualizacion};
 }
 
 async function deleteTransaction (idUser) {
     console.log(idUser);
     const deletedSaving = await window.db.removeSavingTransaction(idUser);
     console.log(deletedSaving);
-    const idAhorro = await getSavingInfo();
-    fetchAndDisplaySavings(idAhorro)
+    const {ID}  = await getSavingInfo();
+    fetchAndDisplaySavings(ID)
+}
+
+const setFechaCatorcena = async() =>{
+    const {ID, FechaUltimaActualizacion} = await getSavingInfo();
+
+    if(FechaUltimaActualizacion){
+        document.getElementById('fecha').value = window.api.getDateAfterPays(window.api.formatDateToDisplay(FechaUltimaActualizacion, 0), 1);
+        document.getElementById("fecha").disabled = true;
+        
+    }else{
+        document.getElementById('fecha').value = '';
+        document.getElementById("fecha").disabled = false;
+    }
+
+
+    return ID;
+
 }

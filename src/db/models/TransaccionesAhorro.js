@@ -19,6 +19,10 @@ const TransaccionesAhorro = sequelize.define('TransaccionesAhorro', {
     type: DataTypes.DATE,
     allowNull: false,
   },
+  Fecha_Deposito: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
   TipoTransaccion: {
     type: DataTypes.ENUM('Ahorro', 'Desahogo'),
     allowNull: false,

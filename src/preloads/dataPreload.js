@@ -228,31 +228,24 @@ contextBridge.exposeInMainWorld('api', {
   
     return `${day}/${month}/${year}`;
   },
-  getDateAfterPays:(startDate, pays) => {
-
+  getDateAfterPays: (startDate, pays) => {
     console.log('getDateAfterPays', pays, startDate);
+
     const [startDay, startMonth, startYear] = startDate.split('/').map(Number);
-    let currentFriday = new Date(startYear, startMonth - 1, startDay);
+    let targetDate = new Date(startYear, startMonth - 1, startDay);
 
-    // Asegurarse de que la fecha inicial sea un viernes
-    while (currentFriday.getDay() !== 5) {
-        currentFriday.setDate(currentFriday.getDate() + 1);
-    }
-
-    // Calcular la fecha después de recorrer las catorcenas
-    const daysToAdd = pays * 14; // Cada catorcena son 14 días
-    currentFriday.setDate(currentFriday.getDate() + daysToAdd);
+    // Sumar exactamente (pays * 14) días sin modificar la fecha de inicio
+    targetDate.setDate(targetDate.getDate() + (pays * 14));
 
     // Formatear la fecha resultante como dd/mm/aaaa
     const formattedDate = 
-        `${currentFriday.getDate().toString().padStart(2, '0')}/` +
-        `${(currentFriday.getMonth() + 1).toString().padStart(2, '0')}/` +
-        `${currentFriday.getFullYear()}`;
+        `${targetDate.getDate().toString().padStart(2, '0')}/` +
+        `${(targetDate.getMonth() + 1).toString().padStart(2, '0')}/` +
+        `${targetDate.getFullYear()}`;
 
-        console.log(formattedDate);
-
+    console.log(formattedDate);
     return formattedDate;
-  },
+},
   hasOneYearPassed:(dateInput) => {
     // Verificar que la fecha de entrada sea válida
     const inputDate = new Date(dateInput);

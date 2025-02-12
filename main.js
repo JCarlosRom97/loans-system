@@ -719,8 +719,8 @@ app.whenReady().then(async()=>{
     }
 });
 
-  ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha }) => {
-    console.log({ idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha });
+  ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito }) => {
+    console.log({ idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito });
     const t = await sequelize.transaction();
     
     try {
@@ -768,6 +768,7 @@ app.whenReady().then(async()=>{
           Monto: monto,
           Numero_Cheque,
           Fecha: Fecha,
+          Fecha_Deposito,
           TipoTransaccion: tipo,
           MedioPago: medioPago,
           id_Ahorro_fk: ahorro.ID
