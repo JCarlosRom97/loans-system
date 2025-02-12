@@ -19,11 +19,7 @@
                     <option value="Ahorro">Ahorro</option>
                     <option value="Desahogo">Desahogo</option>
                 </select>
-                <select name="selectPayMethod" id="selectPayMethod">
-                    <option value="Cheque">Cheque</option>
-                    <option value="Transferencia">Transferencia</option>
-                    <option value="Efectivo">Efectivo</option>
-                </select>
+                <input type="text" name="numero-cheque" id="numero-cheque" placeholder="Número de Cheque" required hidden>
                 <input type="text" name="fecha" id="fecha" placeholder="Fecha (dd/mm/yyyy)" required>
                 <input type="number" name="amount" id="amount" placeholder="Monto" required>
             </div>
@@ -40,6 +36,7 @@
                 <thead>
                     <tr>
                         <th>Fecha</th>
+                        <th>Número de Cheque</th>
                         <th>Tipo de Transaccion</th>
                         <th>Monto</th>
                         <th>Medio de pago</th>

@@ -7,6 +7,10 @@ const TransaccionesAhorro = sequelize.define('TransaccionesAhorro', {
     primaryKey: true,
     autoIncrement: true,
   },
+  Numero_Cheque: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
   Monto: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
@@ -20,7 +24,7 @@ const TransaccionesAhorro = sequelize.define('TransaccionesAhorro', {
     allowNull: false,
   },
   MedioPago: {
-    type: DataTypes.ENUM('Transferencia', 'Efectivo'),
+    type: DataTypes.ENUM('Cheque'),
     allowNull: false,
   },
 }, {

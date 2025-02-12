@@ -127,3 +127,8 @@ input[type="number"], input[type="text"], select {
   color: red;
   font-size: 24px;
 }
+
+.more-green{
+  color: rgb(0, 113, 32);
+  font-size: 20px;
+}

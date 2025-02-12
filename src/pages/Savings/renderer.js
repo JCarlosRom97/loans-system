@@ -22,18 +22,22 @@ document.addEventListener('DOMContentLoaded', async() => {
         event.preventDefault();
         const typeTransaction = document.getElementById('selectTypeTransaction').value; 
         const amount = document.getElementById("amount").value;
-        const medioPago = document.getElementById('selectPayMethod').value;
+        const medioPago = 'Cheque';
         const fecha = document.getElementById('fecha').value;
+        const numeroCheque = typeTransaction =="Desahogo" ?
+         document.getElementById('numero-cheque').value:
+         "";
 
         const saveObject = {
             idUsuario: idUser,
+            Numero_Cheque: numeroCheque,
             monto: amount,
             tipo: typeTransaction,
             medioPago,
             Fecha: window.api.formatDateForModel(fecha)
         }
 
-        console.log(typeTransaction, amount);
+        console.log(saveObject);
 
           // Add the user to the database via the main process
         try {
@@ -74,6 +78,22 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     })
 
+    const selectTransaction = document.getElementById('selectTypeTransaction');
+
+    selectTransaction.addEventListener("change", () =>{
+        const selectTransactionValue = document.getElementById('selectTypeTransaction').value;
+        if (selectTransactionValue == "Ahorro") {
+            let inputCheque = document.getElementById("numero-cheque");
+            inputCheque.hidden = true;
+            inputCheque.removeAttribute("required"); // Eliminar 'required' al ocultar
+        } else if (selectTransactionValue == "Desahogo") {
+            let inputCheque = document.getElementById("numero-cheque");
+            inputCheque.removeAttribute("hidden");
+            inputCheque.setAttribute("required", ""); // Volver a agregar 'required' al mostrar
+        }
+    })
+
+
 });
 
 // Función para obtener y mostrar los usuarios en una tabla
@@ -92,8 +112,9 @@ async function fetchAndDisplaySavings(idAhorro) {
             tableHTML += `
                 <tr>
                     <td>${window.api.formatDateToDisplay(saving.Fecha, 0)}</td>
+                    <td>${saving.Numero_Cheque || 'N/A'}</td>
                     <td>${saving.TipoTransaccion}</td>
-                    <td>${saving.TipoTransaccion =='Ahorro'? `+ ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}`: 
+                    <td>${saving.TipoTransaccion =='Ahorro'? `<span class="more-green">+</span> ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}`: 
                     `<span class="less-red">-</span> ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}` }</td>
                     <td>${saving.MedioPago || 'N/A'}</td>
                     <td>
