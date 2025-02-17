@@ -87,6 +87,23 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error getting savings', error);
     }
   },
+  getTotalSavingCorte:  async ({userId, year}) =>{
+    try {
+      return await ipcRenderer.invoke('db:getTotalSavingCorte', {userId, year});
+    } catch (error) {
+      console.error('Error getting savings:', error);
+      throw new Error('Error getting savings', error);
+    }
+  },
+  saveCorteAhorro:  async ({ ID_Usuario, saveCorteAhorro, Periodo, Interes, Total, Monto_Generado }) =>{
+
+    try {
+      return await ipcRenderer.invoke('db:saveCorteAhorro', { ID_Usuario, saveCorteAhorro, Periodo, Interes, Total, Monto_Generado });
+    } catch (error) {
+      console.error('Error getting savings:', error);
+      throw new Error('Error getting savings', error);
+    }
+  },
   //LOANS
   addLoan: async (data) =>{
     try {
@@ -125,6 +142,15 @@ contextBridge.exposeInMainWorld('db', {
     try {
       console.log({Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago});
       return await ipcRenderer.invoke('db:getAllSavingsTransactionsReport', {Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago}, );
+    } catch (error) {
+       // Muestra el mensaje de error completo para depuración
+       console.error('Error getting savings:', error.message);
+    }
+  },
+  getAhorroSaldoById: async(prestamoId) =>{
+    try {
+  
+      return await ipcRenderer.invoke('db:getAhorroSaldoById', prestamoId, );
     } catch (error) {
        // Muestra el mensaje de error completo para depuración
        console.error('Error getting savings:', error.message);

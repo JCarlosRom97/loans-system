@@ -15,6 +15,10 @@ const TransaccionesAhorro = sequelize.define('TransaccionesAhorro', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
   },
+  Monto_Generado: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
   Fecha: {
     type: DataTypes.DATE,
     allowNull: false,
@@ -24,7 +28,7 @@ const TransaccionesAhorro = sequelize.define('TransaccionesAhorro', {
     allowNull: false,
   },
   TipoTransaccion: {
-    type: DataTypes.ENUM('Ahorro', 'Desahogo'),
+    type: DataTypes.ENUM('Ahorro', 'Desahogo','Corte'),
     allowNull: false,
   },
   MedioPago: {

@@ -14,6 +14,8 @@ const { Sequelize } = require('sequelize');
 const sequelize = require('./src/db/index')
 const syncDatabase = require('./src/db/sync');
 const formatDate = require('./src/hooks/formatDate');
+const { log } = require('electron-builder');
+const AhorroSaldos = require('./src/db/models/AhorroSaldos');
 
 
 // add electron reload
@@ -284,6 +286,109 @@ app.whenReady().then(async()=>{
         throw new Error('Error al obtener el monto de ahorro:');
     }
   });
+
+
+  ipcMain.handle('db:getAhorroSaldoById', async (_, idAhorro) => {
+    try {
+      // Buscar registros en el modelo AhorroSaldos por ID_Ahorro
+      const ahorroRecords = await AhorroSaldos.findAll({
+        where: { ID_Ahorro: idAhorro }
+      });
+      
+      return ahorroRecords.map(record => record.toJSON());
+    } catch (error) {
+      console.error('Error fetching AhorroSaldos:', error);
+      throw new Error('Error fetching AhorroSaldos');
+    }
+  });
+
+  
+  ipcMain.handle('db:getTotalSavingCorte', async (_, { userId, year }) => {
+    try {
+      console.log({ userId, year });
+      const ahorroRecords = await Ahorro.findAll({
+        where: { id_Usuario_fk: userId },
+        attributes: ['ID']
+      });
+  
+      const ahorroIds = ahorroRecords.map(record => record.ID);
+  
+      const total = await TransaccionesAhorro.findAll({
+        where: {
+          id_Ahorro_fk: ahorroIds,
+          Fecha: {
+            [Sequelize.Op.between]: [new Date(`${year}-01-01`), new Date(`${year}-12-31 23:59:59`)]
+          }
+        },
+        attributes: ['Monto', 'TipoTransaccion']
+      });
+  
+      const totalAhorro = total.reduce((acc, transaccion) => {
+        return transaccion.TipoTransaccion === 'Ahorro' || transaccion.TipoTransaccion === 'Corte'
+          ? acc + parseFloat(transaccion.Monto)
+          : acc - parseFloat(transaccion.Monto);
+      }, 0);
+  
+      return { totalAhorro };
+    } catch (error) {
+      console.error('Error calculating total ahorro:', error);
+      throw new Error('Error calculating total ahorro');
+    }
+  });
+
+  ipcMain.handle('db:saveCorteAhorro', async (_, { ID_Usuario, saveCorteAhorro, Periodo, Interes, Total, Monto_Generado }) => {
+    try {
+      console.log('saveCorteAhorro', { ID_Usuario, saveCorteAhorro, Periodo, Interes, Total, Monto_Generado });
+  
+      // Obtener el ID de Ahorro asociado al usuario
+      const ahorroRecord = await Ahorro.findOne({
+        where: { id_Usuario_fk: ID_Usuario },
+        attributes: ['ID', 'Monto']
+      });
+  
+      if (!ahorroRecord) {
+        throw new Error('No savings record found');
+      }
+  
+      const ahorroId = ahorroRecord.ID;
+      const nuevoMonto = ahorroRecord.Monto + (Total - saveCorteAhorro);
+  
+      // Registrar en AhorroSaldos
+      const newAhorroSaldo = await AhorroSaldos.create({
+        ID_Usuario,
+        ID_Ahorro: ahorroId,
+        Ahorro: saveCorteAhorro,
+        Interes,
+        Total,
+        Periodo
+      });
+  
+      // Actualizar el monto en Ahorro
+      await Ahorro.update(
+        { Monto: nuevoMonto },
+        { where: { ID: ahorroId } }
+      );
+  
+      // Registrar solo los intereses en TransaccionesAhorro
+      await TransaccionesAhorro.create({
+        id_Ahorro_fk: ahorroId,
+        Monto: Total,
+        Fecha: new Date(),
+        Fecha_Deposito: new Date(),
+        TipoTransaccion: 'Corte',
+        MedioPago: 'Cheque',
+        Monto_Generado
+      });
+  
+      return { ahorroSaldo: newAhorroSaldo };
+    } catch (error) {
+      console.error('Error saving corte ahorro:', error);
+      throw new Error('Error saving corte ahorro');
+    }
+  });
+  
+  
+  
 
   //Prestamos
 
@@ -719,17 +824,16 @@ app.whenReady().then(async()=>{
     }
 });
 
-  ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito }) => {
-    console.log({ idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito });
-    const t = await sequelize.transaction();
-    
-    try {
+ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito }) => {
+  console.log({ idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito });
+  
+  const t = await sequelize.transaction(); // Iniciar la transacción
 
+  try {
       monto = parseFloat(monto);
       if (isNaN(monto)) {
           throw new Error("El monto debe ser un número válido.");
       }
-
 
       let ahorro = await Ahorro.findOne({ where: { id_Usuario_fk: idUsuario }, transaction: t });
 
@@ -744,10 +848,11 @@ app.whenReady().then(async()=>{
               FechaUltimaActualizacion: Fecha,
               id_Usuario_fk: idUsuario
           }, { transaction: t });
-      }else{
-        ahorro.update({
-          FechaUltimaActualizacion: Fecha,
-        },{transaccion: t})
+      } else {
+          // ✅ Usar `await` y la clave correcta `transaction`
+          await ahorro.update({
+              FechaUltimaActualizacion: Fecha
+          }, { transaction: t });
       }
 
       if (tipo === "Ahorro") {
@@ -774,16 +879,16 @@ app.whenReady().then(async()=>{
           id_Ahorro_fk: ahorro.ID
       }, { transaction: t });
 
-      await t.commit();
+      await t.commit(); // Confirmar la transacción
       console.log(`Transacción ${tipo} de ${monto} realizada con éxito.`);
 
-      return transaccionAhorro.toJSON(); // Retornar el objeto de la transacción
-    } catch (error) {
-        await t.rollback();
-        console.error("Error en la transacción:", error.message);
-        throw error;
-    }
-  });
+      return transaccionAhorro.toJSON();
+  } catch (error) {
+      await t.rollback();
+      console.error("Error en la transacción:", error.message);
+      throw error;
+  }
+});
 
   ipcMain.handle('db:addCheque', async (_, data) => {
     try {

@@ -63,7 +63,10 @@ document.addEventListener('DOMContentLoaded', async() => {
                 fetchAndDisplaySavings(ID);
 
                 await setFechaCatorcena()
-        
+
+                let inputCheque = document.getElementById("numero-cheque");
+                inputCheque.hidden = true;
+                inputCheque.removeAttribute("required"); // Eliminar 'required' al ocultar
             }
            
 
@@ -110,18 +113,21 @@ async function fetchAndDisplaySavings(idAhorro) {
         if (savings.length > 0) {
             // Generar el HTML para la tabla
             let tableHTML = ``;
-    
             // Recorrer los usuarios y agregar filas
             savings.forEach(saving => {
+                const dateDeposito = window.api.formatDateToDisplay(saving.Fecha, 0);
                 console.log(saving);
             tableHTML += `
                 <tr>
-                    <td>${window.api.formatDateToDisplay(saving.Fecha, 0)}</td>
+                    <td>${dateDeposito}</td>
                     <td>${window.api.formatDateToDisplay(saving.Fecha_Deposito, 0)}</td>
                     <td>${saving.Numero_Cheque || 'N/A'}</td>
-                    <td>${saving.TipoTransaccion}</td>
-                    <td>${saving.TipoTransaccion =='Ahorro'? `<span class="more-green">+</span> ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}`: 
-                    `<span class="less-red">-</span> ${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(saving.Monto)}` }</td>
+                    <td>${saving.TipoTransaccion} ${saving.TipoTransaccion === 'Corte' ? dateDeposito.split('/')[2] -1 : ''}</td>
+                    <td>
+                        ${saving.TipoTransaccion === 'Ahorro' || saving.TipoTransaccion ==='Corte'
+                        ? `<span class="more-green">+</span> ${Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saving.Monto_Generado || saving.Monto)}`
+                        : `<span class="less-red">-</span> ${Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saving.Monto)}`}
+                    </td>
                     <td>${saving.MedioPago || 'N/A'}</td>
                     <td>
                         <button class="delete-btn" id="${saving.ID}" onclick="deleteTransaction(${saving.ID})"  >Eliminar</button>

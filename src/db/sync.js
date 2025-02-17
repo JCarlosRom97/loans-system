@@ -9,6 +9,7 @@ const TransaccionesAhorro = require('./models/TransaccionesAhorro');
 const Prestamo = require('./models/Prestamo');
 const Pagos = require('./models/Pagos');
 const Cheques = require('./models/Cheques')
+const AhorroSaldos = require('./models/AhorroSaldos')
 
 // Ruta de la base de datos
 const dbPath = sequelize.options.storage;
@@ -21,7 +22,8 @@ const requiredTables = [
   'TransaccionesAhorro', 
   'Prestamo', 
   'Pagos',
-  'Cheques'
+  'Cheques',
+  'AhorroSaldos'
 ];
 
 // Función para verificar si las tablas existen
