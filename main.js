@@ -236,42 +236,82 @@ app.whenReady().then(async()=>{
     }
   });
 
-  ipcMain.handle('db:getAllSavingsTransactionsReport', async (_, { Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago }) => {
+
+  ipcMain.handle('db:getUserSavingsReport', async (_, { NombreCompleto, Anio }) => {
     try {
-      console.log({ Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago });
-      
-      // Validar y convertir fechas de dd/mm/aaaa a aaaa-mm-dd
-      const convertToDate = (dateString) => {
-      const regex = /^\d{2}\/\d{2}\/\d{4}$/; // Validar formato dd/mm/aaaa
-        if (!regex.test(dateString)) {
-          throw new Error(`Fecha inválida: ${dateString}. Use el formato dd/mm/aaaa.`);
-        }
-        const [day, month, year] = dateString.split('/');
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      };
-      // Construir la cláusula "where" dinámicamente
-      const whereClause = {
-        ...(Fecha_Inicio && { Fecha: { [Sequelize.Op.gte]: convertToDate(Fecha_Inicio) } }), // Fecha mayor o igual a Fecha_Inicio
-        ...(Fecha_Final && { Fecha: { [Sequelize.Op.lte]: convertToDate(Fecha_Final) } }), // Fecha menor o igual a Fecha_Final
-        ...(TipoTransaccion && { TipoTransaccion }), // Filtra por TipoTransaccion si se proporciona
-        ...(MedioPago && { MedioPago }) // Filtra por MedioPago si se proporciona
-      };
+      console.log({ NombreCompleto, Anio });
   
-      // Consultar la base de datos
-      const transacciones = await TransaccionesAhorro.findAll({
-        where: whereClause,
-        order: [['Fecha', 'DESC']] // Ordenar de más reciente a más antigua
+      const whereUserClause = NombreCompleto
+        ? {
+            [Sequelize.Op.or]: [
+              { Nombre: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
+              { Apellido_Paterno: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
+              { Apellido_Materno: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
+            ],
+          }
+        : {};
+  
+      const usuarios = await Usuario.findAll({
+        attributes: ['ID', 'Nombre', 'Apellido_Paterno', 'Apellido_Materno'],
+        where: whereUserClause,
+        include: [
+          {
+            model: Ahorro,
+            required: false,
+            attributes: ['ID'],
+            include: [
+              {
+                model: TransaccionesAhorro,
+                required: false,
+                attributes: ['ID', 'Monto', 'TipoTransaccion', 'Fecha'],
+                where: Anio
+                  ? { Fecha: { [Sequelize.Op.between]: [`${Anio}-01-01`, `${Anio}-12-31`] } }
+                  : {},
+              },
+            ],
+          },
+        ],
+        raw: true,
       });
   
-      // Retornar los resultados en formato JSON
-      return transacciones.map(t => t.toJSON());
+      return usuarios.map((user) => {
+        const nombreCompleto = `${user.Nombre} ${user.Apellido_Paterno} ${user.Apellido_Materno || ''}`.trim();
+        let totalAhorrado = 0;
+        let totalDesahogado = 0;
+        let transacciones = [];
+  
+        if (user['Ahorros.ID']) {
+          if (user['Ahorros.TransaccionesAhorro.ID']) {
+            if (user['Ahorros.TransaccionesAhorro.TipoTransaccion'] === 'Ahorro') {
+              totalAhorrado += parseFloat(user['Ahorros.TransaccionesAhorro.Monto']);
+            } else if (user['Ahorros.TransaccionesAhorro.TipoTransaccion'] === 'Desahogo') {
+              totalDesahogado += parseFloat(user['Ahorros.TransaccionesAhorro.Monto']);
+            }
+  
+            transacciones.push({
+              ID: user['Ahorros.TransaccionesAhorro.ID'],
+              Monto: user['Ahorros.TransaccionesAhorro.Monto'],
+              TipoTransaccion: user['Ahorros.TransaccionesAhorro.TipoTransaccion'],
+              Fecha: user['Ahorros.TransaccionesAhorro.Fecha'],
+            });
+          }
+        }
+  
+        return {
+          NombreCompleto: nombreCompleto,
+          TotalAhorrado: totalAhorrado,
+          TotalDesahogado: totalDesahogado,
+          Total: totalAhorrado - totalDesahogado,
+          Transacciones: transacciones,
+        };
+      });
     } catch (error) {
-      console.error('Error al obtener las transacciones de ahorro:', error);
-      throw new Error('Error al obtener las transacciones de ahorro');
+      console.error('Error al obtener el reporte de ahorro por usuario:', error);
+      throw new Error('Error al obtener el reporte de ahorro por usuario');
     }
   });
-
-
+  
+  
   ipcMain.handle('db:getAmmountSaving', async (_, idUsuario) => {
     try {
       console.log('idUsuario',idUsuario);

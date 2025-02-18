@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', async() => {
     
 })
 
-const getSavingsSearch = async({Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago}) =>{
+const getSavingsSearch = async({ NombreCompleto, Anio }) =>{
     try {
-        const searchResult = await window.db.getAllSavingsTransactionsReport({Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago});
+        const searchResult = await window.db.getAllSavingsTransactionsReport({ NombreCompleto, Anio });
         console.log(searchResult);
         generateTableSearch(searchResult);
     } catch (error) {

@@ -138,10 +138,10 @@ contextBridge.exposeInMainWorld('db', {
        console.error('Error getting loans:', error.message);
     }
   },
-  getAllSavingsTransactionsReport: async ({Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago}) =>{
+  getAllSavingsTransactionsReport: async ({ NombreCompleto, Anio }) =>{
     try {
-      console.log({Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago});
-      return await ipcRenderer.invoke('db:getAllSavingsTransactionsReport', {Fecha_Inicio, Fecha_Final, TipoTransaccion, MedioPago}, );
+      console.log({ NombreCompleto, Anio });
+      return await ipcRenderer.invoke('db:getUserSavingsReport', { NombreCompleto, Anio }, );
     } catch (error) {
        // Muestra el mensaje de error completo para depuración
        console.error('Error getting savings:', error.message);
