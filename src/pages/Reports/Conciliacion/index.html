@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conciliación Bancaria</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="header"></div>
+    <div class="container">
+        <h2>Conciliación Bancaria</h2>
+        <div class="total-section" id="detailSection">
+            <h3>Cálculos</h3>
+            <div class="loan-info">
+                <div class="section">
+                    <div class="info-item">
+                        <span class="label">Saldo Total:</span>
+                        <span class="value" id="monto-total"></span>
+                    </div>
+                
+                </div>
+            </div>
+        </div>
+        <form class="form-conciliacion" id="form-conciliacion">
+            <div class="search-container">
+                <div class="input-container">
+                    <p>Mes</p>
+                    <select name="mes" id="mes">
+                        <option value="01">Enero</option>
+                        <option value="02">Febrero</option>
+                        <option value="03">Marzo</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Mayo</option>
+                        <option value="06">Junio</option>
+                        <option value="07">Julio</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                    
+                </div>
+                <div class="input-container">
+                    <p>Año</p>
+                    <input type="text"  id="year" class="input-search" placeholder="(aaaa)" >
+                </div>
+                <div class="input-container">
+                    <p>Saldo banco</p>
+                    <input type="text"  id="saldo" class="input-search"  >
+                </div>
+                <div class="input-container">
+                    <button id="searchConciliacion">Generar Conciliación</button>
+                </div>
+                <div class="input-container">
+                    <p class="saldo-display">Saldo banco:</p>
+                    <span id="saldo-mxn">$0.00</span>
+                </div>
+            </div>
+        </form>
+
+        <div class="table-container">
+            <table class="conciliacion-table">
+              <thead>
+                <tr id="tr-saving">
+                    <th>No.</th>
+                    <th>Nombre Completo</th>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th>Referencia</th>
+                    <th class="monto-th">Monto</th>
+                    <th class="saldo-th">Saldo</th>
+                    <th>Cuenta Prestamo</th>
+                    <th>Cuenta Ahorro</th>
+               
+                </tr>
+              </thead>
+              <tbody id="conciliation-table-body">
+                <!-- Aquí se insertarán los usuarios dinámicamente -->
+              </tbody>
+            </table>
+            <div id="info"></div>
+        </div>
+    </div>
+</body>
+<script src="./../../../components/header/renderer.js"></script>
+<script>
+    addHeader('./../../../components/header/header.html')
+</script>
+<script src="./renderer.js"></script>
+</html>

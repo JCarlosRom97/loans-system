@@ -30,31 +30,14 @@
             </div>
         </div>
         <div class="searchTableContainer">
+
             <div class="search-container">
-                <p>Tipo de Transacción</p>
-                <select name="" id="search-tipo-transaccion" class="input select-status">
-                    <option value="">Todos</option>
-                    <option value="Ahorro">Ahorro</option>
-                    <option value="Desahogo">Desahogo</option>
-                </select>
-            </div>
+                <p>Año</p>
+                <input type="text"  id="anio" class="input-search" >
+            </div>  
             <div class="search-container">
-                <p>Medio de Pago</p>
-                <select name="" id="search-medio-pago"  class="input select-status">
-                    <option value="">Todos</option>
-                    <option value="Efectivo">Efectivo</option>
-                    <option value="Transferencia">Transferencia</option>
-                    <option value="Cheque">Cheque</option>
-                </select>
-              
-            </div>
-            <div class="search-container">
-                <p>Fecha Inicio</p>
-                <input type="text"  id="search-date-from" class="input-search" placeholder="(dd/mm/aaaa)">
-            </div>
-            <div class="search-container">
-                <p>Fecha Final</p>
-                <input type="text"  id="search-date-to" class="input-search" placeholder="(dd/mm/aaaa)">
+                <p>Nombre</p>
+                <input type="text"  id="name" class="input-search" >
             </div>  
             <div class="search-container">
                 <button id="searchPaysButton">Buscar</button>
@@ -64,12 +47,14 @@
         <div class="table-container">
             <table class="saving-table">
               <thead>
-                <tr>
+                <tr id="tr-saving">
                     <th>No.</th>
-                    <th>Fecha</th>
-                    <th>Monto</th>
-                    <th>Tipo de Transacción</th>
-                    <th>Medio de Pago</th>
+                    <th>Numero de Empleado</th>
+                    <th>Nombre</th>
+                    <th>Año Anterior</th>
+                    <th>Desahogo</th>
+                    <th>Subtotal</th>
+               
                 </tr>
               </thead>
               <tbody id="savings-table-body">

@@ -43,6 +43,19 @@ window.addHeader = (path) => {
           })
         }
 
+        const conciliacionBancaria = document.getElementById('conciliacion-bancaria');
+
+        if(conciliacionBancaria){
+          conciliacionBancaria.addEventListener('click', ()=>{
+            if(window.api){
+              window.api.send('navigate-to', 'src/pages/Reports/Conciliacion/index.html')
+            }else{
+              console.error('window.api is not available!');
+            }
+          })
+        }
+
+
         const openModalCheque = document.getElementById('modalCheques');
 
         if(openModalCheque){

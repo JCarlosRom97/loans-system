@@ -230,6 +230,16 @@ contextBridge.exposeInMainWorld('db', {
 
     }
   },
+  //Concialiacion
+  getConciliation: async ({mes, year})=>{
+    try {
+      return await ipcRenderer.invoke('db:getMonthlyConciliation', {mes, year});
+    } catch (error) {
+        // Muestra el mensaje de error completo para depuración
+        console.error('Error getting Conciliacion:', error.message);
+
+    }
+  }
 });
 
 

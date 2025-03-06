@@ -45,15 +45,18 @@ const checkTablesExist = async () => {
 const defineRelations = () => {
   try {
     Usuario.belongsTo(Domicilio, { foreignKey: 'id_Domicilio_fk', as: 'Domicilio', onDelete: 'CASCADE' });
+    Usuario.hasMany(Ahorro, { foreignKey: 'id_Usuario_fk', as: 'Ahorro' });
     Domicilio.hasMany(Usuario, { foreignKey: 'id_Domicilio_fk', as: 'Usuarios' });
 
-
     Ahorro.belongsTo(Usuario, { foreignKey: 'id_Usuario_fk', as: 'Usuario', onDelete: 'CASCADE' });
-    TransaccionesAhorro.belongsTo(Ahorro, { foreignKey: 'id_Ahorro_fk', as: 'Ahorro', onDelete: 'CASCADE' });
-
+    Ahorro.hasMany(TransaccionesAhorro, { foreignKey: 'id_Ahorro_fk', as: 'Transacciones' }); 
+    
     Prestamo.belongsTo(Usuario, { foreignKey: 'id_Usuario_fk', as: 'Usuario', onDelete: 'CASCADE' });
     Pagos.belongsTo(Prestamo, { foreignKey: 'id_Prestamo_fk', as: 'Prestamo', onDelete: 'CASCADE' });
-
+    
+    
+    
+    TransaccionesAhorro.belongsTo(Ahorro, { foreignKey: 'id_Ahorro_fk', as: 'Ahorro', onDelete: 'CASCADE' });
     console.log('Relationships defined successfully.');
   } catch (error) {
     console.error('Error defining relationships:', error);
