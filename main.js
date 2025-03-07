@@ -76,7 +76,7 @@ const createModalCheque = (parentWindow, options = {}) => {
 const createModalCatorcena = (parentWindow, options = {}) => {
   modalWindowCatorcena = new BrowserWindow({
       width: 900,
-      height: 700,
+      height: 800,
       parent: parentWindow, // Hace que la ventana sea modal
       modal: true,
       show: false, // Evitar que se muestre inmediatamente

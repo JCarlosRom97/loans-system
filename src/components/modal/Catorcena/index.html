@@ -9,7 +9,21 @@
 <body>
   <button id="close-modal-cheque" title="Cerrar">&times;</button>
   <div class="container">
-    
+    <input type="number" id="year" placeholder="Año">
+    <div class="table-container" id="tablePagosPrestamos">
+      <table class="catorcena-table">
+        <thead>
+          <tr>
+              <th>No.</th>
+              <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody id="catorcena-table-body-cheques">
+          <!-- Aquí se insertarán los usuarios dinámicamente -->
+        </tbody>
+      </table>
+      <div id="info">Ingresa un año.</div>
+    </div>
   </div>
 </body>
 

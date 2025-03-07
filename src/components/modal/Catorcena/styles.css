@@ -32,3 +32,45 @@ body {
     align-items: center; /* Centrar elementos dentro del formulario */
     width: 95%;
 }
+
+
+input {
+    padding: 8px;
+    font-size: 16px;
+    width: 20%;
+    border: 1px solid #122443ce;;
+    border-radius: 5px;
+}
+
+.catorcena-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 16px;
+}
+  
+.catorcena-table th,
+.catorcena-table td {
+    padding: 15px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+  
+.catorcena-table th {
+    background-color: #122443ce;
+    color: white;
+}
+  
+.catorcena-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.catorcena-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+  
+.catorcena-table td {
+    word-wrap: break-word;
+    max-width: 200px;
+}
+
