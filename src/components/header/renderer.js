@@ -61,7 +61,19 @@ window.addHeader = (path) => {
         if(openModalCheque){
           openModalCheque.addEventListener('click', ()=>{
             if(window.modal){
-              window.modal.open();
+              window.modal.openCheque();
+            }else{
+              console.error('window.modal is not available!');
+            }
+          })
+        }
+
+        const openModalCatorcena = document.getElementById('modalCatorcena');
+
+        if(openModalCatorcena){
+          openModalCatorcena.addEventListener('click', ()=>{
+            if(window.modal){
+              window.modal.openCatorcena();
             }else{
               console.error('window.modal is not available!');
             }

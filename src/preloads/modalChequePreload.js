@@ -41,7 +41,7 @@ const closeButtonListener = () =>{
         closeModalButton.addEventListener('click', async () => {
             console.log('Intentando cerrar el modal...');
             try {
-                ipcRenderer.invoke('modal:close');
+                ipcRenderer.invoke('modalCheque:close');
                 if (response.success) {
                     console.log('Modal cerrado correctamente:', response.message);
                 } else {

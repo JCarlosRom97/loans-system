@@ -42,10 +42,7 @@ button {
     font-weight: bold;
 }
 
-#close-modal {
-    width: 40%;
-    background-color: red;
-}
+
 
 /* Botón de cerrar en la esquina superior derecha */
 #close-modal {

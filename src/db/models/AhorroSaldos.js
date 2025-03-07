@@ -19,16 +19,28 @@ const AhorroSaldos = sequelize.define('AhorroSaldos', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
   },
+  Periodo: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+  Multa: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  SubTotal: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
   Interes: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  TotalGenerado: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
   },
   Total: {
     type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
-  },
-  Periodo: {
-    type: DataTypes.STRING(50),
     allowNull: false,
   },
 

@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', async() => {
             console.log('resultConciliation',resultConciliation);
 
             if(resultConciliation){
+                const tableConciliation = document.getElementById('conciliation-table-body');
+                tableConciliation.innerHTML = "";
+                
                 generateTableAhorroTransacciones(resultConciliation, saldo);
             }
             

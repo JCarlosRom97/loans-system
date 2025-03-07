@@ -4,12 +4,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
     const params = new URLSearchParams(window.location.search);
     idUser = params.get('idUsuario');
-    console.log(idUser);
-
 
 
     const interesesCheck = document.getElementById('intereses-anuales-check');
-
+    // Corte anual show hide component
     interesesCheck.addEventListener("change", async(e) =>{
         e.preventDefault();
         const interesesCheckValue =  document.getElementById('intereses-anuales-check');
@@ -17,6 +15,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
             formCorteAhorro.style.display = 'block';
             const {totalAhorro} = await window.db.getTotalSavingCorte({userId:idUser, year:new Date().getFullYear()-1});
             document.getElementById('monto-ahorro').value = parseTOMXN(totalAhorro);
+            document.getElementById('total-multa-ahorro').value = parseTOMXN(totalAhorro);
             document.getElementById('year-ahorro').value = new Date().getFullYear()-1;
 
             const {ID} = await window.db.getAmmountSaving(idUser);
@@ -38,21 +37,24 @@ document.addEventListener('DOMContentLoaded', ()=>{
         e.preventDefault();
 
         const percentage = document.getElementById('interes-prestamo-acumulado').value /100;
-        const Monto_Generado  = parsefromMXN(document.getElementById('monto-ahorro').value) * percentage;
+        const Monto_Generado  = parsefromMXN(document.getElementById('total-multa-ahorro').value) * percentage;
 
         console.log(Monto_Generado);
 
         const corteData = {
-            ID_Usuario:idUser, 
+            ID_Usuario:parseInt(idUser), 
             saveCorteAhorro: parsefromMXN(document.getElementById('monto-ahorro').value), 
             Periodo: document.getElementById('year-ahorro').value, 
-            Interes: document.getElementById('interes-prestamo-acumulado').value, 
+            Multa: parseInt(document.getElementById('multa-ahorro').value),
+            SubTotal: parsefromMXN(document.getElementById('total-multa-ahorro').value),
+            Interes: parseInt(document.getElementById('interes-prestamo-acumulado').value), 
             Total: parsefromMXN(document.getElementById('total-ahorro').value),
             Monto_Generado
         }
 
         console.log(corteData);
-        
+
+      
         const responseCorte = await window.db.saveCorteAhorro(corteData)
 
         console.log(responseCorte);
@@ -98,17 +100,32 @@ document.addEventListener('DOMContentLoaded', ()=>{
         if(regexDate(yearAhorroCorteValue) ){
             generateCorteInformation(yearAhorroCorteValue)
         }
-   
+    })
+
+    const multaInput = document.getElementById('multa-ahorro');
+
+    multaInput.addEventListener('keyup', (e) =>{
+        const multa = document.getElementById('multa-ahorro').value;
+        const ahorro = parsefromMXN(document.getElementById('monto-ahorro').value);
+        if(multa ==""){
+            document.getElementById('total-multa-ahorro').value  = parseTOMXN(ahorro)
+            return
+        }
+
+        document.getElementById('total-multa-ahorro').value = 
+        parseTOMXN(parseInt(ahorro) - parseInt(multa)); 
     })
 
 })
 
 async function generateCorteInformation (year){
     const {totalAhorro} = await window.db.getTotalSavingCorte({userId:idUser, year});
-    document.getElementById('monto-ahorro').value = parseTOMXN(totalAhorro);
+    const multa = document.getElementById('total-multa-ahorro').value;
     const percentage = document.getElementById('interes-prestamo-acumulado').value /100;
-    document.getElementById('total-ahorro').value  = parseTOMXN(totalAhorro +(totalAhorro*percentage));
+    const total = parsefromMXN(multa);
 
+    document.getElementById('monto-ahorro').value = parseTOMXN(totalAhorro);
+    document.getElementById('total-ahorro').value  = parseTOMXN( total+(total*percentage));
 }
 
 function regexDate (fechaValue){
@@ -135,8 +152,10 @@ async function fetchAndDisplaySaldos(saldos) {
                 <tr>
                     <td>${saving.Periodo}</td>
                     <td>${parseTOMXN(saving.Ahorro)}</td>
+                    <td><span class="less-red">- ${parseTOMXN(saving.Multa)}</span></td>
+                    <td>${parseTOMXN(saving.SubTotal)}</td>
                     <td>${saving.Interes}%</td>
-                    <td>${parseTOMXN(saving.Total-saving.Ahorro)}</td>
+                    <td>${parseTOMXN(saving.TotalGenerado)}</td>
                     <td>${parseTOMXN(saving.Total)}</td>
                 </tr>
             `;

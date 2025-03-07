@@ -26,7 +26,8 @@ require('electron-reload')(__dirname, {
 
 
 let mainWindow;
-let modalWindow;
+let modalWindowCheque;
+let modalWindowCatorcena;
 
 const createWindow = () => {
     const { width, height } = useWindowSize();
@@ -45,8 +46,8 @@ const createWindow = () => {
 };
 
 // Crear una ventana modal
-const createModal = (parentWindow, options = {}) => {
-    modalWindow = new BrowserWindow({
+const createModalCheque = (parentWindow, options = {}) => {
+    modalWindowCheque = new BrowserWindow({
         width: 900,
         height: 700,
         parent: parentWindow, // Hace que la ventana sea modal
@@ -55,21 +56,48 @@ const createModal = (parentWindow, options = {}) => {
         resizable: false, // Evita redimensionar
         webPreferences: {
             contextIsolation: true,
-            preload: path.join(__dirname, 'src', 'preloads', 'modalPreload.js'),
+            preload: path.join(__dirname, 'src', 'preloads', 'modalChequePreload.js'),
         },
     });
 
     // Cargar el archivo HTML del modal
-    modalWindow.loadFile('./src/components/modal/index.html');
+    modalWindowCheque.loadFile('./src/components/modal/Cheque/index.html');
 
-    modalWindow.once('ready-to-show', () => {
-        modalWindow.show();
-        modalWindow.webContents.openDevTools();
+    modalWindowCheque.once('ready-to-show', () => {
+        modalWindowCheque.show();
     });
 
-    modalWindow.on('closed', () => {
-        modalWindow = null;
+    modalWindowCheque.on('closed', () => {
+        modalWindowCheque = null;
     });
+};
+
+// Crear una ventana modal
+const createModalCatorcena = (parentWindow, options = {}) => {
+  modalWindowCatorcena = new BrowserWindow({
+      width: 900,
+      height: 700,
+      parent: parentWindow, // Hace que la ventana sea modal
+      modal: true,
+      show: false, // Evitar que se muestre inmediatamente
+      resizable: false, // Evita redimensionar
+      webPreferences: {
+          contextIsolation: true,
+          preload: path.join(__dirname, 'src', 'preloads', 'modalCatorcenaPreload.js'),
+      },
+  });
+
+  // Cargar el archivo HTML del modal
+  modalWindowCatorcena.loadFile('./src/components/modal/Catorcena/index.html');
+
+  modalWindowCatorcena.once('ready-to-show', () => {
+      modalWindowCatorcena.show();
+      modalWindowCatorcena.webContents.openDevTools();
+  });
+
+  modalWindowCatorcena.on('closed', () => {
+      modalWindowCatorcena = null;
+  });
 };
 
 app.whenReady().then(async()=>{
@@ -395,9 +423,9 @@ app.whenReady().then(async()=>{
     }
   });
 
-  ipcMain.handle('db:saveCorteAhorro', async (_, { ID_Usuario, saveCorteAhorro, Periodo, Interes, Total, Monto_Generado }) => {
+  ipcMain.handle('db:saveCorteAhorro', async (_, { ID_Usuario, saveCorteAhorro, Periodo, Multa, SubTotal, Interes, Total, Monto_Generado }) => {
     try {
-      console.log('saveCorteAhorro', { ID_Usuario, saveCorteAhorro, Periodo, Interes, Total, Monto_Generado });
+      console.log('saveCorteAhorro', { ID_Usuario, saveCorteAhorro, Periodo, Multa, SubTotal, Interes, Total, Monto_Generado });
   
       // Obtener el ID de Ahorro asociado al usuario
       const ahorroRecord = await Ahorro.findOne({
@@ -417,9 +445,12 @@ app.whenReady().then(async()=>{
         ID_Usuario,
         ID_Ahorro: ahorroId,
         Ahorro: saveCorteAhorro,
+        Periodo,
+        Multa,
+        SubTotal,
         Interes,
+        TotalGenerado: Total - saveCorteAhorro + Multa,
         Total,
-        Periodo
       });
   
       // Actualizar el monto en Ahorro
@@ -431,12 +462,12 @@ app.whenReady().then(async()=>{
       // Registrar solo los intereses en TransaccionesAhorro
       await TransaccionesAhorro.create({
         id_Ahorro_fk: ahorroId,
-        Monto: Total,
+        Monto: Monto_Generado,
         Fecha: new Date(),
         Fecha_Deposito: new Date(),
         TipoTransaccion: 'Corte',
         MedioPago: 'Cheque',
-        Monto_Generado
+        Saldo_Final_Corte: Total
       });
   
       return { ahorroSaldo: newAhorroSaldo };
@@ -1165,19 +1196,46 @@ ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo
     }
   });
 
-  ipcMain.handle('modal:open', async (event, modalData) => {
+  ipcMain.handle('modalCheque:open', async (event, modalData) => {
     console.log('Opening modal with data:', modalData);
 
     if (mainWindow) {
-      createModal(mainWindow);
+      createModalCheque(mainWindow);
     }
   });
 
-  ipcMain.handle('modal:close', async () => {
+  ipcMain.handle('modalCheque:close', async () => {
     try {
-      if (modalWindow) {
-        modalWindow.close();
-        modalWindow = null; // Liberar referencia al modal
+      if (modalWindowCheque) {
+        modalWindowCheque.close();
+        modalWindowCheque = null; // Liberar referencia al modal
+        console.log('Modal window closed successfully');
+        return { success: true, message: 'Modal closed successfully' };
+      } else {
+        console.log('No modal window to close');
+        return { success: false, message: 'No modal window to close' };
+      }
+    } catch (error) {
+      console.error('Error closing modal:', error);
+      return { success: false, message: 'Error closing modal' };
+    }
+  });
+
+  // Catorcena Modal 
+
+  ipcMain.handle('modalCatorcena:open', async (event, modalData) => {
+    console.log('Opening modal with data:', modalData);
+
+    if (mainWindow) {
+      createModalCatorcena(mainWindow);
+    }
+  });
+
+  ipcMain.handle('modalCatorcena:close', async () => {
+    try {
+      if (modalWindowCatorcena) {
+        modalWindowCatorcena.close();
+        modalWindowCatorcena = null; // Liberar referencia al modal
         console.log('Modal window closed successfully');
         return { success: true, message: 'Modal closed successfully' };
       } else {

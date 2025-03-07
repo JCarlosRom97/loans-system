@@ -126,7 +126,7 @@ async function fetchAndDisplaySavings(idAhorro) {
                     <td>
                         ${saving.TipoTransaccion === 'Ahorro' || saving.TipoTransaccion ==='Corte'
                         ? `<span class="more-green">+</span> ${Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saving.Monto_Generado || saving.Monto)}`
-                        : `<span class="less-red">-</span> ${Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saving.Monto)}`}
+                        : `<span class="less-red">- ${Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saving.Monto)}</span> `}
                     </td>
                     <td>${saving.MedioPago || 'N/A'}</td>
                     <td>

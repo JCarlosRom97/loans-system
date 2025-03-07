@@ -15,7 +15,7 @@ const TransaccionesAhorro = sequelize.define('TransaccionesAhorro', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
   },
-  Monto_Generado: {
+  Saldo_Final_Corte: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true,
   },

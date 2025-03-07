@@ -41,11 +41,33 @@
                 <h2 id="userName">Corte Anual Ahorro.</h2>
              
             </div>
-            <div class="container-inputs">
-                <input type="text" name="monto-ahorro" id="monto-ahorro" placeholder="Monto Ahorrado" disabled>
-                <input type="text" name="year-ahorro" id="year-ahorro" placeholder="Año" >
-                <input type="text" name="interes-prestamo-acumulado" id="interes-prestamo-acumulado" placeholder="Interes" required>
-                <input type="text" name="total-ahorro" id="total-ahorro" placeholder="Total de ahorro" required disabled>
+            <div class="container-inputs corte-container">
+                <div class="loan-info">
+                    <div class="section">
+                        <div class="info-item">
+                            <input type="text" name="monto-ahorro" id="monto-ahorro" placeholder="Monto Ahorrado" disabled>
+                        </div>
+                        <div class="info-item">
+                            <input type="text" name="year-ahorro" id="year-ahorro" placeholder="Año" >
+                        </div>
+                        <div class="info-item">
+                            <input type="number" name="multa-ahorro" id="multa-ahorro" placeholder="Multa" >
+                        </div>
+                        <div class="info-item">
+                            <input type="text" name="total-multa-ahorro" id="total-multa-ahorro" required disabled>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <input type="number" name="interes-prestamo-acumulado" id="interes-prestamo-acumulado" placeholder="Interes" required>
+                        </div>
+                        <div class="info-item">
+                            <input type="text" name="total-ahorro" id="total-ahorro" placeholder="Total de ahorro corte" required disabled>
+                        </div>
+                        <div class="info-item"></div>
+                        <div class="info-item"></div>
+                    </div>
+                </div>
             </div>
             <div class="containerSubmit">
                 <button type="submit">Guardar</button>
@@ -56,8 +78,10 @@
                         <tr>
                             <th>Periodo</th>
                             <th>Ahorro Acumulado</th>
+                            <th>Multa</th>
+                            <th>Subtotal</th>
                             <th>Interés</th>
-                            <th>Total generado</th>
+                            <th>Total generado intereses</th>
                             <th>Total</th>
                         </tr>
                     </thead>

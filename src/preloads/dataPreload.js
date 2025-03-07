@@ -95,10 +95,10 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error getting savings', error);
     }
   },
-  saveCorteAhorro:  async ({ ID_Usuario, saveCorteAhorro, Periodo, Interes, Total, Monto_Generado }) =>{
+  saveCorteAhorro:  async ({ ID_Usuario, saveCorteAhorro, Periodo, Multa, SubTotal, Interes, Total, Monto_Generado }) =>{
 
     try {
-      return await ipcRenderer.invoke('db:saveCorteAhorro', { ID_Usuario, saveCorteAhorro, Periodo, Interes, Total, Monto_Generado });
+      return await ipcRenderer.invoke('db:saveCorteAhorro', { ID_Usuario, saveCorteAhorro, Periodo, Multa, SubTotal, Interes, Total, Monto_Generado });
     } catch (error) {
       console.error('Error getting savings:', error);
       throw new Error('Error getting savings', error);
@@ -339,8 +339,12 @@ contextBridge.exposeInMainWorld('api', {
 });
 
 contextBridge.exposeInMainWorld('modal', {
-  open: (modalData) => ipcRenderer.invoke('modal:open', modalData),
-  close: () => ipcRenderer.invoke('modal:close'),
+  //Cheque
+  openCheque: (modalData) => ipcRenderer.invoke('modalCheque:open', modalData),
+  closeCheque: () => ipcRenderer.invoke('modalCheque:close'),
+  // Catorcena
+  openCatorcena: (modalData) => ipcRenderer.invoke('modalCatorcena:open', modalData),
+  closeCatorcena: () => ipcRenderer.invoke('modalCatorcena:close'),
 });
 
 contextBridge.exposeInMainWorld('electron', {
