@@ -14,7 +14,13 @@ var monthTotals = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    getLoansSearch({ Status: '', Year: '', Nombre: '' });
+
+    const fechaActual = new Date();
+    const year = fechaActual.getFullYear(); // Año en formato 'YYYY'
+
+    document.getElementById('search-date-year').value = year;
+
+    getLoansSearch({ Status: '', Year: year, Nombre: '' });
 
     /* Filtro de Status */
     const statusSelect = document.getElementById('statusSearch');
@@ -128,6 +134,8 @@ const generateTableSearch = async (loans, Year) => {
 
         for (const loan of loans) {
             try {
+
+                console.log(loan);
                 const concilitionData = generateConciliation(loan, Year);
                 calculateMonthTotal(concilitionData);
 
@@ -137,7 +145,7 @@ const generateTableSearch = async (loans, Year) => {
                         <td>${loan.Usuario.Nombre} ${loan.Usuario.Apellido_Paterno} ${loan.Usuario.Apellido_Materno}</td>
                         <td>${loan.Usuario.CTA_CONTABLE_PRESTAMO || 'N/A'}</td>
                         <td>${loan.Numero_Cheque || 'N/A'}</td>
-                        <td>${loan.Periodo || 'N/A'}</td>
+                        <td>${loan.Periodo || 'N/A'} Años</td>
                         <td>${loan.Cantidad_Meses || 'N/A'}</td>
                         <td>${window.api.formatDateToDisplay(loan.Fecha_Inicio) || 'N/A'}</td>
                         <td>${window.api.formatDateToDisplay(loan.Fecha_Termino) || 'N/A'}</td>
@@ -146,9 +154,10 @@ const generateTableSearch = async (loans, Year) => {
                         <td>${parseTOMXN(loan.TotalPrestamo_Intereses)}</td>
                         <td>${parseTOMXN(loan.Abono)}</td>
                         ${concilitionData.meses.map((month) => (`
-                            <td><input type="number" value="${month.interes}" data-month="${month.mes.trim().toLowerCase()}" data-loan-id="${loan.id}" class="month-input"></td>
+                            <td><input type="number" value="${month.interes}" data-month="${month.mes.trim().toLowerCase()}" data-loan-id="${loan.ID}" class="month-input"></td>
                         `)).join('')}
-                        <td>${parseTOMXN(concilitionData.totalIntereses)}</td>
+                        <td data-loan-total="${loan.ID}">${parseTOMXN(concilitionData.totalIntereses)}</td>
+
                     </tr>
                 `;
 
@@ -285,27 +294,29 @@ const calculateMonthTotal = (conciliationData) => {
 
 const handleMonthInputChange = (event) => {
     const input = event.target;
-    const month = input.dataset.month;
+    const month = input.dataset.month.trim().toLowerCase();
     const loanId = input.dataset.loanId;
 
-    // Validar si el valor ingresado es un número
-    let newValue = parseFloat(input.value);
-    if (isNaN(newValue)) {
-        newValue = 0; // Asignar 0 si no es un número
-        input.value = 0; // También actualizar el valor en el input
-    }
+    let newValue = parseFloat(input.value) || 0;
+    let oldValue = parseFloat(input.defaultValue) || 0;
 
-    console.log(newValue, isNaN(input.value));
+    console.log(`Cambio detectado en el mes ${month} para el préstamo ${loanId}: ${oldValue} → ${newValue}`);
 
-    // Actualizar el valor en monthTotals
-    monthTotals[month] += newValue - parseFloat(input.defaultValue); // Ajustar el total
+    // Ajustar el total mensual correctamente
+    monthTotals[month] += newValue - oldValue;
 
     // Actualizar el valor por defecto para futuros cambios
     input.defaultValue = newValue;
 
-    // Recalcular los totales
+    // Actualizar totales en la tabla
     updateMonthTotalsInTable();
+
+    // Actualizar el total del préstamo
+    updateLoanTotalInterests(loanId);
 };
+
+
+
 
 const updateMonthTotalsInTable = () => {
     let totalTableMonth = 0;
@@ -327,6 +338,34 @@ const updateMonthTotalsInTable = () => {
     const totalIntereses = Object.values(monthTotals).reduce((acc, curr) => acc + curr, 0);
     document.getElementById('intereses-total').innerText = parseTOMXN(totalIntereses);
 };
+
+const updateLoanTotalInterests = (loanId) => {
+    console.log(`Actualizando total para préstamo: ${loanId}`);
+
+    // Buscar todos los inputs de ese préstamo
+    const loanInputs = document.querySelectorAll(`.month-input[data-loan-id="${loanId}"]`);
+
+    let totalLoanInterest = 0;
+    loanInputs.forEach(input => {
+        let value = parseFloat(input.value) || 0;
+        totalLoanInterest += value;
+    });
+
+    console.log(`Nuevo total calculado: ${totalLoanInterest}`);
+
+    // Buscar la celda donde se debe actualizar el total
+    const totalInterestCell = document.querySelector(`td[data-loan-total="${loanId}"]`);
+    
+    if (totalInterestCell) {
+        totalInterestCell.textContent = parseTOMXN(totalLoanInterest);
+        console.log(`Total actualizado en la celda: ${totalInterestCell.textContent}`);
+    } else {
+        console.warn(`No se encontró la celda de total para el préstamo ${loanId}`);
+    }
+};
+
+
+
 
 const cleanTotals = () => {
     for (const [month, total] of Object.entries(monthTotals)) {
