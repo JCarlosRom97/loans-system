@@ -220,7 +220,7 @@ contextBridge.exposeInMainWorld('db', {
         alert("Error al eliminar la transacción.");
     }
   },
-  //Cheques
+  //Cheques y gastos
   addCheques: async (data) =>{
     try {
       return await ipcRenderer.invoke('db:addCheque', data);

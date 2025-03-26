@@ -10,6 +10,7 @@ const Pagos = require('./src/db/models/Pagos')
 const Ahorro = require('./src/db/models/Ahorro');
 const TransaccionesAhorro = require('./src/db/models/TransaccionesAhorro');
 const Cheques = require('./src/db/models/Cheques')
+const Gastos = require('./src/db/models/Gastos');
 const { Sequelize } = require('sequelize');
 const sequelize = require('./src/db/index')
 const syncDatabase = require('./src/db/sync');
@@ -48,15 +49,15 @@ const createWindow = () => {
 // Crear una ventana modal
 const createModalCheque = (parentWindow, options = {}) => {
     modalWindowCheque = new BrowserWindow({
-        width: 900,
-        height: 700,
+        width: 1000,
+        height: 800,
         parent: parentWindow, // Hace que la ventana sea modal
         modal: true,
         show: false, // Evitar que se muestre inmediatamente
         resizable: false, // Evita redimensionar
         webPreferences: {
             contextIsolation: true,
-            preload: path.join(__dirname, 'src', 'preloads', 'modalChequePreload.js'),
+            preload: path.join(__dirname, 'src', 'preloads', 'modalGastoPreload.js'),
         },
     });
 
@@ -65,6 +66,7 @@ const createModalCheque = (parentWindow, options = {}) => {
 
     modalWindowCheque.once('ready-to-show', () => {
         modalWindowCheque.show();
+        modalWindowCheque.webContents.openDevTools();
     });
 
     modalWindowCheque.on('closed', () => {
@@ -279,8 +281,6 @@ app.whenReady().then(async()=>{
           }
         : {};
   
-
-  
       const usuarios = await Usuario.findAll({
         attributes: ['ID', 'Nombre', 'Apellido_Paterno', 'Apellido_Materno', 'Codigo_Empleado'],
         where: whereUserClause,
@@ -296,6 +296,11 @@ app.whenReady().then(async()=>{
                 as: 'Transacciones',
                 required: false,
                 attributes: ['ID', 'Monto', 'TipoTransaccion', 'Fecha'],
+                where: {
+                  TipoTransaccion: {
+                    [Sequelize.Op.ne]: 'Corte', // Excluir transacciones con TipoTransaccion = "Corte"
+                  },
+                },
               },
             ],
           },
@@ -303,8 +308,11 @@ app.whenReady().then(async()=>{
         raw: false,
       });
   
+      // Obtener el año anterior en formato yyyy
+      const añoAnterior = (parseInt(Anio) - 1).toString();
+  
       // Transformar la salida para separar transacciones del año actual y del anterior
-      const resultado = usuarios.map(usuario => {
+      const resultado = await Promise.all(usuarios.map(async (usuario) => {
         // Filtrar transacciones por año
         const transaccionesAnioActual = [];
         const transaccionesAnioAnterior = [];
@@ -326,10 +334,19 @@ app.whenReady().then(async()=>{
           });
         }
 
-           // Ordenar las transacciones por fecha en ambas categorías
-      transaccionesAnioActual.sort((a, b) => new Date(a.Fecha) - new Date(b.Fecha));
-      transaccionesAnioAnterior.sort((a, b) => new Date(a.Fecha) - new Date(b.Fecha));
+        // Ordenar las transacciones por fecha en ambas categorías
+        transaccionesAnioActual.sort((a, b) => new Date(a.Fecha) - new Date(b.Fecha));
+        transaccionesAnioAnterior.sort((a, b) => new Date(a.Fecha) - new Date(b.Fecha));
 
+        // Buscar los cortes en AhorroSaldos por ID_Usuario y que correspondan al año anterior
+        const cortesAhorroSaldos = await AhorroSaldos.findAll({
+          where: {
+            ID_Usuario: usuario.ID, // Buscar por ID_Usuario
+            Periodo: añoAnterior,   // Filtrar por el año anterior en formato yyyy
+          },
+          attributes: ['Total'], // Solo retornar el campo Total
+          raw: true,
+        });
   
         return {
           ID: usuario.ID,
@@ -344,8 +361,9 @@ app.whenReady().then(async()=>{
             AnioActual: transaccionesAnioActual,
             AnioAnterior: transaccionesAnioAnterior,
           },
+          TotalAhorroSaldosAnioAnterior: cortesAhorroSaldos.length > 0 ? cortesAhorroSaldos[0].Total : null, // Retornar el Total si existe
         };
-      });
+      }));
   
       console.log('getUserSavingsReport:', resultado);
   
@@ -354,25 +372,48 @@ app.whenReady().then(async()=>{
       console.error('Error al obtener el reporte de ahorro por usuario:', error);
       throw new Error('Error al obtener el reporte de ahorro por usuario');
     }
-  });
+});
   
   
   
-  
-  ipcMain.handle('db:getAmmountSaving', async (_, idUsuario) => {
-    try {
-      console.log('idUsuario',idUsuario);
+ipcMain.handle('db:getAmmountSaving', async (_, idUsuario) => {
+  try {
+      console.log('idUsuario', idUsuario);
+
+      // Buscar el registro de Ahorro del usuario
       let ahorro = await Ahorro.findOne({ where: { id_Usuario_fk: idUsuario } });
-      if(ahorro){
-        console.log('ahorro', ahorro.dataValues);
-        return ahorro.dataValues;
+
+      if (ahorro) {
+          console.log('ahorro', ahorro.dataValues);
+
+          // Obtener el id del Ahorro
+          const idAhorro = ahorro.dataValues.ID;
+
+          // Buscar el último registro de TransaccionesAhorro para el Ahorro, donde el tipo sea "Ahorro"
+          const ultimaTransaccionAhorro = await TransaccionesAhorro.findOne({
+              where: {
+                  id_Ahorro_fk: idAhorro, // Usar el id del Ahorro
+                  TipoTransaccion: 'Ahorro' // Filtrar solo transacciones de tipo "Ahorro"
+              },
+              order: [['Fecha', 'DESC']], // Ordenar por fecha en orden descendente para obtener el último registro
+          });
+
+          // Actualizar FechaUltimaActualizacion con la fecha de la última transacción de ahorro
+          if (ultimaTransaccionAhorro) {
+              ahorro.dataValues.FechaUltimaActualizacion = ultimaTransaccionAhorro.Fecha;
+          }
+
+          return ahorro.dataValues; // Devolver el registro de Ahorro con la fecha actualizada
+      } else {
+          console.log('No se encontró el registro de ahorro para el usuario.');
+          return null; // Devolver null si no hay registro de ahorro
       }
 
-    } catch (error) {
-        console.error('Error al obtener el monto de ahorro:', error);
-        throw new Error('Error al obtener el monto de ahorro:');
-    }
-  });
+  } catch (error) {
+      console.error('Error al obtener el monto de ahorro:', error);
+      throw new Error('Error al obtener el monto de ahorro:');
+  }
+});
 
 
   ipcMain.handle('db:getAhorroSaldoById', async (_, idAhorro) => {
@@ -978,7 +1019,48 @@ ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo
       console.error("Error en la transacción:", error.message);
       throw error;
   }
-});
+  });
+
+  /* Gastos y cheques */
+
+  ipcMain.handle('db:addGasto', async (_, data) => {
+    try {
+      const newGasto = await Gastos.create(data);
+      return newGasto.toJSON();
+    } catch (error) {
+      console.error('Error adding gasto:', error);
+      throw new Error('Error adding gasto');
+    }
+  });
+
+  ipcMain.handle('db:getGastos', async (_, { mes, year } = {}) => {
+
+    console.log('db:getGastos',{ mes, year });
+    
+    try {
+        const whereClause = {};
+        
+        // Filtro por mes y year (si se proporcionan)
+        if (mes !== undefined && year !== undefined) {
+            const startDate = new Date(year, mes - 1, 1); // Primer día del mes
+            const endDate = new Date(year, mes, 0, 23, 59, 59); // Último día del mes a las 23:59:59
+
+            whereClause.Fecha = {
+                [Sequelize.Op.between]: [startDate, endDate]
+            };
+        }
+
+        const gastos = await Gastos.findAll({
+            where: whereClause,
+            order: [['Fecha', 'DESC']],
+        });
+
+        return gastos.map(gasto => gasto.toJSON());
+    } catch (error) {
+        console.error('Error al obtener los gastos:', error);
+        throw new Error('Error en la base de datos al cargar gastos');
+    }
+  });
 
   ipcMain.handle('db:addCheque', async (_, data) => {
     try {
@@ -990,13 +1072,31 @@ ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo
     }
   });
 
-  ipcMain.handle('db:getCheques', async () => {
+  ipcMain.handle('db:getCheques', async (_, { mes, year } = {}) => {
     try {
-      const cheques = await Cheques.findAll();
-      return cheques.map(cheque => cheque.toJSON());
+        console.log('db:getCheques', { mes, year });
+        
+        const whereClause = {};
+        
+        // Filtro por mes y año (si se proporcionan)
+        if (mes !== undefined && year !== undefined) {
+            const startDate = new Date(year, mes - 1, 1); // Primer día del mes
+            const endDate = new Date(year, mes, 0, 23, 59, 59); // Último día del mes a las 23:59:59
+
+            whereClause.Fecha = {
+                [Sequelize.Op.between]: [startDate, endDate]
+            };
+        }
+
+        const cheques = await Cheques.findAll({
+            where: whereClause,
+            order: [['Fecha', 'DESC']], // Ordenar por fecha descendente
+        });
+        
+        return cheques.map(cheque => cheque.toJSON());
     } catch (error) {
-      console.error('Error getting cheques:', error);
-      throw new Error('Error getting cheques');
+        console.error('Error getting cheques:', error);
+        throw new Error('Error getting cheques');
     }
   });
   
@@ -1076,6 +1176,7 @@ ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo
         const startDate = new Date(year, mes - 1, 1);
         const endDate = new Date(year, mes, 0, 23, 59, 59);
 
+        // Obtener cheques dentro del rango de fechas
         const cheques = await Cheques.findAll({
             where: {
                 Fecha: {
@@ -1084,6 +1185,7 @@ ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo
             }
         });
 
+        // Obtener pagos dentro del rango de fechas
         const pagos = await Pagos.findAll({
             where: {
                 Fecha_Pago: {
@@ -1093,17 +1195,18 @@ ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo
             include: [
                 {
                     model: Prestamo,
-                    as: 'Prestamo', // Asegúrate de que el alias es correcto en tu definición de relaciones
+                    as: 'Prestamo',
                     include: [
                         {
                             model: Usuario,
-                            as: 'Usuario' // Asegúrate de que el alias es correcto en tu definición de relaciones
+                            as: 'Usuario'
                         }
                     ]
                 }
             ]
         });
 
+        // Obtener transacciones de ahorro dentro del rango de fechas
         const transaccionesAhorro = await TransaccionesAhorro.findAll({
             where: {
                 Fecha: {
@@ -1124,10 +1227,39 @@ ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo
             ],
         });
 
+        // Obtener préstamos cuya Fecha_Inicio corresponda con el mes y año del filtro
+        const prestamosInicioMes = await Prestamo.findAll({
+            where: {
+                Fecha_Inicio: {
+                    [Sequelize.Op.between]: [startDate, endDate]
+                }
+            },
+            include: [
+                {
+                    model: Usuario,
+                    as: 'Usuario'
+                }
+            ]
+        });
+
+        // Convertir los préstamos a JSON y agregar información adicional
+        const prestamosJSON = prestamosInicioMes.map(p => {
+            const pJSON = p.toJSON();
+            return {
+                ...pJSON,
+                NombreCompleto: `${pJSON.Usuario?.Nombre || ''} ${pJSON.Usuario?.Apellido_Paterno || ''} ${pJSON.Usuario?.Apellido_Materno || ''}`.trim(),
+                CTA_CONTABLE_PRESTAMO: pJSON.Usuario?.CTA_CONTABLE_PRESTAMO || 'N/A',
+                CTA_CONTABLE_AHORRO: pJSON.Usuario?.CTA_CONTABLE_AHORRO || 'N/A',
+                TipoTransaccion: 'Préstamo Iniciado', // Agregar un tipo de transacción para identificar
+                Fecha: pJSON.Fecha_Inicio // Usar Fecha_Inicio como fecha de la transacción
+            };
+        });
+
+        // Combinar todos los resultados
         return {
-            cheques: cheques.map(c => c.toJSON()), // Convertir objetos Sequelize a JSON
+            cheques: cheques.map(c => c.toJSON()),
             pagos: pagos.map(p => {
-                const pJSON = p.toJSON(); // Convertir objeto a JSON
+                const pJSON = p.toJSON();
                 return {
                     ...pJSON,
                     NombreCompleto: `${pJSON.Prestamo?.Usuario?.Nombre || ''} ${pJSON.Prestamo?.Usuario?.Apellido_Paterno || ''} ${pJSON.Prestamo?.Usuario?.Apellido_Materno || ''}`.trim(),
@@ -1136,24 +1268,21 @@ ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo
                 };
             }),
             transaccionesAhorro: transaccionesAhorro.map(t => {
-                const tJSON = t.toJSON(); // Convertir el objeto a JSON
+                const tJSON = t.toJSON();
                 return {
                     ...tJSON,
                     NombreCompleto: `${tJSON.Ahorro?.Usuario?.Nombre || ''} ${tJSON.Ahorro?.Usuario?.Apellido_Paterno || ''} ${tJSON.Ahorro?.Usuario?.Apellido_Materno || ''}`.trim(),
                     CTA_CONTABLE_PRESTAMO: tJSON.Ahorro?.Usuario?.CTA_CONTABLE_PRESTAMO || 'N/A',
                     CTA_CONTABLE_AHORRO: tJSON.Ahorro?.Usuario?.CTA_CONTABLE_AHORRO || 'N/A'
                 };
-            })
+            }),
+            prestamosInicioMes: prestamosJSON // Agregar los préstamos con Fecha_Inicio en el mes
         };
     } catch (error) {
         console.error('Error al obtener los datos mensuales:', error);
         throw new Error('Error al obtener los datos mensuales');
     }
-});
-
-
-
-
+  });
 
   ipcMain.on('navigate-to', (event, page, usuarioId = null) => {
       try {

@@ -3,8 +3,7 @@ body {
     flex-direction: column;
     justify-content: center; /* Centrar verticalmente */
     align-items: center; /* Centrar horizontalmente */
-    height: 100vh; /* Ocupar toda la pantalla */
-    margin: 0;
+    margin-top: 40px;
 }
 
 form {
@@ -15,7 +14,21 @@ form {
     width: 95%;
 }
 
-input[type="text"] {
+.form-search-gastos{
+  flex-direction: row;
+}
+
+
+.search-container{
+  display: flex;
+  flex-direction: row;
+}
+
+.input-container{
+  margin: 30px;
+}
+
+input[type="text"], select {
 
     padding: 10px;
     border: 1px solid #ddd;
@@ -34,6 +47,18 @@ button {
     cursor: pointer;
     font-size: 16px;
     margin-bottom: 10px;
+}
+
+.search-button {
+  margin-top: 55px;
+  height: 30px;
+  width: 100px;
+  background-color: rgb(0, 145, 0);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 5px;
 }
 
 #info{
@@ -86,7 +111,7 @@ font-weight: bold;
 color: #555;
 }
 
-.form-group input {
+.form-group input, .form-group select {
   flex: 2 1 ;
   padding: 10px;
   margin: 10px;

@@ -1,13 +1,14 @@
 document.addEventListener('DOMContentLoaded', async() => {
     const fechaActual = new Date();
     //  Agregar el +1 despues de hacer pruebas 
-    const mes = String(fechaActual.getMonth()).padStart(2, '0'); // Mes en formato 'MM'
+    const mes = String(fechaActual.getMonth() +1).padStart(2, '0'); // Mes en formato 'MM'
     const year = fechaActual.getFullYear(); // Año en formato 'YYYY'
+    
     
     document.getElementById('mes').value = mes;
     document.getElementById('year').value = year;
 
-    defaultSearch({mes, year});
+    conciliationSearch({mes, year});
 
     
     
@@ -31,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async() => {
                 const tableConciliation = document.getElementById('conciliation-table-body');
                 tableConciliation.innerHTML = "";
                 
-                generateTableAhorroTransacciones(resultConciliation, saldo);
+                generateConciliationTable(resultConciliation, saldo);
             }
             
         } catch (error) {
@@ -49,128 +50,70 @@ document.addEventListener('DOMContentLoaded', async() => {
     })
 })
 
-function generateTableAhorroTransacciones(records, saldo) {
-    // Verificar si hay usuarios
-    let saldoActual = parseInt(saldo); // Inicializar saldo con el valor pasado como parámetro
-    let numberRecord = 1; 
-    if (records.transaccionesAhorro.length > 0) {
-        // Generar el HTML para la tabla
-        let tableHTML = ``;
-        // Recorrer los usuarios y agregar filas
-        records.transaccionesAhorro.forEach((record) => {
-            
-            let monto = record.Monto_Generado || record.Monto;
-            let esAhorroOCorte = record.TipoTransaccion === 'Ahorro' || record.TipoTransaccion === 'Corte';
-            
-            // Ajustar saldo según el tipo de transacción
-            saldoActual += esAhorroOCorte ? monto : -monto;
-            
-            tableHTML += `
-                <tr>
-                    <td>${numberRecord++}</td>
-                    <td>${record.NombreCompleto}</td>
-                    <td>${window.api.formatDateToDisplay(record.Fecha)}</td>
-                    <td>${record.TipoTransaccion}</td>
-                    <td>${record.Numero_Cheque || "N/A"}</td>
-                    <td>
-                        ${esAhorroOCorte
-                            ? `<span class="more-green">+ ${parseTOMXN(monto)}</span> `
-                            : `<span class="less-red">- ${parseTOMXN(monto)}</span>`}
-                    </td>
-                    <td>${parseTOMXN(saldoActual)}</td>
-                    <td>${record.CTA_CONTABLE_PRESTAMO}</td>
-                    <td>${record.CTA_CONTABLE_AHORRO}</td>
-                </tr>
-            `;
-        });
-        //Poner esto en la funcion final 
-        //tableHTML += '</tbody></table>';
+function generateConciliationTable(data, saldoInicial) {
+    // Obtener el JSON ordenado y procesado
+    const records = orderDataConciliation(data);
 
-        const tableConciliation = document.getElementById('conciliation-table-body');
-        tableConciliation.innerHTML = tableHTML;
+    console.log(records);
 
-        generateTablePagos(records, saldoActual, numberRecord)
-    }
-}
+    // Inicializar variables
+    let saldoActual = parseInt(saldoInicial); // Inicializar saldo con el valor pasado como parámetro
+    let numberRecord = 1; // Contador de registros
+    let tableHTML = ''; // HTML de la tabla
 
-function generateTablePagos(records, saldo, numberRecord) {
-    // Verificar si hay usuarios
-    let saldoActual = parseInt(saldo); // Inicializar saldo con el valor pasado como parámetro
-    if (records.pagos.length > 0) {
-        // Generar el HTML para la tabla
-        let tableHTML = ``;
+    // Recorrer los registros procesados
+    records.forEach((record) => {
+        const { Fecha, Nombre, Descripcion, TotalMonto, No_Cheque, NumeroTransacciones } = record;
 
-        // Recorrer los usuarios y agregar filas
-        records.pagos.forEach((record) => {
-            
-            let monto = record.Monto_Pago;
-         
-            // Ajustar saldo según el tipo de transacción
-            saldoActual += monto ;
-            
-            tableHTML += `
-                <tr>
-                    <td>${numberRecord ++}</td>
-                    <td>${record.NombreCompleto || 'N/A'}</td>
-                    <td>${window.api.formatDateToDisplay(record.Fecha_Pago)}</td>
-                    <td>Abono a prestamo</td>
-                    <td>N/A</td>
-                    <td> <span class="more-green">+ ${parseTOMXN(record.Monto_Pago)}</span></td>
-                    <td>${parseTOMXN(saldoActual)}</td>
-                    <td>${record.CTA_CONTABLE_PRESTAMO}</td>
-                    <td>${record.CTA_CONTABLE_AHORRO}</td>
-                </tr>
-            `;
-        });
+        // Determinar el tipo de transacción basado en la descripción
+        let esAhorro = Descripcion.includes('AHORRO');
+        let esPago = Descripcion.includes('ABONO A PRESTAMO');
+        let esCheque = Descripcion.includes('CHEQUE(S)');
+        let esPrestamo = Descripcion.includes('PRÉSTAMO INICIADO');
+        let esDesahogo = Descripcion.includes('DESAHOGO');
 
-        //tableHTML += '</tbody></table>';
+        // Determinar si el monto debe mostrarse en rojo o verde
+        let montoClass = '';
+        if (esPrestamo || esDesahogo) {
+            montoClass = 'less-red'; // Rojo para préstamos y desahogos
+        } else if (esAhorro || esPago || esCheque) {
+            montoClass = 'more-green'; // Verde para ahorros, abonos y cheques
+        }
 
-        const tableConciliation = document.getElementById('conciliation-table-body');
-        tableConciliation.innerHTML += tableHTML;
+        // Ajustar saldo según el tipo de transacción
+        if (esCheque || esPago || esAhorro) {
+            saldoActual += TotalMonto;
+        } else if (esPrestamo || esDesahogo) {
+            saldoActual -= TotalMonto;
+        }
 
-    }
+        // Generar fila de la tabla
+        tableHTML += `
+            <tr>
+                <td>${numberRecord++}</td>
+                <td>${Nombre}</td>
+                <td>${Fecha}</td>
+                <td>${Descripcion}</td>
+                <td>${esCheque ? No_Cheque : 'N/A'}</td>
+                <td>
+                    ${esPrestamo || esDesahogo
+                        ? `<span class="${montoClass}">- ${parseTOMXN(TotalMonto)}</span>`
+                        : 'N/A'}
+                </td>
+                <td>
+                    ${esAhorro || esPago || esCheque
+                        ? `<span class="${montoClass}">+ ${parseTOMXN(TotalMonto)}</span>`
+                        : 'N/A'}
+                </td>
+                <td>${parseTOMXN(saldoActual)}</td>
+                <td>N/A</td>
+                <td>N/A</td>
+            </tr>
+        `;
+    });
 
-    generateTableCheques(records.cheques, saldoActual, numberRecord)
-}
-
-function generateTableCheques(cheques, saldo, numberRecord) {
-
-    let saldoActual = parseInt(saldo); // Inicializar saldo con el valor pasado como parámetro
-    // Verificar si hay usuarios
-    if (cheques.length > 0) {
-        // Generar el HTML para la tabla
-        let tableHTML = ``;
-
-        // Recorrer los usuarios y agregar filas
-        cheques.forEach((record) => {
-            console.log(record);
-            let monto = record.Monto;
-         
-            // Ajustar saldo según el tipo de transacción
-            saldoActual += monto ;
-            
-            tableHTML += `
-                <tr>
-                    <td>${numberRecord ++}</td>
-                    <td>${record.Nombre}</td>
-                    <td>${window.api.formatDateToDisplay(record.Fecha)}</td>
-                    <td>Cheque: ${record.Motivo}</td>
-                    <td>${record.No_Cheque}</td>
-                    <td><span class="more-green">+ ${parseTOMXN(record.Monto)}</span></td>
-                    <td>${parseTOMXN(saldoActual)}</td>
-                    <td>N/A</td>
-                    <td>N/A</td>
-                </tr>
-            `;
-        });
-
-        //tableHTML += '</tbody></table>';
-
-        const tableConciliation = document.getElementById('conciliation-table-body');
-        tableConciliation.innerHTML += tableHTML;
-    }
-
-    let totalTable = `
+    // Agregar el total al final de la tabla
+    tableHTML += `
         <tr>
             <td colspan="6"></td>
             <td><span class="more-green">${parseTOMXN(saldoActual)}</span></td>
@@ -178,27 +121,203 @@ function generateTableCheques(cheques, saldo, numberRecord) {
         </tr>
     `;
 
+    // Insertar el HTML en la tabla
     const tableConciliation = document.getElementById('conciliation-table-body');
-    tableConciliation.innerHTML += totalTable;
+    tableConciliation.innerHTML = tableHTML;
+
+    // Actualizar el monto total
     document.getElementById('monto-total').innerText = parseTOMXN(saldoActual);
 }
 
 
 
-async function defaultSearch({mes, year}){
+async function conciliationSearch({mes, year}){
 
     try {
         const resultConciliation = await window.db.getConciliation({mes, year})
 
         if(resultConciliation){
-            generateTableAhorroTransacciones(resultConciliation);
+            generateConciliationTable(resultConciliation);
         }
     } catch (error) {
-        window.electron.showNotification('Error', 
+        window.electron.showNotification('Error',  
         error);
     }
 
 }
+
+
+
+function orderDataConciliation(data) {
+    console.log(data);
+
+    const resultado = {};
+
+    // Función para formatear la fecha desde la base de datos a dd/mm/aaaa
+    const formatearFecha = (fecha) => {
+        return window.api.formatDateToDisplay(fecha); // Usar la función proporcionada
+    };
+
+    // Función para agregar o actualizar un registro en el resultado
+    const agregarRegistro = (usuario, fecha, tipo, registro) => {
+        const clave = `${usuario}-${fecha}-${tipo}`; // Incluir el tipo en la clave para separar registros
+
+        if (!resultado[clave]) {
+            resultado[clave] = {
+                NombreCompleto: usuario,
+                Fecha: fecha,
+                Tipo: tipo, // Tipo de transacción (general, desahogo, corte, cheque)
+                TotalMonto: 0, // Suma de montos
+                No_Cheque: [], // Lista de números de cheque
+                NumeroTransacciones: 0, // Contador de transacciones
+                Descripcion: "" // Inicializar descripción
+            };
+        }
+
+        if (tipo === "cheque") {
+            resultado[clave].No_Cheque.push(registro.No_Cheque); // Agregar número de cheque
+            resultado[clave].TotalMonto += registro.Monto; // Sumar monto del cheque
+            resultado[clave].NumeroTransacciones += 1; // Incrementar contador
+        } else if (tipo === "pago") {
+            resultado[clave].TotalMonto += registro.Monto_Pago; // Sumar monto del pago
+            resultado[clave].NumeroTransacciones += 1; // Incrementar contador
+        } else if (tipo === "transaccionAhorro") {
+            if (registro.TipoTransaccion === "Ahorro") {
+                resultado[clave].TotalMonto += registro.Monto; // Sumar monto de ahorro
+                resultado[clave].NumeroTransacciones += 1; // Incrementar contador
+            } else if (registro.TipoTransaccion === "Desahogo") {
+                // Los desahogos se manejan en un registro separado
+            } else if (registro.TipoTransaccion === "Corte") {
+                // Los cortes se manejan en un registro separado
+            }
+        } else if (tipo === "prestamoInicioMes") {
+            resultado[clave].TotalMonto += registro.Monto; // Sumar monto del préstamo iniciado
+            resultado[clave].NumeroTransacciones += 1; // Incrementar contador
+        } else if (tipo === "desahogo") {
+            resultado[clave].TotalMonto += registro.Monto; // Sumar monto del desahogo
+            resultado[clave].NumeroTransacciones += 1; // Incrementar contador
+        } else if (tipo === "corte") {
+            resultado[clave].TotalMonto += registro.Monto; // Sumar monto del corte
+            resultado[clave].NumeroTransacciones += 1; // Incrementar contador
+        }
+    };
+
+    // Procesar cheques
+    if (data.cheques && Array.isArray(data.cheques)) {
+        data.cheques.forEach(cheque => {
+            const fecha = formatearFecha(cheque.Fecha); // Formatear fecha a dd/mm/aaaa
+            agregarRegistro(cheque.Nombre, fecha, "cheque", cheque); // Tipo "cheque"
+        });
+    }
+
+    // Procesar pagos
+    if (data.pagos && Array.isArray(data.pagos)) {
+        data.pagos.forEach(pago => {
+            const fecha = formatearFecha(pago.Fecha_Pago); // Formatear fecha a dd/mm/aaaa
+            agregarRegistro(pago.NombreCompleto, fecha, "general", pago); // Tipo "general"
+        });
+    }
+
+    // Procesar transacciones de ahorro
+    if (data.transaccionesAhorro && Array.isArray(data.transaccionesAhorro)) {
+        data.transaccionesAhorro.forEach(transaccion => {
+            const fecha = formatearFecha(transaccion.Fecha); // Formatear fecha a dd/mm/aaaa
+            if (transaccion.TipoTransaccion === "Desahogo") {
+                agregarRegistro(transaccion.NombreCompleto, fecha, "desahogo", transaccion); // Tipo "desahogo"
+            } else if (transaccion.TipoTransaccion === "Corte") {
+                agregarRegistro(transaccion.NombreCompleto, fecha, "corte", transaccion); // Tipo "corte"
+            } else {
+                agregarRegistro(transaccion.NombreCompleto, fecha, "general", transaccion); // Tipo "general"
+            }
+        });
+    }
+
+    // Procesar préstamos iniciados
+    if (data.prestamosInicioMes && Array.isArray(data.prestamosInicioMes)) {
+        data.prestamosInicioMes.forEach(prestamo => {
+            const fecha = formatearFecha(prestamo.Fecha); // Formatear fecha a dd/mm/aaaa
+            agregarRegistro(prestamo.NombreCompleto, fecha, "general", prestamo); // Tipo "general"
+        });
+    }
+
+    // Generar descripción para cada registro
+    Object.values(resultado).forEach(registro => {
+        const descripciones = [];
+
+        // Agregar cheques (solo para registros de tipo "cheque")
+        if (registro.Tipo === "cheque") {
+            if (registro.No_Cheque.length > 0) {
+                descripciones.push(`CHEQUE(S): ${registro.No_Cheque.join(", ")}`);
+            }
+            descripciones.push(`MONTO CHEQUE $${registro.TotalMonto}`);
+        }
+
+        // Agregar abonos a préstamos (solo para registros de tipo "general")
+        if (registro.Tipo === "general") {
+            const totalAbonosPrestamos = data.pagos
+                .filter(pago => formatearFecha(pago.Fecha_Pago) === registro.Fecha && pago.NombreCompleto === registro.NombreCompleto)
+                .reduce((total, pago) => total + pago.Monto_Pago, 0);
+            if (totalAbonosPrestamos > 0) {
+                descripciones.push(`ABONO A PRESTAMO $${totalAbonosPrestamos}`);
+            }
+        }
+
+        // Agregar ahorros (solo para registros de tipo "general")
+        if (registro.Tipo === "general") {
+            const totalAhorros = data.transaccionesAhorro
+                .filter(transaccion => formatearFecha(transaccion.Fecha) === registro.Fecha && transaccion.NombreCompleto === registro.NombreCompleto && transaccion.TipoTransaccion === "Ahorro")
+                .reduce((total, transaccion) => total + transaccion.Monto, 0);
+            if (totalAhorros > 0) {
+                descripciones.push(`AHORRO $${totalAhorros}`);
+            }
+        }
+
+        // Agregar desahogos (solo para registros de tipo "desahogo")
+        if (registro.Tipo === "desahogo") {
+            const totalDesahogos = data.transaccionesAhorro
+                .filter(transaccion => formatearFecha(transaccion.Fecha) === registro.Fecha && transaccion.NombreCompleto === registro.NombreCompleto && transaccion.TipoTransaccion === "Desahogo")
+                .reduce((total, transaccion) => total + transaccion.Monto, 0);
+            if (totalDesahogos > 0) {
+                descripciones.push(`DESAHOGO $${totalDesahogos}`);
+            }
+        }
+
+        // Agregar cortes (solo para registros de tipo "corte")
+        if (registro.Tipo === "corte") {
+            const totalCortes = data.transaccionesAhorro
+                .filter(transaccion => formatearFecha(transaccion.Fecha) === registro.Fecha && transaccion.NombreCompleto === registro.NombreCompleto && transaccion.TipoTransaccion === "Corte")
+                .reduce((total, transaccion) => total + transaccion.Monto, 0);
+            if (totalCortes > 0) {
+                descripciones.push(`CORTE $${totalCortes}`);
+            }
+        }
+
+        // Agregar préstamos iniciados (solo para registros de tipo "general")
+        if (registro.Tipo === "general") {
+            const totalPrestamosIniciados = data.prestamosInicioMes
+                .filter(prestamo => formatearFecha(prestamo.Fecha) === registro.Fecha && prestamo.NombreCompleto === registro.NombreCompleto)
+                .reduce((total, prestamo) => total + prestamo.Monto, 0);
+            if (totalPrestamosIniciados > 0) {
+                descripciones.push(`PRÉSTAMO INICIADO $${totalPrestamosIniciados}`);
+            }
+        }
+
+        // Unir todas las descripciones en una sola cadena
+        registro.Descripcion = descripciones.join(" / ");
+    });
+
+    // Convertir el objeto de resultado a un array y formatear la salida
+    return Object.values(resultado).map(registro => ({
+        Fecha: registro.Fecha, // La fecha ya está en formato dd/mm/aaaa
+        Nombre: registro.NombreCompleto,
+        Descripcion: registro.Descripcion,
+        TotalMonto: registro.TotalMonto,
+        No_Cheque: registro.No_Cheque.join(", "), // Concatenar números de cheque
+        NumeroTransacciones: registro.NumeroTransacciones // Contador de transacciones
+    }));
+}
+
+
 
 const parseTOMXN = (number) => Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(number || 0);
 

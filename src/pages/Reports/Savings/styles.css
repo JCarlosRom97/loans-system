@@ -120,6 +120,14 @@ button {
   max-width: 200px;
 }
 
+.total-ahorro-table{
+  width: 100px;
+}
+
 .less-red{
   color: red;
+}
+
+.more-green{
+  color: green;
 }
