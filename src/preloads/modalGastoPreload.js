@@ -1,5 +1,5 @@
 const { ipcRenderer } = require('electron');
-const yearRegex = /^(19|20)\d{2}$/;
+const yearRegex = /^\d{4}$/;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -64,7 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if(newGastoResponse){
                 alert('El gasto ha sido registrado correctamente!')
-                formGastos.reset()
+                document.getElementById('tipo').value = "Cheque";
+                document.getElementById('no-cheque').value = "";
+                document.getElementById('nombre').value = "";
+                document.getElementById('motivo').value = ""
+                document.getElementById('fecha').value = "";
+                document.getElementById('monto').value = "";
                 getChequesGastos(document.getElementById('mes').value, document.getElementById('year').value)
             }
         } catch (error) {
@@ -77,41 +82,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const mesFilter = document.getElementById('mes');
 
     mesFilter.addEventListener('change', ()=>{
-        const mesFilter = document.getElementById('mes').value;
-        const yearFilterValue = document.getElementById('year').value;
-        console.log(mesFilter, yearFilter);
-
-        if (yearRegex.test(yearFilterValue)) {
-            // Solo ejecutamos si ambos filtros tienen valores válidos
-            if (mesFilter && yearFilterValue) {
-                getChequesGastos(mesFilter, yearFilterValue);
-            }
-        } else {
-            console.error('Año inválido. Debe ser un año entre 1900-2099 en formato YYYY');
-            // Opcional: Mostrar mensaje al usuario
-            // alert('Por favor ingrese un año válido entre 1900 y 2099');
-        }
-        
+        searchFilterFunction();
     })
 
     const yearFilter = document.getElementById('year');
 
-    yearFilter.addEventListener('change', () => {
-        const mesFilter = document.getElementById('mes').value;
-        const yearFilterValue = document.getElementById('year').value;
-        console.log(mesFilter, yearFilterValue);
-        
-        if (yearRegex.test(yearFilterValue)) {
-            // Solo ejecutamos si ambos filtros tienen valores válidos
-            if (mesFilter && yearFilterValue) {
-                getChequesGastos(mesFilter, yearFilterValue);
-            }
-        } else {
-            console.error('Año inválido. Debe ser un año entre 1900-2099 en formato YYYY');
-            // Opcional: Mostrar mensaje al usuario
-            // alert('Por favor ingrese un año válido entre 1900 y 2099');
-        }
+    yearFilter.addEventListener('keyup', () => {
+        searchFilterFunction();
     });
+
+    const tipoFilter = document.getElementById('tipo-filter');
+
+    console.log(tipoFilter);
+    
+
+    tipoFilter.addEventListener('change', () =>{
+        console.log('tipo filter');
+        
+        searchFilterFunction();
+    })
 
 
 
@@ -137,6 +126,23 @@ document.addEventListener('DOMContentLoaded', () => {
     })
 });
 
+const searchFilterFunction = () =>{
+    const mesFilter = document.getElementById('mes').value;
+    const yearFilterValue = document.getElementById('year').value;
+    
+    if (yearRegex.test(yearFilterValue)) {
+        console.log(mesFilter, yearFilterValue);
+        // Solo ejecutamos si ambos filtros tienen valores válidos
+        if (mesFilter && yearFilterValue) {
+            getChequesGastos(mesFilter, yearFilterValue);
+        }
+    } else {
+        console.error('Año inválido. Debe ser un año entre 1900-2099 en formato YYYY');
+        // Opcional: Mostrar mensaje al usuario
+        // alert('Por favor ingrese un año válido entre 1900 y 2099');
+    }
+}
+
 
 const closeButtonListener = () =>{
     const closeModalButton = document.getElementById('close-modal');
@@ -160,64 +166,50 @@ const closeButtonListener = () =>{
     }
 }
 
-const getChequesGastos = async(mesActual, anioActual) =>{
-    const Cheques = await ipcRenderer.invoke('db:getCheques',{mes:mesActual, year:anioActual});
-    const Gastos = await ipcRenderer.invoke('db:getGastos',{mes:mesActual, year:anioActual})
-    console.log(Cheques, Gastos);
-
-    const gastosCheques = orderDataTable(Cheques, Gastos);
-    console.log('gastosCheques', gastosCheques);
+const getChequesGastos = async(mesActual, anioActual) => {
+    const Cheques = await ipcRenderer.invoke('db:getCheques', {mes: mesActual, year: anioActual});
+    const Gastos = await ipcRenderer.invoke('db:getGastos', {mes: mesActual, year: anioActual});
     
-    // Verificar si hay usuarios
+    const gastosCheques = orderDataTable(Cheques, Gastos, document.getElementById('tipo-filter').value);
+    
     if (gastosCheques.length > 0) {
-    // Generar el HTML para la tabla
-    let tableHTML = ``;
+        let tableHTML = ``;
 
-    // Recorrer los usuarios y agregar filas
-    gastosCheques.forEach((gastos, index) => {
-
-    tableHTML += `
-        <tr>
-            <td>${index + 1}</td>
-            <td>${formatDateToDisplay(gastos.Fecha, 0)}</td>
-            <td>${gastos.No_Cheque || "N/A"}</td>
-            <td>${gastos.Tipo.replace(/([a-z0-9])([A-Z])/g, '$1 $2')}</td>
-            <td>${gastos.Nombre || "N/A"}</td>
-            <td>${gastos.Motivo || "N/A"}</td>
-            <td>${parseTOMXN(gastos.Monto)}</td>
-            <td>
-                <button type="button" class="button-delete" data-id="${gastos.ID}">X</button>
-            </td>
-
+        gastosCheques.forEach((gastos, index) => {
+            const esInteres = gastos.Tipo === 'Intereses Del Plazo'; // Solo este será positivo
+            const signo = esInteres ? '+' : '-'; // Invertimos la lógica aquí
+            const claseSigno = esInteres ? 'more-green' : 'less-red'; // Clases según lo pedido
             
-        </tr>
-    `;
-    });
+            tableHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${formatDateToDisplay(gastos.Fecha, 0)}</td>
+                    <td>${gastos.No_Cheque || "N/A"}</td>
+                    <td>${gastos.Tipo.replace(/([a-z0-9])([A-Z])/g, '$1 $2')}</td>
+                    <td>${gastos.Nombre || "N/A"}</td>
+                    <td>${gastos.Motivo || "N/A"}</td>
+                    <td>
+                        <span class="${claseSigno}">${signo} ${parseTOMXN(gastos.Monto)}</span>
+                    </td>
+                    <td>
+                        <button type="button" class="button-delete" data-id="${gastos.ID}">X</button>
+                    </td>
+                </tr>
+            `;
+        });
 
-
-
-        tableHTML += '</tbody></table>';
-
-
-        const table = document.getElementById('user-table-body-cheques');
-        table.innerHTML = tableHTML;
+        document.getElementById('user-table-body-cheques').innerHTML = tableHTML;
 
         document.querySelectorAll('.button-delete').forEach(button => {
-            button.addEventListener('click', async function () {
-                const chequeId = this.getAttribute('data-id'); // Obtener el ID del cheque
-                await deleteCheque(chequeId);
+            button.addEventListener('click', async function() {
+                await deleteCheque(this.getAttribute('data-id'));
             });
         });
 
-        const infoDiv = document.getElementById('info');
-        infoDiv.innerHTML = ''
-
-    }else{
-        const infoDiv = document.getElementById('info');
-        infoDiv.innerHTML = 'No se encontraron gastos. '
-
-        const table = document.getElementById('user-table-body-cheques');
-        table.innerHTML = '';
+        document.getElementById('info').innerHTML = '';
+    } else {
+        document.getElementById('info').innerHTML = 'No se encontraron gastos.';
+        document.getElementById('user-table-body-cheques').innerHTML = '';
     }
 }
 
@@ -230,18 +222,32 @@ const deleteCheque = async(id) =>{
     }
 }
 
-const orderDataTable = (cheques, gastos) =>{
+const orderDataTable = (cheques, gastos, filtro = "Todos") => {
+
+    console.log(filtro);
+    
     // 1. Agregar Tipo: "Cheque" a cada objeto en el array de cheques
     const chequesConTipo = cheques.map(cheque => ({
         ...cheque,
         Tipo: "Cheque"
     }));
 
-    // 2. Unir los arrays (cheques con tipo + gastos)
-    const todosLosRegistros = [...chequesConTipo, ...gastos];
+    // 2. Aplicar filtro antes de unir los arrays
+    let registrosFiltrados;
+    
+    switch(filtro) {
+        case "Cheques":
+            registrosFiltrados = [...chequesConTipo];
+            break;
+        case "Gastos":
+            registrosFiltrados = [...gastos];
+            break;
+        default: // "Todos"
+            registrosFiltrados = [...chequesConTipo, ...gastos];
+    }
 
     // 3. Ordenar por fecha (más reciente primero)
-    const registrosOrdenados = todosLosRegistros.sort((a, b) => {
+    const registrosOrdenados = registrosFiltrados.sort((a, b) => {
         return new Date(b.Fecha) - new Date(a.Fecha);
     });
 

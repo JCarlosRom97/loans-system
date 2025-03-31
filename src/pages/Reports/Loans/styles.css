@@ -86,7 +86,7 @@
         padding: 10px; /* Espaciado interno */
     }
 
-    .loans-table {
+    .loans-table, .loans-monthly-table {
         width: 100%;
         background-color: #eeeded;
         border-collapse: collapse;
@@ -98,13 +98,17 @@
     }
 
     .loans-table th,
-    .loans-table td {
+    .loans-table td,
+    .loans-monthly-table th,
+    .loans-monthly-table td
+     {
     padding: 15px;
     text-align: left;
     border: 1px solid #ddd;
     }
 
-    .loans-table th {
+    .loans-table th,
+    .loans-monthly-table th {
     background-color: #122443ce;
     color: white;
     }

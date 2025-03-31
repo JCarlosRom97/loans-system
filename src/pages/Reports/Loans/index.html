@@ -9,7 +9,75 @@
 <body>
   <div id="header"></div>
   <div class="container">
-    <h2>Reportes prestamo</h2>
+
+    <h2>Prestamos</h2>
+    <div class="active-loan-section" id="detailLoanSection">
+        <h3>Cálculos</h3>
+        <div class="loan-info">
+            <div class="section">
+                <div class="info-item">
+                    <span class="label">Monto Total Prestamo:</span>
+                    <span class="value" id="monto-total-prestamos"></span>
+                </div>
+                <div class="info-item">
+                  <span class="label">Monto Total Intereses:</span>
+                  <span class="value" id="monto-total-intereses-prestamos"></span>
+              </div>
+            </div>
+        </div>
+    </div>
+    <div class="searchTableContainer">
+
+      <select name="mes-search-prestamo" id="mes-search-prestamo" class="input select-status">
+          <option value="1">Enero</option>
+          <option value="2">Febrero</option>
+          <option value="3">Marzo</option>
+          <option value="4">Abril</option>
+          <option value="5">Mayo</option>
+          <option value="6">Junio</option>
+          <option value="7">Julio</option>
+          <option value="8">Agosto</option>
+          <option value="9">Septiembre</option>
+          <option value="10">Octubre</option>
+          <option value="11">Noviembre</option>
+          <option value="12">Diciembre</option>
+      </select>
+      <input type="text"  id="search-date-year-prestamo" class="input-search" placeholder="Ingresa el Año">
+    </div>
+    <div class="table-container" >
+      <div class='container-tables' >
+        <table class="loans-monthly-table" >
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Nombre</th>
+                    <th>Apellido Paterno</th>
+                    <th>Apellido Materno</th>
+                    <th>Plazo Meses</th>
+                    <th>Monto</th>
+                    <th>Fecha De Otorgamiento</th>
+                    <th>Fecha De Vencimiento</th>
+                    <th>Intereses Pactados</th>
+                    <th>No. Cheque</th>
+                    <th>Fecha de Nacimiento</th>
+                    <th>CURP</th>
+                    <th>RFC</th>
+                    <th>País de Nacionalidad</th>
+                    <th>CP</th>
+                    <th>Colonia</th>
+                    <th>Calle</th>
+                    <th>No</th>
+                    <th>Correo Electronico</th>
+                </tr>
+            </thead>
+            <tbody id="loans-monthly-table-body">
+            </tbody>
+        </table>
+      </div>
+      <hr/>
+    </div>
+
+    <h2>Reporte Intereses prestamo</h2>
     <div class="active-loan-section" id="detailLoanSection">
       <h3>Cálculos</h3>
       <div class="loan-info">
@@ -126,7 +194,6 @@
       <hr/>
     </div>
     <div id="info"></div>
-
       <h2>Pagos</h2>
       <div class="active-loan-section" id="detailLoanSection">
           <h3>Cálculos</h3>
@@ -153,29 +220,29 @@
           <button id="searchPaysButton">Buscar</button>
       </div>
       <div class="table-container" id="tablePagos">
-          <table class="loans-table">
-            <thead>
-              <tr>
-                <th>No.</th>
-                <th>Fecha</th>
-                <th>Monto</th>
-                <th>Monto Pago a Capital</th>
-                <th>Monto Pago a Intereses</th>
-                <th>Periodo Caterconal</th>
-                <th>Metodo de Pago</th>
-                <th>Saldo</th>
-              </tr>
-            </thead>
-            <tbody id="pays-table-body">
-              <!-- Aquí se insertarán los usuarios dinámicamente -->
-            </tbody>
-          </table>
-          <div id="infoPays"></div>
-        </div>
-  
-    
+        <table class="loans-table">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Fecha</th>
+              <th>Monto</th>
+              <th>Monto Pago a Capital</th>
+              <th>Monto Pago a Intereses</th>
+              <th>Periodo Caterconal</th>
+              <th>Metodo de Pago</th>
+              <th>Saldo</th>
+            </tr>
+          </thead>
+          <tbody id="pays-table-body">
+            <!-- Aquí se insertarán los usuarios dinámicamente -->
+          </tbody>
+        </table>
+        <div id="infoPays"></div>
+      </div>
+
   </div>
 </body>
+<script src="./rendererLoans.js"></script>
 <script src="./renderer.js"></script>
 <script src="./rendererPays.js"></script>
 <script src="./../../../components/header/renderer.js"></script>

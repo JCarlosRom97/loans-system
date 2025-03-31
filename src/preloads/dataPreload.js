@@ -138,10 +138,29 @@ contextBridge.exposeInMainWorld('db', {
        console.error('Error getting loans:', error.message);
     }
   },
+
+  getLoanReportByMonth: async ({month, year}) =>{
+    try {
+      console.log('getLoansByMonthYear dataPreload',{month, year});
+      return await ipcRenderer.invoke('db:getLoansByMonthYear', {month, year}, );
+    } catch (error) {
+       // Muestra el mensaje de error completo para depuración
+       console.error('Error getting loans:', error.message);
+    }
+  },
   getAllSavingsTransactionsReport: async ({ NombreCompleto, Anio }) =>{
     try {
       console.log({ NombreCompleto, Anio });
       return await ipcRenderer.invoke('db:getUserSavingsReport', { NombreCompleto, Anio }, );
+    } catch (error) {
+       // Muestra el mensaje de error completo para depuración
+       console.error('Error getting savings:', error.message);
+    }
+  },
+  getAllSavingsTransactionsDesahogoReport: async ({ NombreCompleto, Anio }) =>{
+    try {
+      console.log({ NombreCompleto, Anio });
+      return await ipcRenderer.invoke('db:getUserSavingDesahogoReport', { NombreCompleto, Anio }, );
     } catch (error) {
        // Muestra el mensaje de error completo para depuración
        console.error('Error getting savings:', error.message);
@@ -237,6 +256,15 @@ contextBridge.exposeInMainWorld('db', {
     } catch (error) {
         // Muestra el mensaje de error completo para depuración
         console.error('Error getting Conciliacion:', error.message);
+
+    }
+  },
+  getGastos: async ({mes, year}) =>{
+    try {
+      return await ipcRenderer.invoke('db:getGastos', {mes, year});
+    } catch (error) {
+        // Muestra el mensaje de error completo para depuración
+        console.error('Error getting gastos:', error.message);
 
     }
   }

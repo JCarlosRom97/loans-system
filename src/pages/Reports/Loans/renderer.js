@@ -135,7 +135,7 @@ const generateTableSearch = async (loans, Year) => {
         for (const loan of loans) {
             try {
 
-                console.log(loan);
+     
                 const concilitionData = generateConciliation(loan, Year);
                 calculateMonthTotal(concilitionData);
 

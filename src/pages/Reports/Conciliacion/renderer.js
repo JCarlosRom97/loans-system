@@ -21,18 +21,16 @@ document.addEventListener('DOMContentLoaded', async() => {
             const year= document.getElementById('year').value;
             const saldo = document.getElementById('saldo').value;
             
-    
-            console.log(mes, year, saldo);
-    
             const resultConciliation = await window.db.getConciliation({mes, year})
+            const resultConciliationGastos = await window.db.getGastos({mes, year});
     
-            console.log('resultConciliation',resultConciliation);
+            console.log('resultConciliation',resultConciliation,'resultConciliationGastos', resultConciliationGastos);
 
-            if(resultConciliation){
+            if(resultConciliation || resultConciliationGastos){
                 const tableConciliation = document.getElementById('conciliation-table-body');
                 tableConciliation.innerHTML = "";
                 
-                generateConciliationTable(resultConciliation, saldo);
+                generateConciliationTable(resultConciliation, saldo, resultConciliationGastos);
             }
             
         } catch (error) {
@@ -50,41 +48,45 @@ document.addEventListener('DOMContentLoaded', async() => {
     })
 })
 
-function generateConciliationTable(data, saldoInicial) {
+function generateConciliationTable(data, saldoInicial, resultConciliationGastos) {
+    console.log(resultConciliationGastos);
+    
     // Obtener el JSON ordenado y procesado
-    const records = orderDataConciliation(data);
+    const records = orderDataConciliation(data, resultConciliationGastos);
 
-    console.log(records);
-
+    console.log('resultConciliationGastos', records);
+    
     // Inicializar variables
-    let saldoActual = parseInt(saldoInicial); // Inicializar saldo con el valor pasado como parámetro
-    let numberRecord = 1; // Contador de registros
-    let tableHTML = ''; // HTML de la tabla
+    let saldoActual = parseInt(saldoInicial);
+    let numberRecord = 1;
+    let tableHTML = '';
 
     // Recorrer los registros procesados
     records.forEach((record) => {
-        const { Fecha, Nombre, Descripcion, TotalMonto, No_Cheque, NumeroTransacciones } = record;
+        const { Fecha, Nombre, Descripcion, TotalMonto, No_Cheque, CuentaPrestamo, CuentaAhorro } = record;
 
-        // Determinar el tipo de transacción basado en la descripción
-        let esAhorro = Descripcion.includes('AHORRO');
-        let esPago = Descripcion.includes('ABONO A PRESTAMO');
-        let esCheque = Descripcion.includes('CHEQUE(S)');
-        let esPrestamo = Descripcion.includes('PRÉSTAMO INICIADO');
-        let esDesahogo = Descripcion.includes('DESAHOGO');
+        // Determinar el tipo de transacción
+        let esAhorro = Descripcion.includes('Ahorro');
+        let esPago = Descripcion.includes('Pago de préstamo');
+        let esCheque = Descripcion.includes('CHEQUE');
+        let esPrestamo = Descripcion.includes('Préstamo Iniciado');
+        let esDesahogo = Descripcion.includes('Desahogo');
+        let isDepositoGasto = Descripcion.includes('Intereses Del Plazo');
+        let esGastoConciliado = record.Tipo === "gastoConciliado";
 
-        // Determinar si el monto debe mostrarse en rojo o verde
+        // Determinar clase de color para el monto
         let montoClass = '';
-        if (esPrestamo || esDesahogo) {
-            montoClass = 'less-red'; // Rojo para préstamos y desahogos
-        } else if (esAhorro || esPago || esCheque) {
-            montoClass = 'more-green'; // Verde para ahorros, abonos y cheques
+        if (esAhorro || esPago || isDepositoGasto) {
+            montoClass = 'more-green'; // Verde para depósitos (prioridad)
+        } else if (esPrestamo || esDesahogo || esCheque || esGastoConciliado) {
+            montoClass = 'less-red'; // Rojo para retiros
         }
 
         // Ajustar saldo según el tipo de transacción
-        if (esCheque || esPago || esAhorro) {
-            saldoActual += TotalMonto;
-        } else if (esPrestamo || esDesahogo) {
-            saldoActual -= TotalMonto;
+        if (esPago || esAhorro || isDepositoGasto) {
+            saldoActual += TotalMonto; // Sumar para depósitos
+        } else {
+            saldoActual -= TotalMonto; // Restar para retiros
         }
 
         // Generar fila de la tabla
@@ -94,20 +96,20 @@ function generateConciliationTable(data, saldoInicial) {
                 <td>${Nombre}</td>
                 <td>${Fecha}</td>
                 <td>${Descripcion}</td>
-                <td>${esCheque ? No_Cheque : 'N/A'}</td>
+                <td>${No_Cheque || 'N/A'}</td>
                 <td>
-                    ${esPrestamo || esDesahogo
-                        ? `<span class="${montoClass}">- ${parseTOMXN(TotalMonto)}</span>`
-                        : 'N/A'}
-                </td>
-                <td>
-                    ${esAhorro || esPago || esCheque
+                    ${esAhorro || esPago || isDepositoGasto 
                         ? `<span class="${montoClass}">+ ${parseTOMXN(TotalMonto)}</span>`
                         : 'N/A'}
                 </td>
+                <td>
+                ${!esAhorro && !esPago && !isDepositoGasto 
+                        ? `<span class="${montoClass}">- ${parseTOMXN(TotalMonto)}</span>`
+                        : 'N/A'}
+                </td>
                 <td>${parseTOMXN(saldoActual)}</td>
-                <td>N/A</td>
-                <td>N/A</td>
+                <td>${esPago || esPrestamo ? CuentaPrestamo : "N/A"}</td>
+                <td>${esAhorro ? CuentaAhorro : "N/A"}</td>
             </tr>
         `;
     });
@@ -115,8 +117,8 @@ function generateConciliationTable(data, saldoInicial) {
     // Agregar el total al final de la tabla
     tableHTML += `
         <tr>
-            <td colspan="6"></td>
-            <td><span class="more-green">${parseTOMXN(saldoActual)}</span></td>
+            <td colspan="7"></td>
+            <td><span class="${saldoActual >= parseInt(saldoInicial) ? 'more-green' : 'less-red'}">${parseTOMXN(saldoActual)}</span></td>
             <td colspan="2"></td>
         </tr>
     `;
@@ -135,9 +137,15 @@ async function conciliationSearch({mes, year}){
 
     try {
         const resultConciliation = await window.db.getConciliation({mes, year})
+        const resultConciliationGastos = await window.db.getGastos({mes, year});
 
-        if(resultConciliation){
-            generateConciliationTable(resultConciliation);
+        console.log('resultConciliationGastos', resultConciliationGastos);
+        
+
+        
+
+        if(resultConciliation || resultConciliationGastos){
+            generateConciliationTable(resultConciliation, 0, resultConciliationGastos);
         }
     } catch (error) {
         window.electron.showNotification('Error',  
@@ -148,172 +156,171 @@ async function conciliationSearch({mes, year}){
 
 
 
-function orderDataConciliation(data) {
+function orderDataConciliation(data, resultConciliationGastos = []) {
     console.log(data);
 
     const resultado = {};
 
     // Función para formatear la fecha desde la base de datos a dd/mm/aaaa
     const formatearFecha = (fecha) => {
-        return window.api.formatDateToDisplay(fecha); // Usar la función proporcionada
+        return window.api.formatDateToDisplay(fecha);
+    };
+
+    // Función para convertir fecha dd/mm/aaaa a objeto Date para ordenación
+    const parsearFecha = (fechaStr) => {
+        const [dia, mes, anio] = fechaStr.split('/');
+        return new Date(`${mes}/${dia}/${anio}`);
     };
 
     // Función para agregar o actualizar un registro en el resultado
     const agregarRegistro = (usuario, fecha, tipo, registro) => {
-        const clave = `${usuario}-${fecha}-${tipo}`; // Incluir el tipo en la clave para separar registros
+        // Para préstamos iniciados, siempre creamos registro único
+        const clave = tipo === "prestamoIniciado" 
+            ? `${usuario}-${fecha}-${tipo}-${registro.ID || Math.random().toString(36).substr(2, 9)}`
+            : `${usuario}-${fecha}`;
 
-        if (!resultado[clave]) {
+        let descripcion;
+        if (tipo === "gastoConciliado") {
+            descripcion = `${registro.Tipo} - ${parseTOMXN(registro.Monto)}`;
+        } else if (tipo === "cheque") {
+            descripcion = `CHEQUE: ${registro.No_Cheque} - MOTIVO: ${registro.Motivo} - ${parseTOMXN(registro.Monto)}`;
+        } else if (tipo === "prestamoIniciado") {
+            descripcion = `Préstamo Iniciado - ${parseTOMXN(registro.Monto)}`;
+        } else {
+            descripcion = `${registro.Motivo} - ${parseTOMXN(registro.Monto)}`;
+        }
+
+        // Si es préstamo iniciado o no existe el registro, creamos uno nuevo
+        if (tipo === "prestamoIniciado" || !resultado[clave]) {
             resultado[clave] = {
                 NombreCompleto: usuario,
                 Fecha: fecha,
-                Tipo: tipo, // Tipo de transacción (general, desahogo, corte, cheque)
-                TotalMonto: 0, // Suma de montos
-                No_Cheque: [], // Lista de números de cheque
-                NumeroTransacciones: 0, // Contador de transacciones
-                Descripcion: "" // Inicializar descripción
+                FechaOriginal: parsearFecha(fecha),
+                Tipo: tipo,
+                TotalMonto: registro.Monto,
+                No_Cheque: [registro.No_Cheque || "N/A"],
+                MotivoCheque: [registro.Motivo || "N/A"],
+                NumeroTransacciones: 1,
+                Descripcion: descripcion,
+                CuentaPrestamo: registro.CTA_CONTABLE_PRESTAMO || "N/A",  // Añadido
+                CuentaAhorro: registro.CTA_CONTABLE_AHORRO || "N/A",      // Añadido
+                EsPagoPrestamo: tipo === "pago",
+                EsAbonoAhorro: tipo === "ahorro",
+                EsPrestamoIniciado: tipo === "prestamoIniciado",
+                EsCheque: tipo === "cheque",
+                EsGastoConciliado: tipo === "gastoConciliado",
+                ID: registro.ID || null,
+                EsNoCheque: tipo !== "cheque",
+                EsUnitario: tipo === "prestamoIniciado" // Marcar como unitario
             };
-        }
-
-        if (tipo === "cheque") {
-            resultado[clave].No_Cheque.push(registro.No_Cheque); // Agregar número de cheque
-            resultado[clave].TotalMonto += registro.Monto; // Sumar monto del cheque
-            resultado[clave].NumeroTransacciones += 1; // Incrementar contador
-        } else if (tipo === "pago") {
-            resultado[clave].TotalMonto += registro.Monto_Pago; // Sumar monto del pago
-            resultado[clave].NumeroTransacciones += 1; // Incrementar contador
-        } else if (tipo === "transaccionAhorro") {
-            if (registro.TipoTransaccion === "Ahorro") {
-                resultado[clave].TotalMonto += registro.Monto; // Sumar monto de ahorro
-                resultado[clave].NumeroTransacciones += 1; // Incrementar contador
-            } else if (registro.TipoTransaccion === "Desahogo") {
-                // Los desahogos se manejan en un registro separado
-            } else if (registro.TipoTransaccion === "Corte") {
-                // Los cortes se manejan en un registro separado
-            }
-        } else if (tipo === "prestamoInicioMes") {
-            resultado[clave].TotalMonto += registro.Monto; // Sumar monto del préstamo iniciado
-            resultado[clave].NumeroTransacciones += 1; // Incrementar contador
-        } else if (tipo === "desahogo") {
-            resultado[clave].TotalMonto += registro.Monto; // Sumar monto del desahogo
-            resultado[clave].NumeroTransacciones += 1; // Incrementar contador
-        } else if (tipo === "corte") {
-            resultado[clave].TotalMonto += registro.Monto; // Sumar monto del corte
-            resultado[clave].NumeroTransacciones += 1; // Incrementar contador
+        } 
+        // Para otros tipos, agrupamos por nombre y fecha
+        else if (tipo !== "prestamoIniciado") {
+            resultado[clave].TotalMonto += registro.Monto;
+            resultado[clave].Descripcion += ` / ${descripcion}`;
+            resultado[clave].No_Cheque.push(registro.No_Cheque || "N/A");
+            resultado[clave].NumeroTransacciones += 1;
+            
+            // Actualizar tipo si es necesario
+            if (tipo === "cheque") resultado[clave].EsCheque = true;
+            if (tipo === "gastoConciliado") resultado[clave].EsGastoConciliado = true;
         }
     };
 
-    // Procesar cheques
+    // [Resto del código de procesamiento permanece igual...]
+    // Procesar cheques (siempre individuales)
     if (data.cheques && Array.isArray(data.cheques)) {
         data.cheques.forEach(cheque => {
-            const fecha = formatearFecha(cheque.Fecha); // Formatear fecha a dd/mm/aaaa
-            agregarRegistro(cheque.Nombre, fecha, "cheque", cheque); // Tipo "cheque"
+            const fecha = formatearFecha(cheque.Fecha);
+            agregarRegistro(cheque.Nombre, fecha, "cheque", {
+                ...cheque,
+                CTA_CONTABLE_AHORRO: cheque.CTA_CONTABLE_AHORRO || "N/A",  // Asegurar que exista
+                CTA_CONTABLE_PRESTAMO: cheque.CTA_CONTABLE_PRESTAMO || "N/A"
+            });
         });
     }
 
-    // Procesar pagos
+    // Procesar pagos (individuales)
     if (data.pagos && Array.isArray(data.pagos)) {
         data.pagos.forEach(pago => {
-            const fecha = formatearFecha(pago.Fecha_Pago); // Formatear fecha a dd/mm/aaaa
-            agregarRegistro(pago.NombreCompleto, fecha, "general", pago); // Tipo "general"
+            const fecha = formatearFecha(pago.Fecha_Pago);
+            agregarRegistro(pago.NombreCompleto, fecha, "pago", {
+                ...pago,
+                No_Cheque: "N/A",
+                Monto: pago.Monto_Pago,
+                Motivo: "Pago de préstamo",
+                CTA_CONTABLE_PRESTAMO: pago.CTA_CONTABLE_PRESTAMO || "N/A"  // Añadido
+            });
         });
     }
 
-    // Procesar transacciones de ahorro
+    // Procesar transacciones de ahorro (individuales)
     if (data.transaccionesAhorro && Array.isArray(data.transaccionesAhorro)) {
         data.transaccionesAhorro.forEach(transaccion => {
-            const fecha = formatearFecha(transaccion.Fecha); // Formatear fecha a dd/mm/aaaa
-            if (transaccion.TipoTransaccion === "Desahogo") {
-                agregarRegistro(transaccion.NombreCompleto, fecha, "desahogo", transaccion); // Tipo "desahogo"
-            } else if (transaccion.TipoTransaccion === "Corte") {
-                agregarRegistro(transaccion.NombreCompleto, fecha, "corte", transaccion); // Tipo "corte"
-            } else {
-                agregarRegistro(transaccion.NombreCompleto, fecha, "general", transaccion); // Tipo "general"
-            }
+            const fecha = formatearFecha(transaccion.Fecha);
+            agregarRegistro(transaccion.NombreCompleto, fecha, "ahorro", {
+                ...transaccion,
+                No_Cheque: "N/A",
+                Motivo: transaccion.TipoTransaccion,
+                CTA_CONTABLE_AHORRO: transaccion.CTA_CONTABLE_AHORRO || "N/A"  // Añadido
+            });
         });
     }
 
-    // Procesar préstamos iniciados
+    // Procesar préstamos iniciados (siempre individuales)
     if (data.prestamosInicioMes && Array.isArray(data.prestamosInicioMes)) {
         data.prestamosInicioMes.forEach(prestamo => {
-            const fecha = formatearFecha(prestamo.Fecha); // Formatear fecha a dd/mm/aaaa
-            agregarRegistro(prestamo.NombreCompleto, fecha, "general", prestamo); // Tipo "general"
+            const fecha = formatearFecha(prestamo.Fecha);
+            agregarRegistro(prestamo.NombreCompleto, fecha, "prestamoIniciado", {
+                ...prestamo,
+                No_Cheque: "N/A",
+                Motivo: "Préstamo iniciado",
+                CTA_CONTABLE_PRESTAMO: prestamo.CTA_CONTABLE_PRESTAMO || "N/A"  // Añadido
+            });
         });
     }
 
-    // Generar descripción para cada registro
-    Object.values(resultado).forEach(registro => {
-        const descripciones = [];
-
-        // Agregar cheques (solo para registros de tipo "cheque")
-        if (registro.Tipo === "cheque") {
-            if (registro.No_Cheque.length > 0) {
-                descripciones.push(`CHEQUE(S): ${registro.No_Cheque.join(", ")}`);
-            }
-            descripciones.push(`MONTO CHEQUE $${registro.TotalMonto}`);
-        }
-
-        // Agregar abonos a préstamos (solo para registros de tipo "general")
-        if (registro.Tipo === "general") {
-            const totalAbonosPrestamos = data.pagos
-                .filter(pago => formatearFecha(pago.Fecha_Pago) === registro.Fecha && pago.NombreCompleto === registro.NombreCompleto)
-                .reduce((total, pago) => total + pago.Monto_Pago, 0);
-            if (totalAbonosPrestamos > 0) {
-                descripciones.push(`ABONO A PRESTAMO $${totalAbonosPrestamos}`);
-            }
-        }
-
-        // Agregar ahorros (solo para registros de tipo "general")
-        if (registro.Tipo === "general") {
-            const totalAhorros = data.transaccionesAhorro
-                .filter(transaccion => formatearFecha(transaccion.Fecha) === registro.Fecha && transaccion.NombreCompleto === registro.NombreCompleto && transaccion.TipoTransaccion === "Ahorro")
-                .reduce((total, transaccion) => total + transaccion.Monto, 0);
-            if (totalAhorros > 0) {
-                descripciones.push(`AHORRO $${totalAhorros}`);
-            }
-        }
-
-        // Agregar desahogos (solo para registros de tipo "desahogo")
-        if (registro.Tipo === "desahogo") {
-            const totalDesahogos = data.transaccionesAhorro
-                .filter(transaccion => formatearFecha(transaccion.Fecha) === registro.Fecha && transaccion.NombreCompleto === registro.NombreCompleto && transaccion.TipoTransaccion === "Desahogo")
-                .reduce((total, transaccion) => total + transaccion.Monto, 0);
-            if (totalDesahogos > 0) {
-                descripciones.push(`DESAHOGO $${totalDesahogos}`);
-            }
-        }
-
-        // Agregar cortes (solo para registros de tipo "corte")
-        if (registro.Tipo === "corte") {
-            const totalCortes = data.transaccionesAhorro
-                .filter(transaccion => formatearFecha(transaccion.Fecha) === registro.Fecha && transaccion.NombreCompleto === registro.NombreCompleto && transaccion.TipoTransaccion === "Corte")
-                .reduce((total, transaccion) => total + transaccion.Monto, 0);
-            if (totalCortes > 0) {
-                descripciones.push(`CORTE $${totalCortes}`);
-            }
-        }
-
-        // Agregar préstamos iniciados (solo para registros de tipo "general")
-        if (registro.Tipo === "general") {
-            const totalPrestamosIniciados = data.prestamosInicioMes
-                .filter(prestamo => formatearFecha(prestamo.Fecha) === registro.Fecha && prestamo.NombreCompleto === registro.NombreCompleto)
-                .reduce((total, prestamo) => total + prestamo.Monto, 0);
-            if (totalPrestamosIniciados > 0) {
-                descripciones.push(`PRÉSTAMO INICIADO $${totalPrestamosIniciados}`);
-            }
-        }
-
-        // Unir todas las descripciones en una sola cadena
-        registro.Descripcion = descripciones.join(" / ");
+    // Procesar gastos de conciliación como registros unitarios
+    resultConciliationGastos.forEach(gasto => {
+        const fecha = formatearFecha(gasto.Fecha);
+        agregarRegistro("N/A", fecha, "gastoConciliado", {
+            ...gasto,
+            Motivo: gasto.Tipo,
+            No_Cheque: gasto.No_Cheque || "N/A",
+            CTA_CONTABLE_AHORRO: gasto.CTA_CONTABLE_AHORRO || "N/A",      // Añadido
+            CTA_CONTABLE_PRESTAMO: gasto.CTA_CONTABLE_PRESTAMO || "N/A"   // Añadido
+        });
     });
 
-    // Convertir el objeto de resultado a un array y formatear la salida
-    return Object.values(resultado).map(registro => ({
-        Fecha: registro.Fecha, // La fecha ya está en formato dd/mm/aaaa
-        Nombre: registro.NombreCompleto,
+    // Obtener todos los registros
+    const todosRegistros = Object.values(resultado);
+
+    // Separar cheques y no-cheques
+    const cheques = todosRegistros.filter(registro => registro.EsCheque);
+    const noCheques = todosRegistros.filter(registro => !registro.EsCheque);
+
+    // Ordenar cada grupo por fecha ascendente
+    cheques.sort((a, b) => a.FechaOriginal - b.FechaOriginal);
+    noCheques.sort((a, b) => a.FechaOriginal - b.FechaOriginal);
+
+    // Combinar con cheques primero y no-cheques después
+    const registrosOrdenados = [...cheques, ...noCheques];
+
+    // Mapear los registros finales incluyendo las cuentas contables
+    return registrosOrdenados.map(registro => ({
+        Fecha: registro.Fecha,
+        Nombre: registro.EsGastoConciliado ? "N/A" : registro.NombreCompleto,
         Descripcion: registro.Descripcion,
         TotalMonto: registro.TotalMonto,
-        No_Cheque: registro.No_Cheque.join(", "), // Concatenar números de cheque
-        NumeroTransacciones: registro.NumeroTransacciones // Contador de transacciones
+        No_Cheque: registro.No_Cheque.filter(n => n !== "N/A").join(", ") || "N/A",
+        NumeroTransacciones: registro.NumeroTransacciones,
+        CuentaPrestamo: registro.CuentaPrestamo,  // Ya está asignado en agregarRegistro
+        CuentaAhorro: registro.CuentaAhorro,      // Ya está asignado en agregarRegistro
+        Tipo: registro.Tipo,
+        ID: registro.ID,
+        EsUnitario: registro.EsUnitario || false,
+        CuentaAhorro: registro.CuentaAhorro,  // Alias para compatibilidad
+        CuentaPrestamo: registro.CuentaPrestamo // Alias para compatibilidad
     }));
 }
 

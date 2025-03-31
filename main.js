@@ -94,7 +94,6 @@ const createModalCatorcena = (parentWindow, options = {}) => {
 
   modalWindowCatorcena.once('ready-to-show', () => {
       modalWindowCatorcena.show();
-      modalWindowCatorcena.webContents.openDevTools();
   });
 
   modalWindowCatorcena.on('closed', () => {
@@ -267,111 +266,212 @@ app.whenReady().then(async()=>{
   });
 
 
-  ipcMain.handle('db:getUserSavingsReport', async (_, { NombreCompleto, Anio }) => {
-    try {
-      console.log({ NombreCompleto, Anio });
-  
-      const whereUserClause = NombreCompleto
-        ? {
-            [Sequelize.Op.or]: [
-              { Nombre: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
-              { Apellido_Paterno: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
-              { Apellido_Materno: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
-            ],
-          }
-        : {};
-  
-      const usuarios = await Usuario.findAll({
-        attributes: ['ID', 'Nombre', 'Apellido_Paterno', 'Apellido_Materno', 'Codigo_Empleado'],
-        where: whereUserClause,
-        include: [
-          {
-            model: Ahorro,
-            as: 'Ahorro',
-            required: false,
-            attributes: ['ID', 'Monto'], // Se agrega el Monto de Ahorro
-            include: [
-              {
-                model: TransaccionesAhorro,
-                as: 'Transacciones',
-                required: false,
-                attributes: ['ID', 'Monto', 'TipoTransaccion', 'Fecha'],
-                where: {
-                  TipoTransaccion: {
-                    [Sequelize.Op.ne]: 'Corte', // Excluir transacciones con TipoTransaccion = "Corte"
-                  },
+ipcMain.handle('db:getUserSavingsReport', async (_, { NombreCompleto, Anio }) => {
+  try {
+    console.log({ NombreCompleto, Anio });
+
+    const whereUserClause = NombreCompleto
+      ? {
+          [Sequelize.Op.or]: [
+            { Nombre: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
+            { Apellido_Paterno: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
+            { Apellido_Materno: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
+          ],
+        }
+      : {};
+
+    const usuarios = await Usuario.findAll({
+      attributes: ['ID', 'Nombre', 'Apellido_Paterno', 'Apellido_Materno', 'Codigo_Empleado'],
+      where: whereUserClause,
+      include: [
+        {
+          model: Ahorro,
+          as: 'Ahorro',
+          required: false,
+          attributes: ['ID', 'Monto'], // Se agrega el Monto de Ahorro
+          include: [
+            {
+              model: TransaccionesAhorro,
+              as: 'Transacciones',
+              required: false,
+              attributes: ['ID', 'Monto', 'TipoTransaccion', 'Fecha'],
+              where: {
+                TipoTransaccion: {
+                  [Sequelize.Op.notIn]: ['Corte', 'Desahogo'], // Excluir "Corte" y "Desahogo"
                 },
               },
-            ],
-          },
-        ],
-        raw: false,
-      });
-  
-      // Obtener el año anterior en formato yyyy
-      const añoAnterior = (parseInt(Anio) - 1).toString();
-  
-      // Transformar la salida para separar transacciones del año actual y del anterior
-      const resultado = await Promise.all(usuarios.map(async (usuario) => {
-        // Filtrar transacciones por año
-        const transaccionesAnioActual = [];
-        const transaccionesAnioAnterior = [];
-  
-        if (usuario.Ahorro) {
-          usuario.Ahorro.forEach(ahorro => {
-            if (ahorro.Transacciones) {
-              ahorro.Transacciones.forEach(transaccion => {
-                const transaccionFecha = new Date(transaccion.Fecha);
-                const transaccionAnio = transaccionFecha.getFullYear();
-  
-                if (transaccionAnio === parseInt(Anio)) {
-                  transaccionesAnioActual.push(transaccion);
-                } else if (transaccionAnio === parseInt(Anio) - 1) {
-                  transaccionesAnioAnterior.push(transaccion);
-                }
-              });
-            }
-          });
-        }
+            },
+          ],
+        },
+      ],
+      raw: false,
+    });
 
-        // Ordenar las transacciones por fecha en ambas categorías
-        transaccionesAnioActual.sort((a, b) => new Date(a.Fecha) - new Date(b.Fecha));
-        transaccionesAnioAnterior.sort((a, b) => new Date(a.Fecha) - new Date(b.Fecha));
+    // Obtener el año anterior en formato yyyy
+    const añoAnterior = (parseInt(Anio) - 1).toString();
 
-        // Buscar los cortes en AhorroSaldos por ID_Usuario y que correspondan al año anterior
-        const cortesAhorroSaldos = await AhorroSaldos.findAll({
-          where: {
-            ID_Usuario: usuario.ID, // Buscar por ID_Usuario
-            Periodo: añoAnterior,   // Filtrar por el año anterior en formato yyyy
-          },
-          attributes: ['Total'], // Solo retornar el campo Total
-          raw: true,
+    // Transformar la salida para separar transacciones del año actual y del anterior
+    const resultado = await Promise.all(usuarios.map(async (usuario) => {
+      // Filtrar transacciones por año
+      const transaccionesAnioActual = [];
+      const transaccionesAnioAnterior = [];
+
+      if (usuario.Ahorro) {
+        usuario.Ahorro.forEach(ahorro => {
+          if (ahorro.Transacciones) {
+            ahorro.Transacciones.forEach(transaccion => {
+              const transaccionFecha = new Date(transaccion.Fecha);
+              const transaccionAnio = transaccionFecha.getFullYear();
+
+              if (transaccionAnio === parseInt(Anio)) {
+                transaccionesAnioActual.push(transaccion);
+              } else if (transaccionAnio === parseInt(Anio) - 1) {
+                transaccionesAnioAnterior.push(transaccion);
+              }
+            });
+          }
         });
-  
-        return {
-          ID: usuario.ID,
-          Nombre: usuario.Nombre,
-          Apellido_Paterno: usuario.Apellido_Paterno,
-          Apellido_Materno: usuario.Apellido_Materno,
-          Codigo_Empleado: usuario.Codigo_Empleado,
-          MontoAhorro: usuario.Ahorro
-            ? usuario.Ahorro.reduce((acc, ahorro) => acc + parseFloat(ahorro.Monto || 0), 0)
-            : 0,
-          TransaccionesAhorro: {
-            AnioActual: transaccionesAnioActual,
-            AnioAnterior: transaccionesAnioAnterior,
-          },
-          TotalAhorroSaldosAnioAnterior: cortesAhorroSaldos.length > 0 ? cortesAhorroSaldos[0].Total : null, // Retornar el Total si existe
-        };
-      }));
-  
-      console.log('getUserSavingsReport:', resultado);
-  
-      return resultado;
-    } catch (error) {
-      console.error('Error al obtener el reporte de ahorro por usuario:', error);
-      throw new Error('Error al obtener el reporte de ahorro por usuario');
+      }
+
+      // Ordenar las transacciones por fecha en ambas categorías
+      transaccionesAnioActual.sort((a, b) => new Date(a.Fecha) - new Date(b.Fecha));
+      transaccionesAnioAnterior.sort((a, b) => new Date(a.Fecha) - new Date(b.Fecha));
+
+      // Buscar los cortes en AhorroSaldos por ID_Usuario y que correspondan al año anterior
+      const cortesAhorroSaldos = await AhorroSaldos.findAll({
+        where: {
+          ID_Usuario: usuario.ID, // Buscar por ID_Usuario
+          Periodo: añoAnterior,   // Filtrar por el año anterior en formato yyyy
+        },
+        attributes: ['Total'], // Solo retornar el campo Total
+        raw: true,
+      });
+
+      return {
+        ID: usuario.ID,
+        Nombre: usuario.Nombre,
+        Apellido_Paterno: usuario.Apellido_Paterno,
+        Apellido_Materno: usuario.Apellido_Materno,
+        Codigo_Empleado: usuario.Codigo_Empleado,
+        MontoAhorro: usuario.Ahorro
+          ? usuario.Ahorro.reduce((acc, ahorro) => acc + parseFloat(ahorro.Monto || 0), 0)
+          : 0,
+        TransaccionesAhorro: {
+          AnioActual: transaccionesAnioActual,
+          AnioAnterior: transaccionesAnioAnterior,
+        },
+        TotalAhorroSaldosAnioAnterior: cortesAhorroSaldos.length > 0 ? cortesAhorroSaldos[0].Total : null, // Retornar el Total si existe
+      };
+    }));
+
+    console.log('getUserSavingsReport:', resultado);
+
+    return resultado;
+  } catch (error) {
+    console.error('Error al obtener el reporte de ahorro por usuario:', error);
+    throw new Error('Error al obtener el reporte de ahorro por usuario');
+  }
+});
+
+ipcMain.handle('db:getUserSavingDesahogoReport', async (_, { NombreCompleto, Anio }) => {
+  try {
+    // Validar que el año sea un valor de 4 dígitos
+    const yearRegex = /^\d{4}$/;
+    if (Anio && !yearRegex.test(Anio)) {
+      throw new Error('El formato del año debe ser YYYY');
     }
+
+    // Construir el filtro de nombre
+    const whereUserClause = NombreCompleto
+      ? {
+          [Sequelize.Op.or]: [
+            { Nombre: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
+            { Apellido_Paterno: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
+            { Apellido_Materno: { [Sequelize.Op.like]: `%${NombreCompleto}%` } },
+          ],
+        }
+      : {};
+
+    // Construir el filtro de fecha si se especificó el año
+    const whereTransactionClause = Anio
+      ? {
+          Fecha: {
+            [Sequelize.Op.between]: [
+              new Date(`${Anio}-01-01`),
+              new Date(`${Anio}-12-31 23:59:59`)
+            ]
+          }
+        }
+      : {};
+
+    // Obtener usuarios con sus transacciones de desahogo
+    const usuarios = await Usuario.findAll({
+      attributes: ['ID', 'Nombre', 'Apellido_Paterno', 'Apellido_Materno', 'Codigo_Empleado'],
+      where: whereUserClause,
+      include: [
+        {
+          model: Ahorro,
+          as: 'Ahorro',
+          required: false,
+          attributes: ['ID'],
+          include: [
+            {
+              model: TransaccionesAhorro,
+              as: 'Transacciones',
+              required: false,
+              attributes: ['ID', 'Monto', 'Fecha'],
+              where: {
+                ...whereTransactionClause,
+                TipoTransaccion: 'Desahogo' // Solo transacciones de tipo Desahogo
+              }
+            }
+          ]
+        }
+      ],
+      order: [
+        ['Apellido_Paterno', 'ASC'],
+        ['Apellido_Materno', 'ASC'],
+        ['Nombre', 'ASC']
+      ]
+    });
+
+    // Procesar los resultados
+    const resultado = usuarios.map(usuario => {
+      // Filtrar solo los ahorros que tienen transacciones
+      const ahorrosConTransacciones = usuario.Ahorro?.filter(ahorro => 
+        ahorro.Transacciones && ahorro.Transacciones.length > 0
+      ) || [];
+
+      // Obtener todas las transacciones de desahogo
+      const transaccionesDesahogo = ahorrosConTransacciones.flatMap(ahorro => 
+        ahorro.Transacciones.map(transaccion => ({
+          idTransaccion: transaccion.ID,
+          monto: transaccion.Monto,
+          fecha: transaccion.Fecha,
+          idAhorro: ahorro.ID
+        }))
+      );
+
+      // Calcular total desahogado
+      const totalDesahogado = transaccionesDesahogo.reduce(
+        (sum, transaccion) => sum + parseFloat(transaccion.monto || 0), 0
+      );
+
+      return {
+        idUsuario: usuario.ID,
+        nombreCompleto: `${usuario.Nombre} ${usuario.Apellido_Paterno} ${usuario.Apellido_Materno || ''}`.trim(),
+        codigoEmpleado: usuario.Codigo_Empleado,
+        cantidadDesahogos: transaccionesDesahogo.length,
+        totalDesahogado: totalDesahogado,
+        desahogos: transaccionesDesahogo
+      };
+    }).filter(usuario => usuario.cantidadDesahogos > 0); // Filtrar solo usuarios con desahogos
+
+    return resultado;
+  } catch (error) {
+    console.error('Error al obtener el reporte de desahogos:', error);
+    throw new Error(error.message || 'Error al obtener el reporte de desahogos');
+  }
 });
   
   
@@ -666,7 +766,57 @@ ipcMain.handle('db:getAmmountSaving', async (_, idUsuario) => {
     }
   });
 
+  ipcMain.handle('db:getLoansByMonthYear', async (_, { month, year }) => {
+    try {
+
+      console.log('db:getLoansByMonthYear',{ month, year });
+      
+      // Validar que mes y año sean proporcionados
+      if (!month || !year) {
+        throw new Error('Month and year are required');
+      }
   
+      // Convertir mes y año a fechas de inicio y fin del mes
+      const monthStart = new Date(year, month - 1, 1); // mes -1 porque en JS enero es 0
+      const monthEnd = new Date(year, month, 0); // día 0 del siguiente mes = último día del mes actual
+  
+      const prestamos = await Prestamo.findAll({
+        where: {
+          Fecha_Inicio: {
+            [Sequelize.Op.between]: [monthStart, monthEnd]
+          }
+        },
+        include: [{
+          model: Usuario,
+          as: 'Usuario',
+          include: [{
+            model: Domicilio,
+            as: 'Domicilio'
+          }]
+        }]
+      });
+  
+      if (!prestamos || prestamos.length === 0) {
+        return [];
+      }
+  
+      // Formatear la respuesta para incluir toda la información
+      return prestamos.map(prestamo => {
+        const prestamoJSON = prestamo.toJSON();
+        
+        return {
+          ...prestamoJSON,
+          Usuario: {
+            ...prestamoJSON.Usuario,
+            Domicilio: prestamoJSON.Usuario.Domicilio || null
+          }
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching Prestamos by month and year:', error);
+      throw new Error('Error fetching Prestamos by month and year');
+    }
+  });
 
 
   ipcMain.handle('db:updateLoanCapitalIntereses', async (_, { id, Total_Pagado_Capital = 0, Total_Pagado_Intereses = 0 }) => {

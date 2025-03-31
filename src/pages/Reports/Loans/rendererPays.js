@@ -26,7 +26,6 @@ const generateTablePaySearch = async ({pagos}) => {
     if (pagos.length > 0) {
         // Generar el HTML para la tabla
         let tableHTML = '';
-        console.log('loans',pagos);
         //processInformation(loans)
         // Recorrer los préstamos y agregar filas
         let counter =1;

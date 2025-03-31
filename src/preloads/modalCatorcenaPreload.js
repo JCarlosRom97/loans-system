@@ -5,6 +5,17 @@ const fechaInicial = '12/01/2024';
 document.addEventListener('DOMContentLoaded', () => {
     closeButtonListener();
 
+    const añoActual = new Date().getFullYear(); // Ejemplo: 2023
+
+    document.getElementById('year').value = añoActual;
+
+    if(regexYear(añoActual)){
+        const dates = generateCatorcenas(fechaInicial, añoActual);
+    
+        generateTableCatorcena(dates);
+        console.log('dates', dates);
+    }
+
     const year = document.getElementById('year');
 
     year.addEventListener('keyup', (e) =>{

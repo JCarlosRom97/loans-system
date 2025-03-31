@@ -16,10 +16,10 @@
           <label for="tipo" >Tipo:</label>
           <select name="tipo" id="tipo">
             <option value="Cheque">Cheque</option>
-            <option value="InteresesDelPlazo">Intereses del plazo</option>
-            <option value="ISRInversionPlazo">ISR Inversión Plazo</option>
-            <option value="RenovacionInversionPlazo">Renovacion Inversión Plazo</option>
-            <option value="ComisionChequeExpedido">Comisión Cheque Expedido</option>
+            <option value="Intereses Del Plazo">Intereses del plazo</option>
+            <option value="ISR Inversion Plazo">ISR Inversión Plazo</option>
+            <option value="Renovacion Inversion Plazo">Renovacion Inversión Plazo</option>
+            <option value="Comision Cheque Expedido">Comisión Cheque Expedido</option>
             <option value="IVA">IVA</option>
           </select>
         </div>
@@ -46,37 +46,41 @@
           <input type="number" id="monto" name="monto"  required >
         </div>
       </div>
-      <button type="submit" class="centerButton" id="nuevo-cheque">Nuevo Cheque</button>
+      <button type="submit" class="centerButton" id="nuevo-cheque">Nuevo Cheque o Gastos</button>
     </div>
-    <form class="form-search-gastos" id="form-search-gastos">
+    <div class="form-search-gastos" id="form-search-gastos">
       <div class="search-container">
-          <div class="input-container">
-              <p>Mes</p>
-              <select name="mes" id="mes">
-                  <option value="1">Enero</option>
-                  <option value="2">Febrero</option>
-                  <option value="3">Marzo</option>
-                  <option value="4">Abril</option>
-                  <option value="5">Mayo</option>
-                  <option value="6">Junio</option>
-                  <option value="7">Julio</option>
-                  <option value="8">Agosto</option>
-                  <option value="9">Septiembre</option>
-                  <option value="10">Octubre</option>
-                  <option value="11">Noviembre</option>
-                  <option value="12">Diciembre</option>
-              </select>
-              
-          </div>
-          <div class="input-container">
-              <p>Año</p>
-              <input type="text"  id="year" class="input-search" placeholder="(aaaa)" >
-          </div>
-          <div class="input-container">
-            <button id="searchGastos" class="search-button">Buscar</button>
+        <div class="input-container">
+          <p>Tipo</p>
+          <select name="tipo-filter" id="tipo-filter">
+              <option value="Todos">Todos</option>
+              <option value="Cheques">Cheques</option>
+              <option value="Gastos">Gastos</option>
+          </select>
+        </div>
+        <div class="input-container">
+            <p>Mes</p>
+            <select name="mes" id="mes">
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+            </select>
+        </div>
+        <div class="input-container">
+            <p>Año</p>
+            <input type="text"  id="year" class="input-search" placeholder="(aaaa)" >
         </div>
       </div>
-  </form>
+    </div>
     <div class="table-container" id="tablePagosPrestamos">
       <table class="user-table">
         <thead>

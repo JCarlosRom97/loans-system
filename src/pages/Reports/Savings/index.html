@@ -10,25 +10,6 @@
     <div id="header"></div>
     <div class="container">
         <h2>Reporte ahorro</h2>
-       <!--  <div class="active-loan-section" id="detailLoanSection">
-            <h3>Cálculos</h3>
-            <div class="loan-info">
-                <div class="section">
-                    <div class="info-item">
-                        <span class="label">Monto Total Ahorro:</span>
-                        <span class="value" id="monto-total-pay-ahorro"></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Monto Total Desahogo:</span>
-                        <span class="value" id="desahogo-total-pay"></span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Monto Total:</span>
-                        <span class="value" id="monto-total-pay"></span>
-                    </div>
-                </div>
-            </div>
-        </div> -->
         <div class="searchTableContainer">
 
             <div class="search-container">
@@ -63,9 +44,55 @@
             </table>
             <div id="info"></div>
         </div>
+
+        <!-- Ahorro Desahogos -->
+
+        <h2>Reporte Ahorro: Desahogos</h2>
+        <div class="active-loan-section">
+            <h3>Cálculos</h3>
+            <div class="loan-info">
+                <div class="section">
+                    <div class="info-item">
+                        <span class="label">Monto Total Desahogado:</span>
+                        <span class="value" id="monto-total-prestamos-desahogo"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="searchTableContainer">
+
+            <div class="search-container">
+                <p>Año</p>
+                <input type="text"  id="anio-desahogos" class="input-search" >
+            </div>  
+            <div class="search-container">
+                <p>Nombre</p>
+                <input type="text"  id="name-desahogos" class="input-search" >
+            </div>  
+
+        </div>
+        <div class="table-container">
+            <table class="saving-table">
+              <thead>
+                <tr id="tr-saving">
+                    <th>No.</th>
+                    <th>Numero de Empleado</th>
+                    <th>Nombre</th>
+                    <th>Número de transacciones</th>
+                    <th>Total Desahogado</th>
+               
+                </tr>
+              </thead>
+              <tbody id="savings-desahogo-table-body">
+                <!-- Aquí se insertarán los usuarios dinámicamente -->
+              </tbody>
+            </table>
+            <div id="info-desahogos"></div>
+        </div>
     </div>
 </body>
 <script src="./../../../components/header/renderer.js"></script>
+<script src="./rendererDesahogos.js"></script>
 <script>
     
     addHeader('./../../../components/header/header.html')

@@ -131,3 +131,14 @@ button {
 .more-green{
   color: green;
 }
+
+.loan-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.section{
+  display: flex;
+  flex-direction: row;
+}
