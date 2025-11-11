@@ -66,7 +66,7 @@ const createModalCheque = (parentWindow, options = {}) => {
 
     modalWindowCheque.once('ready-to-show', () => {
         modalWindowCheque.show();
-        modalWindowCheque.webContents.openDevTools();
+        //modalWindowCheque.webContents.openDevTools();
     });
 
     modalWindowCheque.on('closed', () => {
