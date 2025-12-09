@@ -7,6 +7,10 @@ const Prestamo = sequelize.define('Prestamo', {
     primaryKey: true,
     autoIncrement: true,
   },
+  Numero_Prestamo: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
   Numero_Cheque: {
     type: DataTypes.STRING(50),
     allowNull: false,
