@@ -26,6 +26,12 @@
             <div class="loan-info">
                 <div class="section">
                     <div class="info-item">
+                        <span class="label">Número de Prestamo:</span>
+                        <span class="value" id="numero-prestamo-label"></span>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="info-item">
                         <span class="label">Periodo:</span>
                         <span class="value" id="periodo"></span>
                     </div>
@@ -104,6 +110,12 @@
         <form id="formLoan">
             <div class="form-section">
             <h3 id="prestamo-title">Nuevo Préstamo</h3>
+            <div class="section">
+                <div class="form-group">
+                    <label for="numero-prestamo">Número de Prestamo</label>
+                    <input type="text" id="numero-prestamo" name="numero-prestamo" required>
+                </div>
+            </div>
             <div class="section">
                 <div class="form-group">
                     <label for="fecha">Fecha primer abono</label>

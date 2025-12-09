@@ -55,15 +55,12 @@ document.addEventListener('DOMContentLoaded', async() => {
     form.addEventListener('submit', async(e)=>{
         e.preventDefault();
         const isRefinanciar = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Activo'});
-
-
         const interes = parsefromMXN(document.getElementById('interes').value);
         const interesTotal = interes * document.getElementById('cantidadMeses').value;
 
-        console.log(document.getElementById('numero-cheque-input'));
-
         const loanData = {
             id_Usuario_fk: idUser,
+            Numero_Prestamo: document.getElementById('numero-prestamo').value,
             Numero_Cheque: document.getElementById('numero-cheque-input').value,
             Periodo: document.getElementById('noAnios').value,
             Cantidad_Meses: document.getElementById('cantidadMeses').value,
@@ -574,6 +571,7 @@ const fillLoanDataUI = (loan) =>{
     // Convertir la fecha inicial de formato dd/mm/aaaa a objeto Date
     const formattedDateDisplay = window.api.formatDateToDisplay(loan[0].Fecha_Inicio); 
     const fechaPago = window.api.getDateAfterPays(formattedDateDisplay,loan[0].Pagos_Completados );
+    document.getElementById('numero-prestamo-label').innerText = `${loan[0].Numero_Prestamo}`;
     document.getElementById('periodo').innerText = `${loan[0].Periodo} años`;
     document.getElementById('loan-numero-cheque').innerText = loan[0].Numero_Cheque;
     document.getElementById('fecha-inicio').innerText = window.api.formatDateToDisplay(loan[0].Fecha_Inicio);
