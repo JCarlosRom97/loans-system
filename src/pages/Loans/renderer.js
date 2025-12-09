@@ -367,6 +367,9 @@ const getLoanPagados = async() =>{
                         </div>
                     </div>
                     <div class="section">
+                         <div class="info-item">
+                            <p><strong>Número de Prestamo:</strong> ${loan.Numero_Prestamo}</p>
+                        </div>
                         <div class="info-item">
                             <p><strong>Número de Cheque:</strong> ${loan.Numero_Cheque}</p>
                         </div>
@@ -493,15 +496,16 @@ const getLoanRefinance = async() =>{
                         </div>
                     </div>
                     <div class="section">
+                       <div class="info-item">
+                            <p><strong>Número de Prestamo:</strong> ${loan.Numero_Prestamo}</p>
+                        </div>
                         <div class="info-item">
                             <p><strong>Número de Cheque:</strong> ${loan.Numero_Cheque}</p>
                         </div>
                         <div class="info-item">
                             <p><strong>Fecha de Termino:</strong> ${window.api.formatDateToDisplay(loan.Fecha_Termino)}</p>
                         </div>
-                        <div class="info-item">
-                        
-                        </div>
+               
                     </div>
                     <div class="table-container" >
                         <table class="user-table">
@@ -709,7 +713,6 @@ const generateTablePays = async(idPrestamo, idTable, isShowOldLoans = false)=>{
         pagos.forEach((pago, index) => {
         tableHTML += `
             <tr>
-                <td>${index + 1}</td>
                 <td>${pago.Periodo_Catorcenal}</td>
                 <td>${window.api.formatDateToDisplay(pago.Fecha_Catorcena, 0)}</td>
                 <td>${window.api.formatDateToDisplay(pago.Fecha_Pago, 0)}</td>
