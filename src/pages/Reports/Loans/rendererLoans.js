@@ -9,50 +9,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('mes-search-prestamo').value = month;
     document.getElementById('search-date-year-prestamo').value = year;
 
-    const response = await window.db.getLoanReportByMonth({month, year})
+    const response = await window.db.getLoanReportByMonth({ month, year })
 
-    console.log('Reporte prestamos',response);
+    console.log('Reporte prestamos', response);
 
-    if(response){
+    if (response) {
         generateTablePrestamos(response);
     }
 
     const mesFilterPrestamo = document.getElementById('mes-search-prestamo');
 
 
-    mesFilterPrestamo.addEventListener('change', async() =>{
+    mesFilterPrestamo.addEventListener('change', async () => {
         search();
     })
 
     const yearFilterPrestamo = document.getElementById('search-date-year-prestamo');
 
-    yearFilterPrestamo.addEventListener("keyup", () =>{
+    yearFilterPrestamo.addEventListener("keyup", () => {
         search();
     })
-    
 
+});
 
- });
+const search = async () => {
 
- const search = async() =>{
-     
     const mesFilterPrestamo = document.getElementById('mes-search-prestamo').value;
     const yearFilterPrestamo = document.getElementById('search-date-year-prestamo').value;
     console.log(mesFilterPrestamo, yearFilterPrestamo);
 
-    if(regexYearRange.test(yearFilterPrestamo)){
-        const response = await window.db.getLoanReportByMonth({month: mesFilterPrestamo, year: yearFilterPrestamo})
+    if (regexYearRange.test(yearFilterPrestamo)) {
+        const response = await window.db.getLoanReportByMonth({ month: mesFilterPrestamo, year: yearFilterPrestamo })
 
-        console.log('Reporte prestamos',response);
-    
-        if(response){
+        console.log('Reporte prestamos', response);
+
+        if (response) {
             generateTablePrestamos(response);
         }
     }
- }
+}
 
 
- const generateTablePrestamos = async (prestamos) => {
+const generateTablePrestamos = async (prestamos) => {
 
     // Verificar si hay préstamos
     if (prestamos.length > 0) {
@@ -60,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let tableHTML = '';
         //processInformation(loans)
         // Recorrer los préstamos y agregar filas
-        let counter =1;
+        let counter = 1;
 
         let montoTotal = 0;
         let montoTotalPrestamo = 0;
@@ -72,13 +70,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <td>${prestamo.Usuario.Nombre}</td>
                         <td>${prestamo.Usuario.Apellido_Paterno}</td>
                         <td>${prestamo.Usuario.Apellido_Materno}</td>
+                         <td>${prestamo.Numero_Prestamo}</td>
                         <td>${prestamo.Cantidad_Meses}</td>
                         <td>${parseTOMXN(prestamo.Monto)}</td>
                         <td>${window.api.formatDateToDisplay(prestamo.Fecha_Inicio)}</td>
                         <td>${window.api.formatDateToDisplay(prestamo.Fecha_Termino)}</td>
                         <td>${parseTOMXN(prestamo.TotalPrestamo_Intereses)}</td>
                         <td>${prestamo.Numero_Cheque}</td>
-                        <td>${ prestamo.Usuario.Fecha_De_Nacimiento }</td>
+                        <td>${prestamo.Usuario.Fecha_De_Nacimiento}</td>
                         <td>${prestamo.Usuario.CURP}</td>
                         <td>${prestamo.Usuario.RFC}</td>
                         <td>${prestamo.Usuario.Nacionalidad}</td>
@@ -95,11 +94,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             montoTotal += prestamo.Monto;
-            montoTotalPrestamo += prestamo.TotalPrestamo_Intereses; 
-        
+            montoTotalPrestamo += prestamo.TotalPrestamo_Intereses;
+
         }
         console.log(montoTotal);
-        
+
         document.getElementById('monto-total-prestamos').textContent = parseTOMXN(montoTotal);
         document.getElementById('monto-total-intereses-prestamos').textContent = parseTOMXN(montoTotalPrestamo);
 
@@ -114,4 +113,3 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('infoPays').innerText = 'No se encontraron pagos.';
     }
 };
- 

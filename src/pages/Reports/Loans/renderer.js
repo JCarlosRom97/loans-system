@@ -144,6 +144,7 @@ const generateTableSearch = async (loans, Year) => {
                         <td>${generateStatusElement(loan.EstadoPrestamo)}</td>
                         <td>${loan.Usuario.Nombre} ${loan.Usuario.Apellido_Paterno} ${loan.Usuario.Apellido_Materno}</td>
                         <td>${loan.Usuario.CTA_CONTABLE_PRESTAMO || 'N/A'}</td>
+                        <td>${loan.Numero_Prestamo || 'N/A'}</td>
                         <td>${loan.Numero_Cheque || 'N/A'}</td>
                         <td>${loan.Periodo || 'N/A'} Años</td>
                         <td>${loan.Cantidad_Meses || 'N/A'}</td>

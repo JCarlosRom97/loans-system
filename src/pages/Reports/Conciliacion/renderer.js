@@ -53,8 +53,6 @@ function generateConciliationTable(data, saldoInicial, resultConciliationGastos)
     
     // Obtener el JSON ordenado y procesado
     const records = orderDataConciliation(data, resultConciliationGastos);
-
-    console.log('resultConciliationGastos', records);
     
     // Inicializar variables
     let saldoActual = parseInt(saldoInicial);
@@ -63,7 +61,7 @@ function generateConciliationTable(data, saldoInicial, resultConciliationGastos)
 
     // Recorrer los registros procesados
     records.forEach((record) => {
-        const { Fecha, Nombre, Descripcion, TotalMonto, No_Cheque, CuentaPrestamo, CuentaAhorro } = record;
+        const { Fecha, Nombre, Descripcion, TotalMonto, No_Cheque, CuentaPrestamo, CuentaAhorro, Numero_Prestamo } = record;
 
         // Determinar el tipo de transacción
         let esAhorro = Descripcion.includes('Ahorro');
@@ -108,6 +106,7 @@ function generateConciliationTable(data, saldoInicial, resultConciliationGastos)
                         : 'N/A'}
                 </td>
                 <td>${parseTOMXN(saldoActual)}</td>
+                <td>${Numero_Prestamo}</td>
                 <td>${esPago || esPrestamo ? CuentaPrestamo : "N/A"}</td>
                 <td>${esAhorro ? CuentaAhorro : "N/A"}</td>
             </tr>
@@ -117,7 +116,7 @@ function generateConciliationTable(data, saldoInicial, resultConciliationGastos)
     // Agregar el total al final de la tabla
     tableHTML += `
         <tr>
-            <td colspan="7"></td>
+            <td colspan="8"></td>
             <td><span class="${saldoActual >= parseInt(saldoInicial) ? 'more-green' : 'less-red'}">${parseTOMXN(saldoActual)}</span></td>
             <td colspan="2"></td>
         </tr>
@@ -189,9 +188,11 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
         } else {
             descripcion = `${registro.Motivo} - ${parseTOMXN(registro.Monto)}`;
         }
-
+        console.log(tipo);
+        
         // Si es préstamo iniciado o no existe el registro, creamos uno nuevo
-        if (tipo === "prestamoIniciado" || !resultado[clave]) {
+        if (tipo === "prestamoIniciado" || !resultado[clave] || tipo === "pago") {
+ 
             resultado[clave] = {
                 NombreCompleto: usuario,
                 Fecha: fecha,
@@ -199,6 +200,7 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
                 Tipo: tipo,
                 TotalMonto: registro.Monto,
                 No_Cheque: [registro.No_Cheque || "N/A"],
+                Numero_Prestamo: tipo === 'prestamoIniciado' ? registro?.Numero_Prestamo : registro?.Prestamo?.EsNoChequeNumero_Prestamo || "N/A",
                 MotivoCheque: [registro.Motivo || "N/A"],
                 NumeroTransacciones: 1,
                 Descripcion: descripcion,
@@ -213,6 +215,7 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
                 EsNoCheque: tipo !== "cheque",
                 EsUnitario: tipo === "prestamoIniciado" // Marcar como unitario
             };
+            console.log(registro.Prestamo, registro, resultado[clave]);
         } 
         // Para otros tipos, agrupamos por nombre y fecha
         else if (tipo !== "prestamoIniciado") {
@@ -312,6 +315,7 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
         Nombre: registro.EsGastoConciliado ? "N/A" : registro.NombreCompleto,
         Descripcion: registro.Descripcion,
         TotalMonto: registro.TotalMonto,
+        Numero_Prestamo: registro.Numero_Prestamo,
         No_Cheque: registro.No_Cheque.filter(n => n !== "N/A").join(", ") || "N/A",
         NumeroTransacciones: registro.NumeroTransacciones,
         CuentaPrestamo: registro.CuentaPrestamo,  // Ya está asignado en agregarRegistro
