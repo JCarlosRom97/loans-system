@@ -60,6 +60,10 @@ const Prestamo = sequelize.define('Prestamo', {
     allowNull: false,
     defaultValue: 'Activo',
   },
+  FechaEliminacion: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
   Pagos_Completados: {
     type: DataTypes.INTEGER,
     allowNull: true,

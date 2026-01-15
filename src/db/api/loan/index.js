@@ -67,6 +67,7 @@ const loanAPI = (ipcMain) => {
             // Actualizar el préstamo actual
             await prestamoActual.update({
                 EstadoPrestamo: data.status,
+                FechaEliminacion: new Date(),
             });
 
             return {

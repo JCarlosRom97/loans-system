@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('prestamo-title').innerText = 'Nuevo Prestamo'
         }
     })
-
+    /* FORM ELIMINAR */
     eliminarPrestamoButton.addEventListener('click', async () => {
 
         try {
@@ -606,6 +606,11 @@ const getLoanDeleted = async () => {
             <div class="accordion-item">
                 <button class="accordion-header-eliminado" aria-expanded="false">Préstamo Eliminado ${index + 1}</button>
                 <div class="accordion-body">
+                  <div class="section">
+                        <div class="info-item">
+                            <p><strong>Fecha de Eliminación:</strong> ${window.api.formatDateToDisplay(loan.FechaEliminacion)}</p>
+                        </div>
+                    </div>
                     <div class="section">
                         <div class="info-item">
                             <p><strong>Fecha de Inicio:</strong> ${window.api.formatDateToDisplay(loan.Fecha_Inicio)}</p>
