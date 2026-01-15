@@ -103,8 +103,6 @@ document.addEventListener('DOMContentLoaded', async() => {
                 const address = await window.db.updateAddress(addressData);
 
                 console.log('address updated!', address);
-
-                form.reset();
             }
            
 

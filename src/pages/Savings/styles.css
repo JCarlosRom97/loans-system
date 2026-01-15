@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   justify-content: center;  /* Centrado vertical */
-  align-items: center;      /* Centrado horizontal */
   margin-top: 30px;
   padding: 20px;
   width: 90%;

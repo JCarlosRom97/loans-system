@@ -326,9 +326,14 @@ const savingsAPI = (ipcMain) => {
                     order: [['Fecha', 'DESC']], // Ordenar por fecha en orden descendente para obtener el último registro
                 });
 
+                console.log(ultimaTransaccionAhorro,'ultimaTransaccionAhorro');
+                
+
                 // Actualizar FechaUltimaActualizacion con la fecha de la última transacción de ahorro
                 if (ultimaTransaccionAhorro) {
                     ahorro.dataValues.FechaUltimaActualizacion = ultimaTransaccionAhorro.Fecha;
+                }else{
+                    ahorro.dataValues.FechaUltimaActualizacion = null;
                 }
 
                 return ahorro.dataValues; // Devolver el registro de Ahorro con la fecha actualizada

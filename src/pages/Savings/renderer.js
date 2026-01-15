@@ -178,6 +178,9 @@ async function deleteTransaction (idUser) {
 }
 
 const setFechaCatorcena = async() =>{
+    const Saving = await getSavingInfo();
+    console.log(Saving);
+    
     const {ID, FechaUltimaActualizacion} = await getSavingInfo();
     console.log(ID, FechaUltimaActualizacion);
     
