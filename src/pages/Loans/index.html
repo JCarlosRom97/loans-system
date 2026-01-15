@@ -10,14 +10,19 @@
     <div id="header"></div>
     <div class="container">
         <h3 id="name-user"></h3>
-        <div class="pagados-section">
-            <h2 id="accordion-body-title-pagados" class="hidden">Visualización de Préstamos Pagados</h2>
+        <div class="pagados-section hidden">
+            <h2 id="accordion-body-title-pagados" >Visualización de Préstamos Pagados</h2>
             <div class="accordion" id="accordion-body-pagado">
             </div>
         </div>
-        <div class="refinanciados-section">
-            <h2 id="accordion-body-title-refinanciado" class="hidden">Visualización de Préstamos Refinanciados</h2>
+        <div id="prestamos-refinanciados-section" class="refinanciados-section hidden" >
+            <h2 id="accordion-body-title-refinanciado" >Visualización de Préstamos Refinanciados</h2>
             <div class="accordion" id="accordion-body-refinanciado">
+            </div>
+        </div>
+        <div id="prestamos-eliminados-section" class="eliminados-section hidden">
+            <h2 id="accordion-body-title-eliminados" >Visualización de Préstamos Eliminados</h2>
+            <div class="accordion" id="accordion-body-eliminados">
             </div>
         </div>
         <h2>Formulario Prestamo y Pagos</h2>
@@ -102,8 +107,11 @@
                         <span class="value" id="loan-ultima-catorcena"></span>
                     </div>
                 </div>
+                <div class="section" style="padding: 0px 350px 0px 350px;">
+                    <button class="refinanciar-button" id="refinanciarButton">Refinanciar</button>
+                    <button class="button-delete" id="eliminarButton">Eliminar</button>
+                </div>
             </div>
-            <button class="refinanciar-button" id="refinanciarButton">Refinanciar</button>
         </div>
         
         <!-- Prestamo Section -->
@@ -191,7 +199,7 @@
                     <p>Ultimo Pago: <span id="last-pay"></span></p>
                 </div>
               </div>
-            <button type="submit" id="nuevoPrestamo">Nuevo Prestamo</button>
+            <button type="submit" id="nuevoPrestamo" class="button-nuevo-prestamo">Nuevo Prestamo</button>
             </div>
         </form>
         <input type="text" id="idUser" name="idUser" disabled hidden>
@@ -235,7 +243,7 @@
                     </select>
                 </div>
             </div>
-            <button type="submit">Registrar Pago</button>
+            <button class="registrar-pago-button" type="submit">Registrar Pago</button>
             </div>
             <div class="table-container hidden" id="tablePagosPrestamos">
                 <table class="user-table">

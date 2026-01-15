@@ -56,6 +56,29 @@ const loanAPI = (ipcMain) => {
         }
     });
 
+    ipcMain.handle('db:deleteLoan', async (_, data) => {
+        try {
+            const prestamoActual = await Prestamo.findByPk(data.idPrestamo);
+
+            if (!prestamoActual) {
+                throw new Error('Préstamo no encontrado');
+            }
+
+            // Actualizar el préstamo actual
+            await prestamoActual.update({
+                EstadoPrestamo: data.status,
+            });
+
+            return {
+                message: 'Préstamo Eliminado Exitosamente.',
+                loan: prestamoActual.dataValues,
+            };
+        } catch (error) {
+            console.error('Error Eliminando el préstamo:', error);
+            throw new Error(error.message || 'Error Eliminando el préstamo.');
+        }
+    });
+
 
     ipcMain.handle('db:getLoansByUserId', async (_, { userId, status }) => {
         try {

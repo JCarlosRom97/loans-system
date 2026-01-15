@@ -174,11 +174,13 @@ async function deleteTransaction (idUser) {
     console.log(deletedSaving);
     const {ID}  = await getSavingInfo();
     fetchAndDisplaySavings(ID)
+    await setFechaCatorcena()
 }
 
 const setFechaCatorcena = async() =>{
     const {ID, FechaUltimaActualizacion} = await getSavingInfo();
-
+    console.log(ID, FechaUltimaActualizacion);
+    
     if(FechaUltimaActualizacion){
         document.getElementById('fecha').value = window.api.getDateAfterPays(window.api.formatDateToDisplay(FechaUltimaActualizacion, 0), 1);
         document.getElementById("fecha").disabled = true;

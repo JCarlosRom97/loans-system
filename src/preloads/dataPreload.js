@@ -121,6 +121,14 @@ contextBridge.exposeInMainWorld('db', {
        console.error('Error adding Loan:', error.message);
     }
   },
+  deleteLoan: async (data) =>{
+    try {     
+      return await ipcRenderer.invoke('db:deleteLoan', data);
+    } catch (error) {
+       // Muestra el mensaje de error completo para depuración
+       console.error('Error adding Loan:', error.message);
+    }
+  },
   getLoan: async ({userId, status}) =>{
     try {
       return await ipcRenderer.invoke('db:getLoansByUserId', {userId, status}, );

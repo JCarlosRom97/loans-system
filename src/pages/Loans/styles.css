@@ -41,7 +41,7 @@ body {
   border-bottom: 1px solid #ddd;
 }
 
-.accordion-header-refinanciado, .accordion-header-pagados {
+.accordion-header-refinanciado, .accordion-header-pagados, .accordion-header-eliminado {
   background-color: #07509d;
   cursor: pointer;
   padding: 15px;
@@ -52,6 +52,10 @@ body {
   font-size: 16px;
   font-weight: bold;
   transition: background-color 0.3s;
+}
+
+.accordion-header-refinanciado:hover, .accordion-header-pagados:hover, .accordion-header-eliminado:hover {
+  background-color: #0a62c1;
 }
 
 .accordion-header:hover {
@@ -245,14 +249,10 @@ body {
   }
 
   .container button {
-    width: 30%;
-    padding: 15px;
     margin-top: 20px;
-    background-color: rgb(0, 145, 0);
     color: white;
     border: none;
     border-radius: 4px;
-    font-size: 18px;
     cursor: pointer;
     transition: background-color 0.3s;
     display: block;
@@ -260,11 +260,11 @@ body {
     margin-right: auto;
   }
 
-  .refinanciar-button{
+  .refinanciar-button, .button-nuevo-prestamo, .registrar-pago-button{
+    background-color: rgb(0, 145, 0);
     margin-left: 0px;
-    width: 10%;
-    font-size: 16px;
-    padding: 5px;
+    font-size: 14px;
+    padding: 10px;
   }
 
   .refinanciar-button:hover{
@@ -274,9 +274,8 @@ body {
 
   .button-delete{
     background-color: red;
-    width: 100%;
-    font-size: 16px;
-    padding: 5px;
+    font-size: 14px;
+    padding: 10px;
   }
 
   .button-delete:hover{

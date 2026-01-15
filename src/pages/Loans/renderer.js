@@ -1,5 +1,5 @@
 const LIMIT_PRESTAMO = 250000;
-document.addEventListener('DOMContentLoaded', async() => {
+document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const idUser = parseInt(params.get('idUsuario'));
 
@@ -7,13 +7,14 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     const user = await window.db.getUser(idUser);
 
-    document.getElementById('name-user').innerText = 
-    `${user.Nombre} ${user.Apellido_Paterno} ${user.Apellido_Materno}`
+    document.getElementById('name-user').innerText =
+        `${user.Nombre} ${user.Apellido_Paterno} ${user.Apellido_Materno}`
 
     console.log(user);
 
     getLoan();
     getLoanRefinance();
+    getLoanDeleted();
     getLoanPagados();
 
     const fecha = document.getElementById('fecha');
@@ -22,39 +23,40 @@ document.addEventListener('DOMContentLoaded', async() => {
     const interes = document.getElementById('interes');
 
 
-    fecha.addEventListener('keyup', async () =>{
-        const [fechaValue, totalPrestamoValue] =  await processFormInformation();
+    fecha.addEventListener('keyup', async () => {
+        const [fechaValue, totalPrestamoValue] = await processFormInformation();
         regexDate(fechaValue, totalPrestamoValue)
     })
-  
-    monto.addEventListener('keyup', async() =>{
+
+    monto.addEventListener('keyup', async () => {
         document.getElementById('cantidadMeses').value = document.getElementById('noAnios').value * 12;
         const [fechaValue, totalPrestamoValue] = await processFormInformation();
         regexDate(fechaValue, totalPrestamoValue)
     })
 
 
-    anios.addEventListener('keyup', async() =>{
+    anios.addEventListener('keyup', async () => {
         document.getElementById('cantidadMeses').value = document.getElementById('noAnios').value * 12;
         const [fechaValue, totalPrestamoValue] = await processFormInformation();
         regexDate(fechaValue, totalPrestamoValue)
     })
 
 
-    interes.addEventListener('keyup', async()=>{
+    interes.addEventListener('keyup', async () => {
         const [fechaValue, totalPrestamoValue] = await processFormInformation();
         regexDate(fechaValue, totalPrestamoValue)
     })
 
-  
+
     /* FORMS */
     const form = document.getElementById('formLoan');
     const formPago = document.getElementById('pagosForm');
     const buttonRefinanciar = document.getElementById('refinanciarButton');
+    const eliminarPrestamoButton = document.getElementById('eliminarButton');
     // Form create loan
-    form.addEventListener('submit', async(e)=>{
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const isRefinanciar = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Activo'});
+        const isRefinanciar = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
         const interes = parsefromMXN(document.getElementById('interes').value);
         const interesTotal = interes * document.getElementById('cantidadMeses').value;
 
@@ -64,14 +66,14 @@ document.addEventListener('DOMContentLoaded', async() => {
             Numero_Cheque: document.getElementById('numero-cheque-input').value,
             Periodo: document.getElementById('noAnios').value,
             Cantidad_Meses: document.getElementById('cantidadMeses').value,
-            Monto: isRefinanciar.length > 0 ? parsefromMXN(document.getElementById('Capital').value)  : document.getElementById('monto').value,
-            Total_Capital:isRefinanciar.length > 0 ? parsefromMXN(document.getElementById('Capital').value) : parsefromMXN(document.getElementById('monto').value),
+            Monto: isRefinanciar.length > 0 ? parsefromMXN(document.getElementById('Capital').value) : document.getElementById('monto').value,
+            Total_Capital: isRefinanciar.length > 0 ? parsefromMXN(document.getElementById('Capital').value) : parsefromMXN(document.getElementById('monto').value),
             Fecha_Inicio: formatDateForModel(document.getElementById('fecha').value),
             Fecha_Termino: formatDateForModel(document.getElementById('fecha-termino-input').value),
-            Interes: interes, 
+            Interes: interes,
             Interes_Total: interesTotal,
             TotalPrestamo: parsefromMXN(document.getElementById('totalPrestamo').value),
-            TotalPrestamo_Intereses:parsefromMXN(document.getElementById('interesesPrestamo').value),
+            TotalPrestamo_Intereses: parsefromMXN(document.getElementById('interesesPrestamo').value),
             Abono: parsefromMXN(document.getElementById('abono').value),
             Ultimo_Abono: parsefromMXN(document.getElementById('last-pay').textContent),
             Saldo: parsefromMXN(document.getElementById('totalPrestamo').value),
@@ -79,19 +81,19 @@ document.addEventListener('DOMContentLoaded', async() => {
             Pagos_Completados: 0,
             No_Catorcenas: document.getElementById('noCatorcenas').value,
             Total_Pagado_Capital: 0,
-            Total_Pagado_Intereses:0
+            Total_Pagado_Intereses: 0
         }
         console.log(loanData);
 
-        if(isRefinanciar.length >0){
-         
-            const refinancedLoan = await window.db.refinanceLoan({id:isRefinanciar[0].ID, ...loanData});
-          
+        if (isRefinanciar.length > 0) {
+
+            const refinancedLoan = await window.db.refinanceLoan({ id: isRefinanciar[0].ID, ...loanData });
+
             document.getElementById('idPrestamo').value = refinancedLoan.loan.ID || 0;
 
-            if(refinancedLoan.loan.ID ){
-                window.electron.showNotification('Prestamo refinanciado', 
-                `El prestamo ha sido refinanciado correctamente!`);
+            if (refinancedLoan.loan.ID) {
+                window.electron.showNotification('Prestamo refinanciado',
+                    `El prestamo ha sido refinanciado correctamente!`);
                 form.reset()
                 const infoDiv = document.getElementById('user-table-body');
                 infoDiv.innerHTML = '';
@@ -101,34 +103,34 @@ document.addEventListener('DOMContentLoaded', async() => {
 
                 getLoan();
                 getLoanRefinance();
-                
+
             }
 
-        }else{
+        } else {
             try {
                 const newLoan = await window.db.addLoan(loanData);
-    
-                if(newLoan.ID){
-                    window.electron.showNotification('Prestamo Agregado', 
-                    `El prestamo ha sido agregado correctamente!`);
+
+                if (newLoan.ID) {
+                    window.electron.showNotification('Prestamo Agregado',
+                        `El prestamo ha sido agregado correctamente!`);
                     form.reset()
                     const infoDiv = document.getElementById('user-table-body');
                     infoDiv.innerHTML = '';
-    
+
                     document.getElementById('tablePagos').classList.add('hidden');
                     document.getElementById('tablePagos').classList.remove('visible');
-    
+
                     getLoan();
-                    
+
                 }
             } catch (error) {
-                window.electron.showNotification('Error', 
-                `Ha habido un error, intente de nuevo!`);
+                window.electron.showNotification('Error',
+                    `Ha habido un error, intente de nuevo!`);
             }
         }
     })
     // FORM PAGOS
-    formPago.addEventListener('submit', async(e) =>{
+    formPago.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const newLoan = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
@@ -150,47 +152,47 @@ document.addEventListener('DOMContentLoaded', async() => {
 
         const paymentData = {
             id_Prestamo_fk: document.getElementById('idPrestamo').value,
-            Fecha_Catorcena:formatDateForModel(document.getElementById('fechaPagoCatorcena').value),
+            Fecha_Catorcena: formatDateForModel(document.getElementById('fechaPagoCatorcena').value),
             Fecha_Pago: formatDateForModel(document.getElementById('fecha-deposito').value),
             Monto_Pago: monto,
-            Periodo_Catorcenal: parseInt(document.getElementById('periodoCatorcenal').value) ,
+            Periodo_Catorcenal: parseInt(document.getElementById('periodoCatorcenal').value),
             Metodo_Pago: document.getElementById('metodoPago').value,
-            Monto_Pago_Capital:  parseInt(montoCapital),
-            Monto_Pago_Intereses: parseInt(montoIntereses) +1
+            Monto_Pago_Capital: parseInt(montoCapital),
+            Monto_Pago_Intereses: parseInt(montoIntereses) + 1
         };
 
-        console.log('paymentData',paymentData);
+        console.log('paymentData', paymentData);
         try {
 
             const newPayment = await window.db.addPayment(paymentData);
-            await window.db.updateLoanCapitalIntereses({   
-                id:document.getElementById('idPrestamo').value,
-                Total_Pagado_Capital:paymentData.Monto_Pago_Capital,  
+            await window.db.updateLoanCapitalIntereses({
+                id: document.getElementById('idPrestamo').value,
+                Total_Pagado_Capital: paymentData.Monto_Pago_Capital,
                 Total_Pagado_Intereses: paymentData.Monto_Pago_Intereses
             });
 
-            if(newPayment){
+            if (newPayment) {
                 getLoan();
                 formPago.reset()
             }
         } catch (error) {
             console.error(error)
         }
-        
+
     })
     /* FORM REFINANCIAR */
-    buttonRefinanciar.addEventListener('click', async()=>{
-      
+    buttonRefinanciar.addEventListener('click', async () => {
+
         // SHOW 
-        if(document.getElementById('formLoan').classList.contains('hidden')){
-            
-            const newLoan = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Activo'});
+        if (document.getElementById('formLoan').classList.contains('hidden')) {
+
+            const newLoan = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
             // FORM 
             document.getElementById('formLoan').classList.remove('hidden')
             document.getElementById('formLoan').classList.add('visible')
             // Titles
             document.getElementById('nuevoPrestamo').innerText = 'Refinanciar';
-            document.getElementById('prestamo-title').innerText ='Refinanciar Prestamo';
+            document.getElementById('prestamo-title').innerText = 'Refinanciar Prestamo';
             // CAPITAL INPUT
             document.getElementById('capital-input-container').classList.remove('hidden');
             document.getElementById('capital-input-container').classList.add('visible');
@@ -198,74 +200,95 @@ document.addEventListener('DOMContentLoaded', async() => {
             document.getElementById('saldoAnterior').innerText = ` + Saldo Anterior: ${parseTOMXN(newLoan[0].Total_Capital)}`;
 
             document.getElementById('monto').value = parseTOMXN(newLoan[0].Total_Capital);
-       
+
 
             const limitNewLoan = LIMIT_PRESTAMO - newLoan[0].Total_Capital;
 
-            console.log('limitNewLoan',limitNewLoan);
+            console.log('limitNewLoan', limitNewLoan);
 
             document.getElementById('montoPagoTitle').innerText = `Monto: max(${parseTOMXN(limitNewLoan)})`
             document.getElementById('monto').setAttribute('max', parseInt(limitNewLoan));
 
-            document.getElementById('Capital').value = parseTOMXN (newLoan[0].Total_Capital);
-       
+            document.getElementById('Capital').value = parseTOMXN(newLoan[0].Total_Capital);
 
-        }else{
+
+        } else {
             // HIDE
             document.getElementById('formLoan').classList.remove('visible')
             document.getElementById('formLoan').classList.add('hidden')
             document.getElementById('nuevoPrestamo').innerText = 'Nuevo Prestamo'
-            document.getElementById('prestamo-title').innerText ='Nuevo Prestamo'
+            document.getElementById('prestamo-title').innerText = 'Nuevo Prestamo'
+        }
+    })
+
+    eliminarPrestamoButton.addEventListener('click', async () => {
+
+        try {
+            const confirmDelete = confirm('¿Estás seguro que deseas eliminar este prestamo? Esta acción no se puede deshacer.');
+
+            if (!confirmDelete) return;
+            const newLoan = await window.db.deleteLoan({ idPrestamo: document.getElementById('idPrestamo').value, status: 'Eliminado' });
+            if (newLoan.message === 'Préstamo Eliminado Exitosamente.') {
+                window.electron.showNotification('Prestamo Eliminado',
+                    `El prestamo ha sido eliminado correctamente!`);
+
+                getLoan();
+                getLoanDeleted();
+            }
+
+        } catch (error) {
+            window.electron.showNotification('Error',
+                `El prestamo no se pudo eliminar, por favor intenta de nuevo.`);
         }
     })
 })
 
 const parsefromMXN = (string) => parseInt(string.replace(/[^\d.-]/g, ''));
 
-const parseTOMXN = (number) => Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(number || 0);
+const parseTOMXN = (number) => Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(number || 0);
 
-const processFormInformation  = async () =>{
+const processFormInformation = async () => {
     // Prestamo Refinanciado
-    const isRefinanciar = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Activo'});
+    const isRefinanciar = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
     /* VALORES */
-    const montoValue =  parseFloat(document.getElementById('monto').value);
+    const montoValue = parseFloat(document.getElementById('monto').value);
     const mesesValue = parseInt(document.getElementById('cantidadMeses').value);
     const interesValue = parseFloat(document.getElementById('interes').value);
-    
+
     /* CÁLCULOS */
 
-    const porcentaje = (interesValue * mesesValue )/ 100;
-    let totalPrestamoValue =0;
+    const porcentaje = (interesValue * mesesValue) / 100;
+    let totalPrestamoValue = 0;
     let prestamoIntereses = 0;
 
-    if(isRefinanciar.length >0){
+    if (isRefinanciar.length > 0) {
 
         document.getElementById('Capital').value = parseTOMXN(isRefinanciar[0].Total_Capital + (montoValue || 0));
         console.log(isRefinanciar[0].Total_Capital, montoValue, porcentaje);
-        totalPrestamoValue =  (isRefinanciar[0].Total_Capital + montoValue) + ((isRefinanciar[0].Total_Capital + montoValue) * porcentaje);
+        totalPrestamoValue = (isRefinanciar[0].Total_Capital + montoValue) + ((isRefinanciar[0].Total_Capital + montoValue) * porcentaje);
         prestamoIntereses = totalPrestamoValue - parsefromMXN(document.getElementById('Capital').value);
-    }else{
-        totalPrestamoValue =  montoValue + (montoValue * porcentaje)
+    } else {
+        totalPrestamoValue = montoValue + (montoValue * porcentaje)
         prestamoIntereses = totalPrestamoValue - montoValue;
     }
 
     document.getElementById('interesesPrestamo').value = parseTOMXN(prestamoIntereses);
-    
-    const totalPrestamoRefinanciado =  totalPrestamoValue;
 
-    
-    document.getElementById('totalPrestamo').value = isRefinanciar.length >0 ? parseTOMXN(totalPrestamoRefinanciado): parseTOMXN(totalPrestamoValue);
-  
-    const fechaValue = document.getElementById('fecha').value; 
+    const totalPrestamoRefinanciado = totalPrestamoValue;
 
-    return [fechaValue, isRefinanciar.length >0 ? totalPrestamoRefinanciado: totalPrestamoValue];
+
+    document.getElementById('totalPrestamo').value = isRefinanciar.length > 0 ? parseTOMXN(totalPrestamoRefinanciado) : parseTOMXN(totalPrestamoValue);
+
+    const fechaValue = document.getElementById('fecha').value;
+
+    return [fechaValue, isRefinanciar.length > 0 ? totalPrestamoRefinanciado : totalPrestamoValue];
 }
 
 const getLoan = async () => {
-   
-    const newLoan = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Activo'});
 
-    if(newLoan.length >0){
+    const newLoan = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
+
+    if (newLoan.length > 0) {
         // Detail Loan
         document.getElementById('detailLoanSection').classList.add('visible')
         document.getElementById('detailLoanSection').classList.remove('hidden')
@@ -276,18 +299,18 @@ const getLoan = async () => {
         document.getElementById('pagosForm').classList.add('visible')
         document.getElementById('pagosForm').classList.remove('hidden')
 
-        if(newLoan[0].Total_Capital < LIMIT_PRESTAMO && window.api.hasOneYearPassed(newLoan[0].Fecha_Inicio)){
+        if (newLoan[0].Total_Capital < LIMIT_PRESTAMO && window.api.hasOneYearPassed(newLoan[0].Fecha_Inicio)) {
             // Refinanciar button 
             document.getElementById('refinanciarButton').classList.add('visible');
             document.getElementById('refinanciarButton').classList.remove('hidden')
-        }else{
+        } else {
             document.getElementById('refinanciarButton').classList.add('hidden');
             document.getElementById('refinanciarButton').classList.remove('visible')
         }
 
 
         fillLoanDataUI(newLoan);
-    }else{
+    } else {
         document.getElementById('detailLoanSection').classList.add('hidden')
         document.getElementById('detailLoanSection').classList.remove('visible')
         //form new loan
@@ -304,27 +327,26 @@ const getLoan = async () => {
     document.getElementById('idPrestamo').value = newLoan[0]?.ID || 0;
 }
 
-
-const getLoanPagados = async() =>{
-    const loansPagados = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Pagado'});
+const getLoanPagados = async () => {
+    const loansPagados = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Pagado' });
     console.log(loansPagados);
-    if(loansPagados.length >0){
+    if (loansPagados.length > 0) {
 
         document.getElementById('accordion-body-title-pagados').classList.remove('hidden');
         document.getElementById('accordion-body-title-pagados').classList.remove('visible');
 
-         // Generar el HTML para la tabla
-         let tableHTML = ``;
+        // Generar el HTML para la tabla
+        let tableHTML = ``;
 
-         // Recorrer los usuarios y agregar filas
+        // Recorrer los usuarios y agregar filas
         loansPagados.forEach((loan, index) => {
             tableHTML += `
             <div class="accordion-item">
-                <button class="accordion-header-pagados" aria-expanded="false">Préstamo Pagado ${index+1}</button>
+                <button class="accordion-header-pagados" aria-expanded="false">Préstamo Pagado ${index + 1}</button>
                 <div class="accordion-body">
                     <div class="section">
                         <div class="info-item">
-                            <p><strong>Fecha de Inicio:</strong> ${ window.api.formatDateToDisplay(loan.Fecha_Inicio)}</p>
+                            <p><strong>Fecha de Inicio:</strong> ${window.api.formatDateToDisplay(loan.Fecha_Inicio)}</p>
                         </div>
                         <div class="info-item">
                             <p><strong>Monto Original:</strong> ${parseTOMXN(loan.Monto)}</p>
@@ -406,13 +428,13 @@ const getLoanPagados = async() =>{
 
             generateTablePays(loan.ID, `pays-table-body-pagados${loan.ID}`, true);
         });
- 
- 
-         // Insertar la tabla en el div con ID "info"
-         const accordionBody = document.getElementById('accordion-body-pagado');
-         accordionBody.innerHTML = tableHTML;
 
-           // Acordeón
+
+        // Insertar la tabla en el div con ID "info"
+        const accordionBody = document.getElementById('accordion-body-pagado');
+        accordionBody.innerHTML = tableHTML;
+
+        // Acordeón
         document.querySelectorAll('.accordion-header-pagados').forEach(button => {
             button.addEventListener('click', () => {
                 const expanded = button.getAttribute('aria-expanded') === 'true';
@@ -426,34 +448,35 @@ const getLoanPagados = async() =>{
                 }
             });
         });
-    }else{
+    } else {
         const accordionBody = document.getElementById('accordion-body-pagado');
         accordionBody.innerHTML = '';
     }
 
 }
 
-const getLoanRefinance = async() =>{
-    const loansRefinance = await window.db.getLoan({userId:document.getElementById('idUser').value, status:'Refinanciado'});
+const getLoanRefinance = async () => {
+    const loansRefinance = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Refinanciado' });
+    console.log(loansRefinance,'refinance');
+    
+    if (loansRefinance.length > 0) {
 
-    if(loansRefinance.length >0){
-
-        document.getElementById('accordion-body-title-refinanciado').classList.remove('hidden');
-        document.getElementById('accordion-body-title-refinanciado').classList.remove('visible');
+        document.getElementById('prestamos-refinanciados-section').classList.remove('hidden');
+        document.getElementById('prestamos-refinanciados-section').classList.remove('visible');
 
         // Generar el HTML para la tabla
         let tableHTML = ``;
-        
- 
-         // Recorrer los usuarios y agregar filas
+
+
+        // Recorrer los usuarios y agregar filas
         loansRefinance.forEach((loan, index) => {
             tableHTML += `
             <div class="accordion-item">
-                <button class="accordion-header-refinanciado" aria-expanded="false">Préstamo Refinanciado ${index+1}</button>
+                <button class="accordion-header-refinanciado" aria-expanded="false">Préstamo Refinanciado ${index + 1}</button>
                 <div class="accordion-body">
                     <div class="section">
                         <div class="info-item">
-                            <p><strong>Fecha de Inicio:</strong> ${ window.api.formatDateToDisplay(loan.Fecha_Inicio)}</p>
+                            <p><strong>Fecha de Inicio:</strong> ${window.api.formatDateToDisplay(loan.Fecha_Inicio)}</p>
                         </div>
                         <div class="info-item">
                             <p><strong>Monto Original:</strong> ${parseTOMXN(loan.Monto)}</p>
@@ -530,7 +553,7 @@ const getLoanRefinance = async() =>{
                 </div>
             </div>
             `;
-            
+
         });
 
 
@@ -538,10 +561,10 @@ const getLoanRefinance = async() =>{
         // Insertar la tabla en el div con ID "info"
         accordionBody.innerHTML = tableHTML;
 
-      
- 
 
-           // Acordeón
+
+
+        // Acordeón
         document.querySelectorAll('.accordion-header-refinanciado').forEach(button => {
             button.addEventListener('click', () => {
                 const expanded = button.getAttribute('aria-expanded') === 'true';
@@ -558,76 +581,204 @@ const getLoanRefinance = async() =>{
 
         loansRefinance.forEach((loan, index) => {
             generateTablePays(loan.ID, `pays-table-body-refinance${loan.ID}`, true);
-            
         });
-        
-
-
-    }else{
+    } else {
         const accordionBody = document.getElementById('accordion-body-refinanciado');
         accordionBody.innerHTML = '';
     }
 
 }
 
-const fillLoanDataUI = (loan) =>{
+const getLoanDeleted = async () => {
+    const loansDeleted = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Eliminado' });
+    if (loansDeleted.length > 0) {
+
+        document.getElementById('prestamos-eliminados-section').classList.remove('hidden');
+        document.getElementById('prestamos-eliminados-section').classList.add('visible');
+
+        // Generar el HTML para la tabla
+        let tableHTML = ``;
+
+
+        // Recorrer los usuarios y agregar filas
+        loansDeleted.forEach((loan, index) => {
+            tableHTML += `
+            <div class="accordion-item">
+                <button class="accordion-header-eliminado" aria-expanded="false">Préstamo Eliminado ${index + 1}</button>
+                <div class="accordion-body">
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Fecha de Inicio:</strong> ${window.api.formatDateToDisplay(loan.Fecha_Inicio)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Monto Original:</strong> ${parseTOMXN(loan.Monto)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Interés Préstamo:</strong> ${parseTOMXN(loan.TotalPrestamo_Intereses)}</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Total Préstamo:</strong> ${parseTOMXN(loan.TotalPrestamo)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Saldo Anterior:</strong> ${parseTOMXN(loan.Saldo)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Total Pagado Interés:</strong> ${parseTOMXN(loan.Total_Pagado_Intereses)}</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Total Pagado Capital:</strong> ${parseTOMXN(loan.Total_Pagado_Capital)}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Periodo:</strong> ${loan.Periodo}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Interés:</strong> ${loan.Interes}</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="info-item">
+                            <p><strong>Pagos Completados:</strong> ${loan.Pagos_Completados}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Estado:</strong> ${loan.EstadoPrestamo}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Capital:</strong> ${parseTOMXN(loan.Total_Capital)}</p>
+                        </div>
+                    </div>
+                    <div class="section">
+                       <div class="info-item">
+                            <p><strong>Número de Prestamo:</strong> ${loan.Numero_Prestamo}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Número de Cheque:</strong> ${loan.Numero_Cheque}</p>
+                        </div>
+                        <div class="info-item">
+                            <p><strong>Fecha de Termino:</strong> ${window.api.formatDateToDisplay(loan.Fecha_Termino)}</p>
+                        </div>
+               
+                    </div>
+                    <div class="table-container" >
+                        <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Periodo Catorcenal</th>
+                                <th>Fecha</th>
+                                <th>Monto</th>
+                                <th>Monto a Capital</th>
+                                <th>Monto a Intereses</th>
+                                <th>Método de Pago</th>
+                                <th>Saldo Actual</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pays-table-body-refinance${loan.ID}">
+                            <!-- Aquí se insertarán los usuarios dinámicamente -->
+                        </tbody>
+                        </table>
+                        <div id="info"></div>
+                    </div>
+                </div>
+            </div>
+            `;
+
+        });
+
+
+        const accordionBody = document.getElementById('accordion-body-eliminados');
+        // Insertar la tabla en el div con ID "info"
+        accordionBody.innerHTML = tableHTML;
+
+
+
+
+        // Acordeón
+        document.querySelectorAll('.accordion-header-eliminado').forEach(button => {
+            button.addEventListener('click', () => {
+                const expanded = button.getAttribute('aria-expanded') === 'true';
+                button.setAttribute('aria-expanded', !expanded);
+
+                const body = button.nextElementSibling;
+                if (!expanded) {
+                    body.style.maxHeight = body.scrollHeight + 'px';
+                } else {
+                    body.style.maxHeight = 0;
+                }
+            });
+        });
+
+        loansDeleted.forEach((loan, index) => {
+            generateTablePays(loan.ID, `pays-table-body-deleted${loan.ID}`, true);
+        });
+    } else {
+        const accordionBody = document.getElementById('accordion-body-eliminados');
+        accordionBody.innerHTML = '';
+    }
+
+}
+
+const fillLoanDataUI = (loan) => {
 
     // Convertir la fecha inicial de formato dd/mm/aaaa a objeto Date
-    const formattedDateDisplay = window.api.formatDateToDisplay(loan[0].Fecha_Inicio); 
-    const fechaPago = window.api.getDateAfterPays(formattedDateDisplay,loan[0].Pagos_Completados );
+    const formattedDateDisplay = window.api.formatDateToDisplay(loan[0].Fecha_Inicio);
+    const fechaPago = window.api.getDateAfterPays(formattedDateDisplay, loan[0].Pagos_Completados);
     document.getElementById('numero-prestamo-label').innerText = `${loan[0].Numero_Prestamo}`;
     document.getElementById('periodo').innerText = `${loan[0].Periodo} años`;
     document.getElementById('loan-numero-cheque').innerText = loan[0].Numero_Cheque;
     document.getElementById('fecha-inicio').innerText = window.api.formatDateToDisplay(loan[0].Fecha_Inicio);
-    document.getElementById('fecha-termino').innerText =  window.api.formatDateToDisplay(loan[0].Fecha_Termino);
+    document.getElementById('fecha-termino').innerText = window.api.formatDateToDisplay(loan[0].Fecha_Termino);
     document.getElementById('fecha-pago').innerText = fechaPago;
     document.getElementById('loan-amount').innerText = parseTOMXN(loan[0].Monto);
     document.getElementById('loan-interest').innerText = `${loan[0].Interes}% mensual`;
-    document.getElementById('loan-interest-ammount').innerText =`${parseTOMXN(loan[0].TotalPrestamo_Intereses)}`;
+    document.getElementById('loan-interest-ammount').innerText = `${parseTOMXN(loan[0].TotalPrestamo_Intereses)}`;
     document.getElementById('loan-total').innerText = parseTOMXN(loan[0].TotalPrestamo);
     document.getElementById('loan-abono').innerText = parseTOMXN(loan[0].Abono);
     document.getElementById('loan-saldo').innerText = parseTOMXN(loan[0].Saldo);
-    document.getElementById('loan-capital').innerText = parseTOMXN(loan[0].Total_Capital) 
+    document.getElementById('loan-capital').innerText = parseTOMXN(loan[0].Total_Capital)
     document.getElementById('loan-status').innerText = loan[0].EstadoPrestamo;
     document.getElementById('loan-payments').innerText = loan[0].Pagos_Completados;
     document.getElementById('loan-catorcenas').innerText = loan[0].No_Catorcenas;
     document.getElementById('loan-ultima-catorcena').innerText = parseTOMXN(loan[0].Ultimo_Abono);
-    
-    document.getElementById('periodoCatorcenal').value = loan[0].Pagos_Completados +1;
+
+    document.getElementById('periodoCatorcenal').value = loan[0].Pagos_Completados + 1;
     document.getElementById('fechaPagoCatorcena').value = fechaPago;
 
     generateTablePays(loan[0].ID, 'user-table-body-pays');
 
-    if(loan[0].Resto_Abono > 0){
+    if (loan[0].Resto_Abono > 0) {
         document.getElementById('restanteAbonoSection').classList.add('visible');
         document.getElementById('restanteAbonoSection').classList.remove('hidden');
         document.getElementById('restanteAbono').value = parseTOMXN(loan[0].Resto_Abono);
-    }else{
+    } else {
         document.getElementById('restanteAbonoSection').classList.add('hidden');
         document.getElementById('restanteAbonoSection').classList.remove('visible');
         document.getElementById('restanteAbono').value = 0;
     }
 }
 
-function regexDate (fechaValue, totalPrestamoValue){
+function regexDate(fechaValue, totalPrestamoValue) {
     const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
     if (dateRegex.test(fechaValue)) {
         console.log("Valid date format");
-        const dates = generateSecondFridays(fechaValue, parseInt(document.getElementById('noAnios').value) *26)
+        const dates = generateSecondFridays(fechaValue, parseInt(document.getElementById('noAnios').value) * 26)
         document.getElementById('tablePagos').classList.remove('hidden');
         document.getElementById('tablePagos').classList.add('visible');
-        
+
         document.getElementById('noCatorcenas').value = dates.length;
-        const abono = parseTOMXN( parseInt(totalPrestamoValue / dates.length)+1);
-        document.getElementById('abono').value = abono; 
-        
+        const abono = parseTOMXN(parseInt(totalPrestamoValue / dates.length) + 1);
+        document.getElementById('abono').value = abono;
 
-        const differenceLastPay = (parsefromMXN(abono) * dates.length) - totalPrestamoValue ;
 
-        document.getElementById('fecha-termino-input').value = dates[dates.length -1] || 'N/A';
+        const differenceLastPay = (parsefromMXN(abono) * dates.length) - totalPrestamoValue;
+
+        document.getElementById('fecha-termino-input').value = dates[dates.length - 1] || 'N/A';
 
         generateTableCatorcena(dates, document.getElementById('abono').value, differenceLastPay);
-        
+
     } else {
         console.log("Invalid date format");
     }
@@ -656,10 +807,7 @@ function generateSecondFridays(startDate, count) {
     return dates;
 }
 
-
-
-
-const generateTableCatorcena = (dates, pay, differenceLastPay) =>{
+const generateTableCatorcena = (dates, pay, differenceLastPay) => {
     const numberPays = dates.length;
     console.log(differenceLastPay);
     // Verificar si hay usuarios
@@ -669,19 +817,19 @@ const generateTableCatorcena = (dates, pay, differenceLastPay) =>{
 
         // Recorrer los usuarios y agregar filas
         dates.forEach((date, index) => {
-            if(index != numberPays-1){
+            if (index != numberPays - 1) {
                 tableHTML += `
                     <tr>
-                            <td>${index +1}</td>
+                            <td>${index + 1}</td>
                             <td>${date}</td>
                             <td>${pay}</td>
                      
                     </tr>
                 `;
-            }else{
+            } else {
                 tableHTML += `
                 <tr>
-                        <td>${index +1}</td>
+                        <td>${index + 1}</td>
                         <td>${date}</td>
                         <td>${parseTOMXN(parsefromMXN(pay) - differenceLastPay)}</td>
                  
@@ -699,19 +847,19 @@ const generateTableCatorcena = (dates, pay, differenceLastPay) =>{
     }
 }
 
-const generateTablePays = async(idPrestamo, idTable, isShowOldLoans = false)=>{
+const generateTablePays = async (idPrestamo, idTable, isShowOldLoans = false) => {
 
-    const {pagos} = await window.db.getPayments(idPrestamo);
+    const { pagos } = await window.db.getPayments(idPrestamo);
 
 
-       // Verificar si hay usuarios
+    // Verificar si hay usuarios
     if (pagos.length > 0) {
         // Generar el HTML para la tabla
         let tableHTML = ``;
 
         // Recorrer los usuarios y agregar filas
         pagos.forEach((pago, index) => {
-        tableHTML += `
+            tableHTML += `
             <tr>
                 <td>${pago.Periodo_Catorcenal}</td>
                 <td>${window.api.formatDateToDisplay(pago.Fecha_Catorcena, 0)}</td>
@@ -725,15 +873,15 @@ const generateTablePays = async(idPrestamo, idTable, isShowOldLoans = false)=>{
                 <td>
                     <button type="button" class="button-delete" id="addButton" onclick="deletePay(${pago.ID})">X</button>
                 </td>
-                `:''}
+                `: ''}
                
             </tr>
         `;
         });
 
-    /*     <td>
-        <button class="button-delete" id="deleteButton" onclick="deletePay(${pago.ID})">Eliminar</button>
-        </td> */
+        /*     <td>
+            <button class="button-delete" id="deleteButton" onclick="deletePay(${pago.ID})">Eliminar</button>
+            </td> */
 
         tableHTML += '</tbody></table>';
 
@@ -749,10 +897,10 @@ const generateTablePays = async(idPrestamo, idTable, isShowOldLoans = false)=>{
     }
 }
 
-const deletePay  = async(idPay) =>{
+const deletePay = async (idPay) => {
     const response = await window.db.removePayment(idPay);
 
-    if(response){
+    if (response) {
         generateTablePays(document.getElementById('idPrestamo').value, 'user-table-body-pays');
         getLoan()
         const tablePagosPrestamos = document.getElementById('tablePagosPrestamos');
@@ -764,36 +912,36 @@ const deletePay  = async(idPay) =>{
 const formatDateForModel = (dateString) => {
     if (!dateString) {
         throw new Error("La fecha no puede estar vacía.");
-      }
-    
-      const parts = dateString.split('/');
-      if (parts.length !== 3) {
+    }
+
+    const parts = dateString.split('/');
+    if (parts.length !== 3) {
         throw new Error("El formato de fecha debe ser dd/mm/aaaa.");
-      }
-    
-      const [day, month, year] = parts;
-    
-      // Validar que día, mes y año son numéricos
-      if (isNaN(day) || isNaN(month) || isNaN(year)) {
+    }
+
+    const [day, month, year] = parts;
+
+    // Validar que día, mes y año son numéricos
+    if (isNaN(day) || isNaN(month) || isNaN(year)) {
         throw new Error("El día, mes o año no son válidos.");
-      }
-    
-      // Validar valores de día, mes y año
-      if (+day < 1 || +day > 31 || +month < 1 || +month > 12 || +year < 1000) {
+    }
+
+    // Validar valores de día, mes y año
+    if (+day < 1 || +day > 31 || +month < 1 || +month > 12 || +year < 1000) {
         throw new Error("El rango de día, mes o año no es válido.");
-      }
-    
-      // Crear un objeto Date en UTC y ajustar a CST (UTC-6)
-      const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0)); // Mes es 0-indexado
-      date.setUTCHours(date.getUTCHours() + 6); // Ajuste a CST
-    
-      // Retornar en formato aaaa-mm-dd con horario CST
-      const formattedDate = date.toISOString().replace('T', ' ').split('.')[0];
+    }
 
-      return `${formattedDate} -06:00`;
-  };
+    // Crear un objeto Date en UTC y ajustar a CST (UTC-6)
+    const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0)); // Mes es 0-indexado
+    date.setUTCHours(date.getUTCHours() + 6); // Ajuste a CST
+
+    // Retornar en formato aaaa-mm-dd con horario CST
+    const formattedDate = date.toISOString().replace('T', ' ').split('.')[0];
+
+    return `${formattedDate} -06:00`;
+};
 
 
 
-  
+
 

@@ -56,7 +56,7 @@ const Prestamo = sequelize.define('Prestamo', {
     allowNull: true,
   },
   EstadoPrestamo: {
-    type: DataTypes.ENUM('Activo', 'Pagado', 'Vencido','Refinanciado'),
+    type: DataTypes.ENUM('Activo', 'Pagado', 'Vencido','Refinanciado','Eliminado'),
     allowNull: false,
     defaultValue: 'Activo',
   },
