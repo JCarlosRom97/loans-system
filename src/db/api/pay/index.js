@@ -122,26 +122,19 @@ const payAPI = (ipcMain) =>{
             // Determinar ajustes para pagos completados y abono pendiente
             let abonoPendiente = parseFloat(prestamo.Resto_Abono || 0);
             let pagosCompletados = prestamo.Pagos_Completados || 0;
+            let Capital;
     
             // Si el pago eliminado incluía abono y el resto del abono es 0
             const abonoActual = parseFloat(prestamo.Abono);
-            if (abonoPendiente === 0) {
-                abonoPendiente = abonoActual - montoPago;
-                if (abonoPendiente < 0) {
-                    abonoPendiente = 0;
-                }
-    
-                // Si el pago eliminado era parcial, decrementar Pagos_Completados
-                if (montoPago < abonoActual) {
-                    pagosCompletados -= 1;
-                }
+            
+            if (abonoPendiente === 0 && abonoActual === montoPago) {
+                pagosCompletados -= 1;
             } else {
-                // Ajustar el abono pendiente directamente
                 abonoPendiente += montoPago;
-                // Si el pago era completo y ahora se descompleta
-                if (montoPago >= abonoActual) {
-                    pagosCompletados -= 1;
+                if(abonoPendiente == abonoActual){
+                    abonoPendiente =0;
                 }
+      
             }
     
             // Actualizar el total pagado de capital e intereses
@@ -152,6 +145,7 @@ const payAPI = (ipcMain) =>{
             const totalCapitalValidado = totalPagadoCapital >= 0 ? totalPagadoCapital : 0;
             const totalInteresesValidado = totalPagadoIntereses >= 0 ? totalPagadoIntereses : 0;
     
+            Capital = parseFloat(prestamo.Total_Capital) + montoCapital;
             // Eliminar el pago
             await pago.destroy();
     
@@ -162,6 +156,7 @@ const payAPI = (ipcMain) =>{
                 Pagos_Completados: pagosCompletados,
                 Total_Pagado_Capital: totalCapitalValidado,
                 Total_Pagado_Intereses: totalInteresesValidado,
+                Total_Capital: Capital
             });
     
             return {
