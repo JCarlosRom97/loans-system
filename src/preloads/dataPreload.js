@@ -254,10 +254,27 @@ contextBridge.exposeInMainWorld('db', {
     } catch (error) {
         // Muestra el mensaje de error completo para depuración
         console.error('Error adding Cheques:', error.message);
+    }
+  },
+  //Conciliacion
+  addConciliation: async ({Mes, Anio, SaldoMesAnterior, TotalMes})=>{
+    try {
+      return await ipcRenderer.invoke('db:addConciliacion', {Mes, Anio, SaldoMesAnterior, TotalMes});
+    } catch (error) {
+        // Muestra el mensaje de error completo para depuración
+        console.error('Error adding Conciliacion:', error.message);
 
     }
   },
-  //Concialiacion
+  getMonthRegister: async ({mes, year})=>{
+    try {
+      return await ipcRenderer.invoke('db:getMonthRegister', {mes, year});
+    } catch (error) {
+        // Muestra el mensaje de error completo para depuración
+        console.error('Error getting Conciliation Month Register:', error.message);
+
+    }
+  },
   getConciliation: async ({mes, year})=>{
     try {
       return await ipcRenderer.invoke('db:getMonthlyConciliation', {mes, year});
@@ -370,6 +387,13 @@ contextBridge.exposeInMainWorld('api', {
       const formattedDate = date.toISOString().replace('T', ' ').split('.')[0];
 
       return `${formattedDate} -06:00`;
+  }, 
+  getPreviousMonth:(mes) =>{
+    if (mes < 1 || mes > 12) {
+      throw new Error("Mes inválido. Debe estar entre 1 y 12.");
+    }
+  
+    return mes === 1 ? 12 : mes - 1;
   }
 
 });

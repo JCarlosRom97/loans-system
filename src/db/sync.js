@@ -11,6 +11,7 @@ const Pagos = require('./models/Pagos');
 const Cheques = require('./models/Cheques')
 const AhorroSaldos = require('./models/AhorroSaldos');
 const Gastos = require('./models/Gastos');
+const ConciliacionBancaria = require('./models/ConciliacionBancaria');
 
 // Ruta de la base de datos
 const dbPath = sequelize.options.storage;
@@ -21,6 +22,7 @@ const requiredTables = [
   'Domicilio', 
   'Ahorro', 
   'TransaccionesAhorro', 
+  'ConciliacionBancaria', 
   'Prestamo', 
   'Pagos',
   'Cheques',
@@ -55,10 +57,9 @@ const defineRelations = () => {
     
     Prestamo.belongsTo(Usuario, { foreignKey: 'id_Usuario_fk', as: 'Usuario', onDelete: 'CASCADE' });
     Pagos.belongsTo(Prestamo, { foreignKey: 'id_Prestamo_fk', as: 'Prestamo', onDelete: 'CASCADE' });
-    
-    
-    
+
     TransaccionesAhorro.belongsTo(Ahorro, { foreignKey: 'id_Ahorro_fk', as: 'Ahorro', onDelete: 'CASCADE' });
+    
     console.log('Relationships defined successfully.');
   } catch (error) {
     console.error('Error defining relationships:', error);

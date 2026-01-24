@@ -1,55 +1,102 @@
 document.addEventListener('DOMContentLoaded', async() => {
     const fechaActual = new Date();
     //  Agregar el +1 despues de hacer pruebas 
-    const mes = String(fechaActual.getMonth() +1).padStart(2, '0'); // Mes en formato 'MM'
-    const year = fechaActual.getFullYear(); // Año en formato 'YYYY'
+    const actualMes = String(fechaActual.getMonth() +1).padStart(2, '0'); // Mes en formato 'MM'
+    const yearMes = fechaActual.getFullYear(); // Año en formato 'YYYY'
     
     
-    document.getElementById('mes').value = mes;
-    document.getElementById('year').value = year;
+    document.getElementById('mes').value = actualMes;
+    document.getElementById('year').value = yearMes;
 
-    conciliationSearch({mes, year});
+    getRegisterOfMonth();
 
-    
-    
     const formConciliacion = document.getElementById('searchConciliacion');
-    formConciliacion.addEventListener('click', async(e) =>{
-        
-        try {
-            e.preventDefault();
-            const mes = document.getElementById('mes').value;
-            const year= document.getElementById('year').value;
-            const saldo = document.getElementById('saldo').value;
-            
-            const resultConciliation = await window.db.getConciliation({mes, year})
-            const resultConciliationGastos = await window.db.getGastos({mes, year});
-    
-            console.log('resultConciliation',resultConciliation,'resultConciliationGastos', resultConciliationGastos);
 
-            if(resultConciliation || resultConciliationGastos){
-                const tableConciliation = document.getElementById('conciliation-table-body');
-                tableConciliation.innerHTML = "";
-                
-                generateConciliationTable(resultConciliation, saldo, resultConciliationGastos);
-            }
-            
-        } catch (error) {
-            window.electron.showNotification('Error', 
-            error);
-        }
+    formConciliacion.addEventListener('click', async(e) =>{
+        e.preventDefault();
+        
+        await generateConciliation();
+        getRegisterOfMonth();
+    });
+
+    const saveConciliacion = document.getElementById('saveConciliacion');
+
+    saveConciliacion.addEventListener('click', async(e)=>{
+        e.preventDefault();
+        const Mes = document.getElementById('mes').value;
+        const Anio = document.getElementById('year').value;
+        const TotalMes = parsefromMXN(document.getElementById('saldo-total-mxn').textContent);
+        const SaldoMesAnterior= parsefromMXN(document.getElementById('saldo').value) ;
+        console.log({Mes, Anio, SaldoMesAnterior, TotalMes});
+        await window.db.addConciliation({Mes, Anio, SaldoMesAnterior, TotalMes});
     })
 
     const saldo = document.getElementById('saldo');
 
     saldo.addEventListener('keyup', (e) =>{
         e.preventDefault();
-        console.log();
         document.getElementById('saldo-mxn').textContent = parseTOMXN(document.getElementById('saldo').value)
+    });
+
+    const mes = document.getElementById('mes');
+
+    mes.addEventListener('change', (e) =>{
+        e.preventDefault();
+        const tableConciliation = document.getElementById('conciliation-table-body');
+        tableConciliation.innerHTML = ""; 
+        getRegisterOfMonth();
+    })
+
+    const year = document.getElementById('year');
+
+    year.addEventListener('keyup', (e) =>{
+        e.preventDefault();
+        const tableConciliation = document.getElementById('conciliation-table-body');
+        tableConciliation.innerHTML = ""; 
+        getRegisterOfMonth();
+    });
+
+    const checkDisabledElement = document.getElementById('enableSaldoInput');
+
+    checkDisabledElement.addEventListener('change', (e)=>{
+        const isChecked = document.getElementById('enableSaldoInput').checked;
+        if(isChecked){
+            document.getElementById('saldo').disabled = true;
+            document.getElementById('saldo').value = parseTOMXN(document.getElementById('saldo').value)
+            return;
+        }
+        document.getElementById('saldo').disabled = false;
+        document.getElementById('saldo').value = parsefromMXN(document.getElementById('saldo').value)
+        return;
     })
 })
 
+async function generateConciliation(){
+    try {
+        const mes = document.getElementById('mes').value;
+        const year= document.getElementById('year').value;
+        const saldo = parsefromMXN(document.getElementById('saldo').value);
+        
+        const resultConciliation = await window.db.getConciliation({mes, year})
+        const resultConciliationGastos = await window.db.getGastos({mes, year});
+
+        if(resultConciliation || resultConciliationGastos){
+            const tableConciliation = document.getElementById('conciliation-table-body');
+            tableConciliation.innerHTML = "";
+            generateConciliationTable(resultConciliation, saldo, resultConciliationGastos);
+        }
+        
+    } catch (error) {
+        window.electron.showNotification('Error', 
+        error);
+    }
+}
+
+async function saveConciliation(){
+    window.db.addConciliation({Mes: mes, Anio: year, SaldoMesAnterior: saldo, TotalMes})
+}
+
 function generateConciliationTable(data, saldoInicial, resultConciliationGastos) {
-    console.log(resultConciliationGastos);
     
     // Obtener el JSON ordenado y procesado
     const records = orderDataConciliation(data, resultConciliationGastos);
@@ -127,36 +174,40 @@ function generateConciliationTable(data, saldoInicial, resultConciliationGastos)
     tableConciliation.innerHTML = tableHTML;
 
     // Actualizar el monto total
-    document.getElementById('monto-total').innerText = parseTOMXN(saldoActual);
+    document.getElementById('saldo-total-mxn').innerText = parseTOMXN(saldoActual);
 }
 
-
-
-async function conciliationSearch({mes, year}){
-
+async function getRegisterOfMonth(){
     try {
-        const resultConciliation = await window.db.getConciliation({mes, year})
-        const resultConciliationGastos = await window.db.getGastos({mes, year});
-
-        console.log('resultConciliationGastos', resultConciliationGastos);
+        const mes = document.getElementById('mes').value;
+        const year = document.getElementById('year').value;
+        const registerOfMonth = await window.db.getMonthRegister({mes, year});
+        console.log(registerOfMonth);
         
-
-        
-
-        if(resultConciliation || resultConciliationGastos){
-            generateConciliationTable(resultConciliation, 0, resultConciliationGastos);
+        if(registerOfMonth){
+            document.getElementById('saldo').value = parseTOMXN(registerOfMonth.SaldoMesAnterior);
+            document.getElementById('saldo-mxn').innerText = parseTOMXN(registerOfMonth.SaldoMesAnterior);
+            document.getElementById("saldo").disabled = true;
+            document.getElementById('enableSaldoInput').checked = true;
+            await generateConciliation();
+        }else{
+            const previousMonth = window.api.getPreviousMonth(mes);
+            const registerOfMonth = await window.db.getMonthRegister({mes:previousMonth, year});
+            if(registerOfMonth){
+                document.getElementById('saldo').value = parseTOMXN(registerOfMonth.TotalMes);
+                document.getElementById('saldo').disabled = true;
+                document.getElementById('saldo-mxn').innerText = parseTOMXN(registerOfMonth.TotalMes);
+            }
+      
         }
+
     } catch (error) {
         window.electron.showNotification('Error',  
         error);
     }
-
 }
 
-
-
 function orderDataConciliation(data, resultConciliationGastos = []) {
-    console.log(data);
 
     const resultado = {};
 
@@ -188,7 +239,6 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
         } else {
             descripcion = `${registro.Motivo} - ${parseTOMXN(registro.Monto)}`;
         }
-        console.log(tipo);
         
         // Si es préstamo iniciado o no existe el registro, creamos uno nuevo
         if (tipo === "prestamoIniciado" || !resultado[clave] || tipo === "pago") {
@@ -215,7 +265,6 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
                 EsNoCheque: tipo !== "cheque",
                 EsUnitario: tipo === "prestamoIniciado" // Marcar como unitario
             };
-            console.log(registro.Prestamo, registro, resultado[clave]);
         } 
         // Para otros tipos, agrupamos por nombre y fecha
         else if (tipo !== "prestamoIniciado") {
@@ -327,8 +376,6 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
         CuentaPrestamo: registro.CuentaPrestamo // Alias para compatibilidad
     }));
 }
-
-
 
 const parseTOMXN = (number) => Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(number || 0);
 

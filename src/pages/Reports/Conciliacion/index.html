@@ -10,18 +10,6 @@
     <div class="container">
         <div id="header"></div>
         <h2>Conciliación Bancaria</h2>
-        <div class="total-section" id="detailSection">
-            <h3>Cálculos</h3>
-            <div class="loan-info">
-                <div class="section">
-                    <div class="info-item">
-                        <span class="label">Saldo Total:</span>
-                        <span class="value" id="monto-total"></span>
-                    </div>
-                
-                </div>
-            </div>
-        </div>
         <form class="form-conciliacion" id="form-conciliacion">
             <div class="search-container">
                 <div class="input-container">
@@ -47,15 +35,25 @@
                     <input type="text"  id="year" class="input-search" placeholder="(aaaa)" >
                 </div>
                 <div class="input-container">
-                    <p>Saldo banco</p>
+                    <p>Saldo Banco Anterior <span id="mesAnterior"></span> </p>
                     <input type="text"  id="saldo" class="input-search"  >
                 </div>
                 <div class="input-container">
-                    <button id="searchConciliacion">Generar Conciliación</button>
+                    <input type="checkbox" id="enableSaldoInput" value="first_checkbox" />
                 </div>
                 <div class="input-container">
                     <p class="saldo-display">Saldo banco:</p>
                     <span id="saldo-mxn">$0.00</span>
+                </div>
+                <div class="input-container">
+                    <p class="saldo-total-display">Saldo Total:</p>
+                    <span id="saldo-total-mxn">$0.00</span>
+                </div>
+                <div class="input-container">
+                    <button id="searchConciliacion">Generar</button>
+                </div>
+                <div class="input-container">
+                    <button id="saveConciliacion">Guardar</button>
                 </div>
             </div>
         </form>

@@ -24,6 +24,7 @@ const loanAPI = require('./src/db/api/loan/index');
 const payAPI = require('./src/db/api/pay/index')
 const reportsAPI = require('./src/db/api/reports/index');
 const chequesGastosAPI = require('./src/db/api/chequesGastos/index');
+const conciliacionAPI = require('./src/db/api/conciliacion/index')
 
 
 // add electron reload
@@ -118,6 +119,7 @@ app.whenReady().then(async()=>{
   payAPI(ipcMain);
   reportsAPI(ipcMain);
   chequesGastosAPI(ipcMain);
+  conciliacionAPI(ipcMain);
 
   
 
