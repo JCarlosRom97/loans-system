@@ -10,50 +10,48 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     getRegisterOfMonth();
 
-    const formConciliacion = document.getElementById('searchConciliacion');
-
-    formConciliacion.addEventListener('click', async(e) =>{
-        e.preventDefault();
-        
-        await generateConciliation();
-        getRegisterOfMonth();
-    });
-
     const saveConciliacion = document.getElementById('saveConciliacion');
 
     saveConciliacion.addEventListener('click', async(e)=>{
         e.preventDefault();
-        const Mes = document.getElementById('mes').value;
-        const Anio = document.getElementById('year').value;
-        const TotalMes = parsefromMXN(document.getElementById('saldo-total-mxn').textContent);
-        const SaldoMesAnterior= parsefromMXN(document.getElementById('saldo').value) ;
-        console.log({Mes, Anio, SaldoMesAnterior, TotalMes});
-        await window.db.addConciliation({Mes, Anio, SaldoMesAnterior, TotalMes});
+        const confirmDelete = confirm('¿Estás seguro que deseas guardar este mes de conciliación?');
+        if(confirmDelete){
+            const Mes = document.getElementById('mes').value;
+            const Anio = document.getElementById('year').value;
+            const TotalMes = parsefromMXN(document.getElementById('saldo-total-mxn').textContent);
+            const SaldoMesAnterior= parsefromMXN(document.getElementById('saldo').value) ;
+            console.log({Mes, Anio, SaldoMesAnterior, TotalMes});
+            await window.db.addConciliation({Mes, Anio, SaldoMesAnterior, TotalMes});
+            getRegisterOfMonth();
+        }
     })
 
     const saldo = document.getElementById('saldo');
 
-    saldo.addEventListener('keyup', (e) =>{
+    saldo.addEventListener('keyup', async(e) =>{
         e.preventDefault();
         document.getElementById('saldo-mxn').textContent = parseTOMXN(document.getElementById('saldo').value)
+        await generateConciliation();
     });
 
     const mes = document.getElementById('mes');
 
-    mes.addEventListener('change', (e) =>{
+    mes.addEventListener('change', async(e) =>{
         e.preventDefault();
         const tableConciliation = document.getElementById('conciliation-table-body');
         tableConciliation.innerHTML = ""; 
         getRegisterOfMonth();
+        await generateConciliation();
     })
 
     const year = document.getElementById('year');
 
-    year.addEventListener('keyup', (e) =>{
+    year.addEventListener('keyup', async(e) =>{
         e.preventDefault();
         const tableConciliation = document.getElementById('conciliation-table-body');
         tableConciliation.innerHTML = ""; 
         getRegisterOfMonth();
+        await generateConciliation();
     });
 
     const checkDisabledElement = document.getElementById('enableSaldoInput');
@@ -76,6 +74,7 @@ async function generateConciliation(){
         const mes = document.getElementById('mes').value;
         const year= document.getElementById('year').value;
         const saldo = parsefromMXN(document.getElementById('saldo').value);
+        console.log('saldo', saldo);
         
         const resultConciliation = await window.db.getConciliation({mes, year})
         const resultConciliationGastos = await window.db.getGastos({mes, year});
@@ -163,9 +162,9 @@ function generateConciliationTable(data, saldoInicial, resultConciliationGastos)
     // Agregar el total al final de la tabla
     tableHTML += `
         <tr>
-            <td colspan="8"></td>
+            <td colspan="7"></td>
             <td><span class="${saldoActual >= parseInt(saldoInicial) ? 'more-green' : 'less-red'}">${parseTOMXN(saldoActual)}</span></td>
-            <td colspan="2"></td>
+            <td colspan="3"></td>
         </tr>
     `;
 
@@ -189,14 +188,22 @@ async function getRegisterOfMonth(){
             document.getElementById('saldo-mxn').innerText = parseTOMXN(registerOfMonth.SaldoMesAnterior);
             document.getElementById("saldo").disabled = true;
             document.getElementById('enableSaldoInput').checked = true;
+            document.getElementById('StatusRegistro').textContent = 'Mes Registrado';
+            document.getElementById('StatusRegistro').classList.add('more-green');
+            document.getElementById('StatusRegistro').classList.remove('less-red');
             await generateConciliation();
         }else{
             const previousMonth = window.api.getPreviousMonth(mes);
             const registerOfMonth = await window.db.getMonthRegister({mes:previousMonth, year});
+            
             if(registerOfMonth){
                 document.getElementById('saldo').value = parseTOMXN(registerOfMonth.TotalMes);
                 document.getElementById('saldo').disabled = true;
                 document.getElementById('saldo-mxn').innerText = parseTOMXN(registerOfMonth.TotalMes);
+                document.getElementById('StatusRegistro').textContent = 'Mes No Registrado';
+                document.getElementById('StatusRegistro').classList.add('less-red');
+                document.getElementById('StatusRegistro').classList.remove('more-green');
+                await generateConciliation();
             }
       
         }

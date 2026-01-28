@@ -903,6 +903,10 @@ const generateTablePays = async (idPrestamo, idTable, isShowOldLoans = false) =>
 }
 
 const deletePay = async (idPay) => {
+
+    const confirmDelete = confirm('¿Estás seguro que deseas eliminar este prestamo? Esta acción no se puede deshacer.');
+
+    if(!confirmDelete) return;
     const response = await window.db.removePayment(idPay);
 
     if (response) {

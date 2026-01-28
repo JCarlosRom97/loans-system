@@ -11,6 +11,7 @@
         <div id="header"></div>
         <h2>Conciliación Bancaria</h2>
         <form class="form-conciliacion" id="form-conciliacion">
+            <p id="StatusRegistro"></p>
             <div class="search-container">
                 <div class="input-container">
                     <p>Mes</p>
@@ -35,7 +36,7 @@
                     <input type="text"  id="year" class="input-search" placeholder="(aaaa)" >
                 </div>
                 <div class="input-container">
-                    <p>Saldo Banco Anterior <span id="mesAnterior"></span> </p>
+                    <p style="font-size: 13px;">Saldo Banco Anterior <span id="mesAnterior"></span> </p>
                     <input type="text"  id="saldo" class="input-search"  >
                 </div>
                 <div class="input-container">
@@ -48,9 +49,6 @@
                 <div class="input-container">
                     <p class="saldo-total-display">Saldo Total:</p>
                     <span id="saldo-total-mxn">$0.00</span>
-                </div>
-                <div class="input-container">
-                    <button id="searchConciliacion">Generar</button>
                 </div>
                 <div class="input-container">
                     <button id="saveConciliacion">Guardar</button>
