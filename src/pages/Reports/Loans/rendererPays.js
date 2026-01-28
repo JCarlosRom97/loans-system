@@ -17,7 +17,55 @@ document.addEventListener('DOMContentLoaded', async() => {
             generateTablePaySearch(pays);
         }
 
-    })
+    });
+
+    const searchDatePaysFrom = document.getElementById('search-date-from-pays');
+    let lastValidDateFrom ='';
+    
+    searchDatePaysFrom.addEventListener('keyup', (e) =>{
+        const current = searchDatePaysFrom.value;
+        console.log(current);
+        
+        // If what the user typed breaks the dd/mm/aaaa structure → revert
+        if (!window.api.formatInputDate(current)) {
+            searchDatePaysFrom.value = lastValidDateFrom;
+          return;
+        }
+      
+        // If full date is written, validate logical date
+        if (current.length === 10 && !window.api.formatInputDate(current)) {
+            searchDatePaysFrom.value = lastValidDateFrom;
+          return;
+        }
+      
+        // Save valid value
+        lastValidDateFrom = current;
+        e.preventDefault();
+    });
+
+    const searchDatePaysTo = document.getElementById('search-date-to-pays');
+    let lastValidDateTo ='';
+    
+    searchDatePaysTo.addEventListener('keyup', (e) =>{
+        const current = searchDatePaysTo.value;
+        console.log(current);
+        
+        // If what the user typed breaks the dd/mm/aaaa structure → revert
+        if (!window.api.formatInputDate(current)) {
+            searchDatePaysTo.value = lastValidDateTo;
+          return;
+        }
+      
+        // If full date is written, validate logical date
+        if (current.length === 10 && !window.api.formatInputDate(current)) {
+            searchDatePaysTo.value = lastValidDateTo;
+          return;
+        }
+      
+        // Save valid value
+        lastValidDateTo = current;
+        e.preventDefault();
+    });
 })
 
 const generateTablePaySearch = async ({pagos}) => {

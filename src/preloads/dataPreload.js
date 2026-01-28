@@ -52,7 +52,7 @@ contextBridge.exposeInMainWorld('db', {
     }
   },
   //Search
-  searchUsersbyName: async (data) =>{
+  searchUsersbyName: async (data) => {
     try {
       console.log(data, 'dataPreload');
       return await ipcRenderer.invoke('db:getUsersByName', data);
@@ -61,7 +61,7 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error searching users');
     }
   },
-  searchUsersbyCTA: async (data) =>{
+  searchUsersbyCTA: async (data) => {
     try {
       return await ipcRenderer.invoke('db:getUsersByAccount', data);
     } catch (error) {
@@ -71,7 +71,7 @@ contextBridge.exposeInMainWorld('db', {
   },
 
   //Savings
-  getAmmountSaving: async (idUser) =>{
+  getAmmountSaving: async (idUser) => {
     try {
       return await ipcRenderer.invoke('db:getAmmountSaving', idUser);
     } catch (error) {
@@ -79,7 +79,7 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error getting savings');
     }
   },
-  getSavings: async (id_Ahorro_fk) =>{
+  getSavings: async (id_Ahorro_fk) => {
     try {
       return await ipcRenderer.invoke('db:getAllSavingsTransactions', id_Ahorro_fk);
     } catch (error) {
@@ -87,15 +87,15 @@ contextBridge.exposeInMainWorld('db', {
       throw new Error('Error getting savings', error);
     }
   },
-  getTotalSavingCorte:  async ({userId, year}) =>{
+  getTotalSavingCorte: async ({ userId, year }) => {
     try {
-      return await ipcRenderer.invoke('db:getTotalSavingCorte', {userId, year});
+      return await ipcRenderer.invoke('db:getTotalSavingCorte', { userId, year });
     } catch (error) {
       console.error('Error getting savings:', error);
       throw new Error('Error getting savings', error);
     }
   },
-  saveCorteAhorro:  async ({ ID_Usuario, saveCorteAhorro, Periodo, Multa, SubTotal, Interes, Total, Monto_Generado }) =>{
+  saveCorteAhorro: async ({ ID_Usuario, saveCorteAhorro, Periodo, Multa, SubTotal, Interes, Total, Monto_Generado }) => {
 
     try {
       return await ipcRenderer.invoke('db:saveCorteAhorro', { ID_Usuario, saveCorteAhorro, Periodo, Multa, SubTotal, Interes, Total, Monto_Generado });
@@ -105,90 +105,90 @@ contextBridge.exposeInMainWorld('db', {
     }
   },
   //LOANS
-  addLoan: async (data) =>{
+  addLoan: async (data) => {
     try {
       return await ipcRenderer.invoke('db:addLoan', data);
     } catch (error) {
-       // Muestra el mensaje de error completo para depuración
-       console.error('Error adding Loan:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error adding Loan:', error.message);
     }
   },
-  refinanceLoan: async (data) =>{
+  refinanceLoan: async (data) => {
     try {
       return await ipcRenderer.invoke('db:refinanceLoan', data);
     } catch (error) {
-       // Muestra el mensaje de error completo para depuración
-       console.error('Error adding Loan:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error adding Loan:', error.message);
     }
   },
-  deleteLoan: async (data) =>{
-    try {     
+  deleteLoan: async (data) => {
+    try {
       return await ipcRenderer.invoke('db:deleteLoan', data);
     } catch (error) {
-       // Muestra el mensaje de error completo para depuración
-       console.error('Error adding Loan:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error adding Loan:', error.message);
     }
   },
-  getLoan: async ({userId, status}) =>{
+  getLoan: async ({ userId, status }) => {
     try {
-      return await ipcRenderer.invoke('db:getLoansByUserId', {userId, status}, );
+      return await ipcRenderer.invoke('db:getLoansByUserId', { userId, status },);
     } catch (error) {
-       // Muestra el mensaje de error completo para depuración
-       console.error('Error adding Loan:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error adding Loan:', error.message);
     }
   },
-  getLoanReport: async ({Status, Year, Nombre}) =>{
+  getLoanReport: async ({ Status, Year, Nombre }) => {
     try {
-      console.log({Status, Year, Nombre});
-      return await ipcRenderer.invoke('db:getLoansReport', {Status, Year, Nombre}, );
+      console.log({ Status, Year, Nombre });
+      return await ipcRenderer.invoke('db:getLoansReport', { Status, Year, Nombre },);
     } catch (error) {
-       // Muestra el mensaje de error completo para depuración
-       console.error('Error getting loans:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error getting loans:', error.message);
     }
   },
 
-  getLoanReportByMonth: async ({month, year}) =>{
+  getLoanReportByMonth: async ({ month, year }) => {
     try {
-      console.log('getLoansByMonthYear dataPreload',{month, year});
-      return await ipcRenderer.invoke('db:getLoansByMonthYear', {month, year}, );
+      console.log('getLoansByMonthYear dataPreload', { month, year });
+      return await ipcRenderer.invoke('db:getLoansByMonthYear', { month, year },);
     } catch (error) {
-       // Muestra el mensaje de error completo para depuración
-       console.error('Error getting loans:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error getting loans:', error.message);
     }
   },
-  getAllSavingsTransactionsReport: async ({ NombreCompleto, Anio }) =>{
+  getAllSavingsTransactionsReport: async ({ NombreCompleto, Anio }) => {
     try {
       console.log({ NombreCompleto, Anio });
-      return await ipcRenderer.invoke('db:getUserSavingsReport', { NombreCompleto, Anio }, );
+      return await ipcRenderer.invoke('db:getUserSavingsReport', { NombreCompleto, Anio },);
     } catch (error) {
-       // Muestra el mensaje de error completo para depuración
-       console.error('Error getting savings:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error getting savings:', error.message);
     }
   },
-  getAllSavingsTransactionsDesahogoReport: async ({ NombreCompleto, Anio }) =>{
+  getAllSavingsTransactionsDesahogoReport: async ({ NombreCompleto, Anio }) => {
     try {
       console.log({ NombreCompleto, Anio });
-      return await ipcRenderer.invoke('db:getUserSavingDesahogoReport', { NombreCompleto, Anio }, );
+      return await ipcRenderer.invoke('db:getUserSavingDesahogoReport', { NombreCompleto, Anio },);
     } catch (error) {
-       // Muestra el mensaje de error completo para depuración
-       console.error('Error getting savings:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error getting savings:', error.message);
     }
   },
-  getAhorroSaldoById: async(prestamoId) =>{
+  getAhorroSaldoById: async (prestamoId) => {
     try {
-  
-      return await ipcRenderer.invoke('db:getAhorroSaldoById', prestamoId, );
+
+      return await ipcRenderer.invoke('db:getAhorroSaldoById', prestamoId,);
     } catch (error) {
-       // Muestra el mensaje de error completo para depuración
-       console.error('Error getting savings:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error getting savings:', error.message);
     }
   },
   updateLoanCapitalIntereses: async (data) => {
     try {
       return await ipcRenderer.invoke('db:updateLoanCapitalIntereses', data);
     } catch (error) {
-       // Muestra el mensaje de error completo para depuración
-       console.error('Error adding Loan:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error adding Loan:', error.message);
     }
   },
   //Payments
@@ -200,9 +200,9 @@ contextBridge.exposeInMainWorld('db', {
       return [];
     }
   },
-  getPaymentsReport: async ({Fecha_Inicio, Fecha_Final}) => {
+  getPaymentsReport: async ({ Fecha_Inicio, Fecha_Final }) => {
     try {
-      return await ipcRenderer.invoke('db:getPaymentsReport', {Fecha_Inicio, Fecha_Final});
+      return await ipcRenderer.invoke('db:getPaymentsReport', { Fecha_Inicio, Fecha_Final });
     } catch (error) {
       console.error('Error getting User:', error);
       return [];
@@ -218,7 +218,7 @@ contextBridge.exposeInMainWorld('db', {
       console.error('Error adding Payment:', error.message);
     }
   },
-  removePayment: async (idPay) =>{
+  removePayment: async (idPay) => {
     try {
       console.log(idPay);
       const response = await ipcRenderer.invoke('db:deletePayment', idPay);
@@ -229,67 +229,67 @@ contextBridge.exposeInMainWorld('db', {
     }
   },
   //SAVINGS
-  addSavings: async (data) =>{
+  addSavings: async (data) => {
     try {
       return await ipcRenderer.invoke('db:addSaving', data);
     } catch (error) {
-       // Muestra el mensaje de error completo para depuración
-       console.error('Error adding Savings:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error adding Savings:', error.message);
       throw new Error('Fondos insuficientes para retirar.');
     }
   },
   removeSavingTransaction: async (idTransaccion) => {
     try {
-        const response = await ipcRenderer.invoke('db:removeSavingTransaction', { idTransaccion });
-        alert(response.message); // Muestra el mensaje de éxito
+      const response = await ipcRenderer.invoke('db:removeSavingTransaction', { idTransaccion });
+      alert(response.message); // Muestra el mensaje de éxito
     } catch (error) {
-        console.error('Error removing saving transaction:', error.message);
-        alert("Error al eliminar la transacción.");
+      console.error('Error removing saving transaction:', error.message);
+      alert("Error al eliminar la transacción.");
     }
   },
   //Cheques y gastos
-  addCheques: async (data) =>{
+  addCheques: async (data) => {
     try {
       return await ipcRenderer.invoke('db:addCheque', data);
     } catch (error) {
-        // Muestra el mensaje de error completo para depuración
-        console.error('Error adding Cheques:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error adding Cheques:', error.message);
     }
   },
   //Conciliacion
-  addConciliation: async ({Mes, Anio, SaldoMesAnterior, TotalMes})=>{
+  addConciliation: async ({ Mes, Anio, SaldoMesAnterior, TotalMes }) => {
     try {
-      return await ipcRenderer.invoke('db:addConciliacion', {Mes, Anio, SaldoMesAnterior, TotalMes});
+      return await ipcRenderer.invoke('db:addConciliacion', { Mes, Anio, SaldoMesAnterior, TotalMes });
     } catch (error) {
-        // Muestra el mensaje de error completo para depuración
-        console.error('Error adding Conciliacion:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error adding Conciliacion:', error.message);
 
     }
   },
-  getMonthRegister: async ({mes, year})=>{
+  getMonthRegister: async ({ mes, year }) => {
     try {
-      return await ipcRenderer.invoke('db:getMonthRegister', {mes, year});
+      return await ipcRenderer.invoke('db:getMonthRegister', { mes, year });
     } catch (error) {
-        // Muestra el mensaje de error completo para depuración
-        console.error('Error getting Conciliation Month Register:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error getting Conciliation Month Register:', error.message);
 
     }
   },
-  getConciliation: async ({mes, year})=>{
+  getConciliation: async ({ mes, year }) => {
     try {
-      return await ipcRenderer.invoke('db:getMonthlyConciliation', {mes, year});
+      return await ipcRenderer.invoke('db:getMonthlyConciliation', { mes, year });
     } catch (error) {
-        // Muestra el mensaje de error completo para depuración
-        console.error('Error getting Conciliacion:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error getting Conciliacion:', error.message);
 
     }
   },
-  getGastos: async ({mes, year}) =>{
+  getGastos: async ({ mes, year }) => {
     try {
-      return await ipcRenderer.invoke('db:getGastos', {mes, year});
+      return await ipcRenderer.invoke('db:getGastos', { mes, year });
     } catch (error) {
-        // Muestra el mensaje de error completo para depuración
-        console.error('Error getting gastos:', error.message);
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error getting gastos:', error.message);
 
     }
   }
@@ -304,17 +304,17 @@ contextBridge.exposeInMainWorld('api', {
     if (!dateInput) {
       throw new Error("La fecha no puede estar vacía.");
     }
-  
+
     const date = new Date(dateInput);
-  
+
     if (isNaN(date.getTime())) {
       throw new Error("Formato de fecha no válido.");
     }
-  
+
     const day = String(date.getDate()).padStart(2, '0'); // Día con dos dígitos
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Mes con dos dígitos (0 indexado)
     const year = date.getFullYear(); // Año completo
-  
+
     return `${day}/${month}/${year}`;
   },
   getDateAfterPays: (startDate, pays) => {
@@ -327,73 +327,114 @@ contextBridge.exposeInMainWorld('api', {
     targetDate.setDate(targetDate.getDate() + (pays * 14));
 
     // Formatear la fecha resultante como dd/mm/aaaa
-    const formattedDate = 
-        `${targetDate.getDate().toString().padStart(2, '0')}/` +
-        `${(targetDate.getMonth() + 1).toString().padStart(2, '0')}/` +
-        `${targetDate.getFullYear()}`;
+    const formattedDate =
+      `${targetDate.getDate().toString().padStart(2, '0')}/` +
+      `${(targetDate.getMonth() + 1).toString().padStart(2, '0')}/` +
+      `${targetDate.getFullYear()}`;
 
     console.log(formattedDate);
     return formattedDate;
-},
-  hasOneYearPassed:(dateInput) => {
+  },
+  hasOneYearPassed: (dateInput) => {
     // Verificar que la fecha de entrada sea válida
     const inputDate = new Date(dateInput);
-  
+
     if (isNaN(inputDate.getTime())) {
       throw new Error("La fecha proporcionada no es válida.");
     }
-  
+
     // Obtener la fecha actual
     const currentDate = new Date();
-  
+
     // Calcular la diferencia en milisegundos
     const timeDifference = currentDate - inputDate;
-  
+
     // Convertir milisegundos a días
     const daysDifference = timeDifference / (1000 * 60 * 60 * 24);
-  
+
     // Verificar si ha pasado un año (aproximadamente 365 días)
 
     console.log(daysDifference >= 365);
     return daysDifference >= 365;
   },
-  formatDateForModel:( dateString) => {
+  formatDateForModel: (dateString) => {
     if (!dateString) {
-        throw new Error("La fecha no puede estar vacía.");
-      }
-    
-      const parts = dateString.split('/');
-      if (parts.length !== 3) {
-        throw new Error("El formato de fecha debe ser dd/mm/aaaa.");
-      }
-    
-      const [day, month, year] = parts;
-    
-      // Validar que día, mes y año son numéricos
-      if (isNaN(day) || isNaN(month) || isNaN(year)) {
-        throw new Error("El día, mes o año no son válidos.");
-      }
-    
-      // Validar valores de día, mes y año
-      if (+day < 1 || +day > 31 || +month < 1 || +month > 12 || +year < 1000) {
-        throw new Error("El rango de día, mes o año no es válido.");
-      }
-    
-      // Crear un objeto Date en UTC y ajustar a CST (UTC-6)
-      const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0)); // Mes es 0-indexado
-      date.setUTCHours(date.getUTCHours() + 6); // Ajuste a CST
-    
-      // Retornar en formato aaaa-mm-dd con horario CST
-      const formattedDate = date.toISOString().replace('T', ' ').split('.')[0];
+      throw new Error("La fecha no puede estar vacía.");
+    }
 
-      return `${formattedDate} -06:00`;
-  }, 
-  getPreviousMonth:(mes) =>{
+    const parts = dateString.split('/');
+    if (parts.length !== 3) {
+      throw new Error("El formato de fecha debe ser dd/mm/aaaa.");
+    }
+
+    const [day, month, year] = parts;
+
+    // Validar que día, mes y año son numéricos
+    if (isNaN(day) || isNaN(month) || isNaN(year)) {
+      throw new Error("El día, mes o año no son válidos.");
+    }
+
+    // Validar valores de día, mes y año
+    if (+day < 1 || +day > 31 || +month < 1 || +month > 12 || +year < 1000) {
+      throw new Error("El rango de día, mes o año no es válido.");
+    }
+
+    // Crear un objeto Date en UTC y ajustar a CST (UTC-6)
+    const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0)); // Mes es 0-indexado
+    date.setUTCHours(date.getUTCHours() + 6); // Ajuste a CST
+
+    // Retornar en formato aaaa-mm-dd con horario CST
+    const formattedDate = date.toISOString().replace('T', ' ').split('.')[0];
+
+    return `${formattedDate} -06:00`;
+  },
+  getPreviousMonth: (mes) => {
     if (mes < 1 || mes > 12) {
       throw new Error("Mes inválido. Debe estar entre 1 y 12.");
     }
-  
+
     return mes === 1 ? 12 : mes - 1;
+  },
+  formatInputDate: (date) => {
+    // Max length: dd/mm/aaaa
+    if (date.length > 10) return false;
+
+    for (let i = 0; i < date.length; i++) {
+      const c = date[i];
+
+      // Positions 2 and 5 must be '/'
+      if (i === 2 || i === 5) {
+        if (c !== '/') return false;
+      }
+      // All other positions must be digits
+      else {
+        if (c < '0' || c > '9') return false;
+      }
+    }
+
+    // If not fully typed yet, format is OK so far
+    if (date.length < 10) return true;
+
+    // ---- Full date validation ----
+    const day = parseInt(date.substring(0, 2), 10);
+    const month = parseInt(date.substring(3, 5), 10);
+    const year = parseInt(date.substring(6, 10), 10);
+
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+    if (year < 1000 || year > 9999) return false;
+
+    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+    if (month === 2) {
+      const isLeap =
+        (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+      if (day > (isLeap ? 29 : 28)) return false;
+    } else {
+      if (day > daysInMonth[month - 1]) return false;
+    }
+
+    return true;
   }
 
 });

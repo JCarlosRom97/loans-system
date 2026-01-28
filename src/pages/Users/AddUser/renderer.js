@@ -62,6 +62,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+
+    const fechaNacimiento = document.getElementById('fechaNacimiento');
+    let lastValidDate ='';
+    
+    fechaNacimiento.addEventListener('keyup', (e) =>{
+        const current = fechaNacimiento.value;
+        
+        // If what the user typed breaks the dd/mm/aaaa structure → revert
+        if (!window.api.formatInputDate(current)) {
+            fechaNacimiento.value = lastValidDate;
+          return;
+        }
+      
+        // If full date is written, validate logical date
+        if (current.length === 10 && !window.api.formatInputDate(current)) {
+            fechaNacimiento.value = lastValidDate;
+          return;
+        }
+      
+        // Save valid value
+        lastValidDate = current;
+        e.preventDefault();
+    });
+
 });
 
 

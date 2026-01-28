@@ -1,4 +1,5 @@
 const LIMIT_PRESTAMO = 250000;
+
 document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const idUser = parseInt(params.get('idUsuario'));
@@ -21,12 +22,54 @@ document.addEventListener('DOMContentLoaded', async () => {
     const monto = document.getElementById('monto');
     const anios = document.getElementById('noAnios');
     const interes = document.getElementById('interes');
+    let lastValidDate = '';
 
+    fecha.addEventListener('keyup', async (e) => {
+        const current = fecha.value;
+        console.log(current);
+        
+        // If what the user typed breaks the dd/mm/aaaa structure → revert
+        if (!window.api.formatInputDate(current)) {
+          fecha.value = lastValidDate;
+          return;
+        }
+      
+        // If full date is written, validate logical date
+        if (current.length === 10 && !window.api.formatInputDate(current)) {
+          fecha.value = lastValidDate;
+          return;
+        }
+      
+        // Save valid value
+        lastValidDate = current;
 
-    fecha.addEventListener('keyup', async () => {
+        e.preventDefault();
         const [fechaValue, totalPrestamoValue] = await processFormInformation();
         regexDate(fechaValue, totalPrestamoValue)
     })
+
+    const fechaPago = document.getElementById('fecha-deposito');
+    let lastValidDatePays ='';
+    
+    fechaPago.addEventListener('keyup', (e) =>{
+        const current = fechaPago.value;
+
+        // If what the user typed breaks the dd/mm/aaaa structure → revert
+        if (!window.api.formatInputDate(current)) {
+            fechaPago.value = lastValidDatePays;
+          return;
+        }
+      
+        // If full date is written, validate logical date
+        if (current.length === 10 && !window.api.formatInputDate(current)) {
+            fechaPago.value = lastValidDatePays;
+          return;
+        }
+      
+        // Save valid value
+        lastValidDatePays = current;
+        e.preventDefault();
+    });
 
     monto.addEventListener('keyup', async () => {
         document.getElementById('cantidadMeses').value = document.getElementById('noAnios').value * 12;
@@ -241,6 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `El prestamo no se pudo eliminar, por favor intenta de nuevo.`);
         }
     })
+
 })
 
 const parsefromMXN = (string) => parseInt(string.replace(/[^\d.-]/g, ''));

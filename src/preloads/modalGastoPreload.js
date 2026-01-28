@@ -7,81 +7,80 @@ document.addEventListener('DOMContentLoaded', () => {
     const fechaActual = new Date();
 
     // Obtener el mes actual (0-11, donde 0 es enero y 11 es diciembre)
-    const mesActual = fechaActual.getMonth()+1;
+    const mesActual = fechaActual.getMonth() + 1;
 
     // Obtener el año actual
     const anioActual = fechaActual.getFullYear();
 
-
     document.getElementById('mes').value = mesActual;
 
-    document.getElementById('year').value = anioActual; 
+    document.getElementById('year').value = anioActual;
 
     console.log(mesActual, anioActual);
-    
+
 
     closeButtonListener();
     getChequesGastos(mesActual, anioActual)
 
     const formGastos = document.getElementById('form-gastos');
-  
-    formGastos.addEventListener('submit', async(e) => {
-      e.preventDefault();
 
-      const tipo = document.getElementById('tipo').value;
-      
-      if(tipo == "Cheque"){
-        const newChequeData = {
-            No_Cheque: document.getElementById('no-cheque').value,
-            Nombre: document.getElementById('nombre').value,
-            Motivo: document.getElementById('motivo').value,
-            Fecha: formatDateForModel(document.getElementById('fecha').value),
-            Monto: document.getElementById('monto').value,
-        };
+    formGastos.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-        try {
-            const newChequeResponse = await ipcRenderer.invoke('db:addCheque', newChequeData);
+        const tipo = document.getElementById('tipo').value;
 
-            if(newChequeResponse){
-                alert('El cheque ha sido registrado correctamente!')
-                formGastos.reset()
-                getChequesGastos(document.getElementById('mes').value, document.getElementById('year').value)
+        if (tipo == "Cheque") {
+            const newChequeData = {
+                No_Cheque: document.getElementById('no-cheque').value,
+                Nombre: document.getElementById('nombre').value,
+                Motivo: document.getElementById('motivo').value,
+                Fecha: formatDateForModel(document.getElementById('fecha').value),
+                Monto: document.getElementById('monto').value,
+            };
+
+            try {
+                const newChequeResponse = await ipcRenderer.invoke('db:addCheque', newChequeData);
+
+                if (newChequeResponse) {
+                    alert('El cheque ha sido registrado correctamente!')
+                    formGastos.reset()
+                    getChequesGastos(document.getElementById('mes').value, document.getElementById('year').value)
+                }
+            } catch (error) {
+                console.error(error)
             }
-        } catch (error) {
-            console.error(error)
-        }
-     
-      }else{
-        const newGastoData = {
-            No_Cheque: document.getElementById('no-cheque').value,
-            Tipo: document.getElementById('tipo').value,
-            Fecha: formatDateForModel(document.getElementById('fecha').value),
-            Monto: document.getElementById('monto').value,
-        };
 
-        try {
-            const newGastoResponse = await ipcRenderer.invoke('db:addGasto', newGastoData);
+        } else {
+            const newGastoData = {
+                No_Cheque: document.getElementById('no-cheque').value,
+                Tipo: document.getElementById('tipo').value,
+                Fecha: formatDateForModel(document.getElementById('fecha').value),
+                Monto: document.getElementById('monto').value,
+            };
 
-            if(newGastoResponse){
-                alert('El gasto ha sido registrado correctamente!')
-                document.getElementById('tipo').value = "Cheque";
-                document.getElementById('no-cheque').value = "";
-                document.getElementById('nombre').value = "";
-                document.getElementById('motivo').value = ""
-                document.getElementById('fecha').value = "";
-                document.getElementById('monto').value = "";
-                getChequesGastos(document.getElementById('mes').value, document.getElementById('year').value)
+            try {
+                const newGastoResponse = await ipcRenderer.invoke('db:addGasto', newGastoData);
+
+                if (newGastoResponse) {
+                    alert('El gasto ha sido registrado correctamente!')
+                    document.getElementById('tipo').value = "Cheque";
+                    document.getElementById('no-cheque').value = "";
+                    document.getElementById('nombre').value = "";
+                    document.getElementById('motivo').value = ""
+                    document.getElementById('fecha').value = "";
+                    document.getElementById('monto').value = "";
+                    getChequesGastos(document.getElementById('mes').value, document.getElementById('year').value)
+                }
+            } catch (error) {
+                console.error(error)
             }
-        } catch (error) {
-            console.error(error)
         }
-      }
-  
+
     });
 
     const mesFilter = document.getElementById('mes');
 
-    mesFilter.addEventListener('change', ()=>{
+    mesFilter.addEventListener('change', () => {
         searchFilterFunction();
     })
 
@@ -93,43 +92,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tipoFilter = document.getElementById('tipo-filter');
 
-    console.log(tipoFilter);
-    
-
-    tipoFilter.addEventListener('change', () =>{
+    tipoFilter.addEventListener('change', () => {
         console.log('tipo filter');
-        
+
         searchFilterFunction();
     })
 
-
-
     const selectTipo = document.getElementById('tipo');
 
-    selectTipo.addEventListener('change', (e) =>{
+    selectTipo.addEventListener('change', (e) => {
         e.preventDefault();
         const tipo = document.getElementById('tipo').value;
         const inputMotivo = document.getElementById('motivo');
         const inputNombre = document.getElementById('nombre');
-        if(tipo == "Cheque"){
-            document.getElementById('nombre-input-section').style.display ='flex';
-            document.getElementById('motivo-input-section').style.display ='flex';
+        if (tipo == "Cheque") {
+            document.getElementById('nombre-input-section').style.display = 'flex';
+            document.getElementById('motivo-input-section').style.display = 'flex';
             inputMotivo.setAttribute('required', '');
             inputNombre.setAttribute('required', '');
-        }else{
-            document.getElementById('nombre-input-section').style.display ='none';
-            document.getElementById('motivo-input-section').style.display ='none';
+        } else {
+            document.getElementById('nombre-input-section').style.display = 'none';
+            document.getElementById('motivo-input-section').style.display = 'none';
             inputMotivo.removeAttribute('required');
             inputNombre.removeAttribute('required');
         }
-        
+
     })
+
+    const fecha = document.getElementById('fecha');
+    let lastValidDate ='';
+
+    console.log(fecha);
+    
+    
+    fecha.addEventListener('keyup', (e) =>{
+        const current = fecha.value;
+        console.log(current);
+        
+        // If what the user typed breaks the dd/mm/aaaa structure → revert
+        if (!formatInputDate(current)) {
+            fecha.value = lastValidDate;
+          return;
+        }
+      
+        // If full date is written, validate logical date
+        if (current.length === 10 && !formatInputDate(current)) {
+            fecha.value = lastValidDate;
+          return;
+        }
+      
+        // Save valid value
+        lastValidDate = current;
+        e.preventDefault();
+    });
 });
 
-const searchFilterFunction = () =>{
+const searchFilterFunction = () => {
     const mesFilter = document.getElementById('mes').value;
     const yearFilterValue = document.getElementById('year').value;
-    
+
     if (yearRegex.test(yearFilterValue)) {
         console.log(mesFilter, yearFilterValue);
         // Solo ejecutamos si ambos filtros tienen valores válidos
@@ -144,7 +165,7 @@ const searchFilterFunction = () =>{
 }
 
 
-const closeButtonListener = () =>{
+const closeButtonListener = () => {
     const closeModalButton = document.getElementById('close-modal');
 
     if (closeModalButton) {
@@ -166,12 +187,12 @@ const closeButtonListener = () =>{
     }
 }
 
-const getChequesGastos = async(mesActual, anioActual) => {
-    const Cheques = await ipcRenderer.invoke('db:getCheques', {mes: mesActual, year: anioActual});
-    const Gastos = await ipcRenderer.invoke('db:getGastos', {mes: mesActual, year: anioActual});
-    
+const getChequesGastos = async (mesActual, anioActual) => {
+    const Cheques = await ipcRenderer.invoke('db:getCheques', { mes: mesActual, year: anioActual });
+    const Gastos = await ipcRenderer.invoke('db:getGastos', { mes: mesActual, year: anioActual });
+
     const gastosCheques = orderDataTable(Cheques, Gastos, document.getElementById('tipo-filter').value);
-    
+
     if (gastosCheques.length > 0) {
         let tableHTML = ``;
 
@@ -179,7 +200,7 @@ const getChequesGastos = async(mesActual, anioActual) => {
             const esInteres = gastos.Tipo === 'Intereses Del Plazo'; // Solo este será positivo
             const signo = esInteres ? '+' : '-'; // Invertimos la lógica aquí
             const claseSigno = esInteres ? 'more-green' : 'less-red'; // Clases según lo pedido
-            
+
             tableHTML += `
                 <tr>
                     <td>${index + 1}</td>
@@ -201,7 +222,7 @@ const getChequesGastos = async(mesActual, anioActual) => {
         document.getElementById('user-table-body-cheques').innerHTML = tableHTML;
 
         document.querySelectorAll('.button-delete').forEach(button => {
-            button.addEventListener('click', async function() {
+            button.addEventListener('click', async function () {
                 await deleteCheque(this.getAttribute('data-id'));
             });
         });
@@ -213,10 +234,10 @@ const getChequesGastos = async(mesActual, anioActual) => {
     }
 }
 
-const deleteCheque = async(id) =>{
+const deleteCheque = async (id) => {
     console.log(id);
     const responseDeleteCheque = await ipcRenderer.invoke('db:deleteCheque', id);
-    if(responseDeleteCheque.success){
+    if (responseDeleteCheque.success) {
         alert('Cheque Eliminado Correctamente!')
         getChequesGastos(document.getElementById('mes').value, document.getElementById('year').value);
     }
@@ -225,7 +246,7 @@ const deleteCheque = async(id) =>{
 const orderDataTable = (cheques, gastos, filtro = "Todos") => {
 
     console.log(filtro);
-    
+
     // 1. Agregar Tipo: "Cheque" a cada objeto en el array de cheques
     const chequesConTipo = cheques.map(cheque => ({
         ...cheque,
@@ -234,8 +255,8 @@ const orderDataTable = (cheques, gastos, filtro = "Todos") => {
 
     // 2. Aplicar filtro antes de unir los arrays
     let registrosFiltrados;
-    
-    switch(filtro) {
+
+    switch (filtro) {
         case "Cheques":
             registrosFiltrados = [...chequesConTipo];
             break;
@@ -254,48 +275,47 @@ const orderDataTable = (cheques, gastos, filtro = "Todos") => {
     return registrosOrdenados;
 }
 
-const parseTOMXN = (number) => Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(number || 0);
+const parseTOMXN = (number) => Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(number || 0);
 
 const formatDateToDisplay = (dateInput) => {
 
-if (!dateInput) {
-    throw new Error("La fecha no puede estar vacía.");
+    if (!dateInput) {
+        throw new Error("La fecha no puede estar vacía.");
+    }
+
+    const date = new Date(dateInput);
+
+    if (isNaN(date.getTime())) {
+        throw new Error("Formato de fecha no válido.");
+    }
+
+    const day = String(date.getDate()).padStart(2, '0'); // Día con dos dígitos
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Mes con dos dígitos (0 indexado)
+    const year = date.getFullYear(); // Año completo
+
+    return `${day}/${month}/${year}`;
 }
-
-const date = new Date(dateInput);
-
-if (isNaN(date.getTime())) {
-    throw new Error("Formato de fecha no válido.");
-}
-
-const day = String(date.getDate()).padStart(2, '0'); // Día con dos dígitos
-const month = String(date.getMonth() + 1).padStart(2, '0'); // Mes con dos dígitos (0 indexado)
-const year = date.getFullYear(); // Año completo
-
-return `${day}/${month}/${year}`;
-}
-
 
 const formatDateForModel = (dateString) => {
-if (!dateString) {
-    throw new Error("La fecha no puede estar vacía.");
+    if (!dateString) {
+        throw new Error("La fecha no puede estar vacía.");
     }
 
     const parts = dateString.split('/');
     if (parts.length !== 3) {
-    throw new Error("El formato de fecha debe ser dd/mm/aaaa.");
+        throw new Error("El formato de fecha debe ser dd/mm/aaaa.");
     }
 
     const [day, month, year] = parts;
 
     // Validar que día, mes y año son numéricos
     if (isNaN(day) || isNaN(month) || isNaN(year)) {
-    throw new Error("El día, mes o año no son válidos.");
+        throw new Error("El día, mes o año no son válidos.");
     }
 
     // Validar valores de día, mes y año
     if (+day < 1 || +day > 31 || +month < 1 || +month > 12 || +year < 1000) {
-    throw new Error("El rango de día, mes o año no es válido.");
+        throw new Error("El rango de día, mes o año no es válido.");
     }
 
     // Crear un objeto Date en UTC y ajustar a CST (UTC-6)
@@ -308,3 +328,44 @@ if (!dateString) {
     return `${formattedDate} -06:00`;
 };
 
+const formatInputDate = (date) => {
+    // Max length: dd/mm/aaaa
+    if (date.length > 10) return false;
+
+    for (let i = 0; i < date.length; i++) {
+      const c = date[i];
+
+      // Positions 2 and 5 must be '/'
+      if (i === 2 || i === 5) {
+        if (c !== '/') return false;
+      }
+      // All other positions must be digits
+      else {
+        if (c < '0' || c > '9') return false;
+      }
+    }
+
+    // If not fully typed yet, format is OK so far
+    if (date.length < 10) return true;
+
+    // ---- Full date validation ----
+    const day = parseInt(date.substring(0, 2), 10);
+    const month = parseInt(date.substring(3, 5), 10);
+    const year = parseInt(date.substring(6, 10), 10);
+
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+    if (year < 1000 || year > 9999) return false;
+
+    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+    if (month === 2) {
+      const isLeap =
+        (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+      if (day > (isLeap ? 29 : 28)) return false;
+    } else {
+      if (day > daysInMonth[month - 1]) return false;
+    }
+
+    return true;
+  }

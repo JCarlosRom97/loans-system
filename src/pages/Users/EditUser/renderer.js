@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     const params = new URLSearchParams(window.location.search);
     const idUser = params.get('idUsuario');
     console.log(idUser);
+    let lastValidDate ='';
 
     if(idUser){
 
@@ -33,7 +34,8 @@ document.addEventListener('DOMContentLoaded', async() => {
         apellidoPaterno.value = user.Apellido_Paterno;
         apellidoMaterno.value = user.Apellido_Materno;
         codigoEmpleado.value = user.Codigo_Empleado;
-        fechaNacimiento.value = formatDateSelect(user.Fecha_De_Nacimiento);
+        fechaNacimiento.value = user.Fecha_De_Nacimiento;
+        lastValidDate = user.Fecha_De_Nacimiento;
         nacionalidad.value = user.Nacionalidad;
         curp.value = user.CURP; 
         rfc.value = user.RFC; 
@@ -51,16 +53,10 @@ document.addEventListener('DOMContentLoaded', async() => {
     form.addEventListener('submit', async (event) => {
         event.preventDefault(); // Prevent form submission that reloads the page
 
-
         const ID = document.getElementById("ID").value;
 
         if (isSubmitting) return; // Prevent multiple submissions
         isSubmitting = true; // Set the flag to true
-
-
-      
-        const fechaNacimiento  = formatDate(document.getElementById('fechaNacimiento').value)
-        console.log('fechaNacimiento', fechaNacimiento);
 
         const userData = {
             // Collect your form data here (example below)
@@ -71,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             Apellido_Paterno: document.getElementById('apellidoPaterno').value,
             Apellido_Materno: document.getElementById('apellidoMaterno').value,
             Codigo_Empleado: document.getElementById('codigoEmpleado').value,
-            Fecha_De_Nacimiento: fechaNacimiento,
+            Fecha_De_Nacimiento: document.getElementById('fechaNacimiento').value,
             Nacionalidad: document.getElementById('nacionalidad').value,
             CURP: document.getElementById('curp').value,
             RFC: document.getElementById('rfc').value,
@@ -111,7 +107,31 @@ document.addEventListener('DOMContentLoaded', async() => {
         } finally {
             isSubmitting = false; // Reset flag after the operation completes
         }
-    })
+    });
+
+    const fechaNacimiento = document.getElementById('fechaNacimiento');
+    console.log(fechaNacimiento);
+    
+    fechaNacimiento.addEventListener('keyup', (e) =>{
+        const current = fechaNacimiento.value;
+        console.log(current);
+        
+        // If what the user typed breaks the dd/mm/aaaa structure → revert
+        if (!window.api.formatInputDate(current)) {
+            fechaNacimiento.value = lastValidDate;
+          return;
+        }
+      
+        // If full date is written, validate logical date
+        if (current.length === 10 && !window.api.formatInputDate(current)) {
+            fechaNacimiento.value = lastValidDate;
+          return;
+        }
+      
+        // Save valid value
+        lastValidDate = current;
+        e.preventDefault();
+    });
 });
 
 

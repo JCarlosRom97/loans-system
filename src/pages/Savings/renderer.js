@@ -101,6 +101,52 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
     })
 
+    const fecha = document.getElementById('fecha');
+    let lastValidDate ='';
+    
+    fecha.addEventListener('keyup', (e) =>{
+        const current = fecha.value;
+        
+        // If what the user typed breaks the dd/mm/aaaa structure → revert
+        if (!window.api.formatInputDate(current)) {
+            fecha.value = lastValidDate;
+          return;
+        }
+      
+        // If full date is written, validate logical date
+        if (current.length === 10 && !window.api.formatInputDate(current)) {
+            fecha.value = lastValidDate;
+          return;
+        }
+      
+        // Save valid value
+        lastValidDate = current;
+        e.preventDefault();
+    });
+
+    const fechaDeposito = document.getElementById('fecha-deposito');
+    let lastValidDateDeposito ='';
+    
+    fechaDeposito.addEventListener('keyup', (e) =>{
+        const current = fechaDeposito.value;
+        
+        // If what the user typed breaks the dd/mm/aaaa structure → revert
+        if (!window.api.formatInputDate(current)) {
+            fechaDeposito.value = lastValidDateDeposito;
+          return;
+        }
+      
+        // If full date is written, validate logical date
+        if (current.length === 10 && !window.api.formatInputDate(current)) {
+            fechaDeposito.value = lastValidDateDeposito;
+          return;
+        }
+      
+        // Save valid value
+        lastValidDateDeposito = current;
+        e.preventDefault();
+    });
+
 
 });
 
