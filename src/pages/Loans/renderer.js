@@ -254,6 +254,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             document.getElementById('Capital').value = parseTOMXN(newLoan[0].Total_Capital);
 
+            lastValidDate = '';
+
 
         } else {
             // HIDE
