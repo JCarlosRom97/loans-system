@@ -11,9 +11,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     document.getElementById('Nombre').innerText = `${user.Nombre} ${user.Apellido_Paterno} ${user.Apellido_Materno} `;
     document.getElementById('cuenta_contable_ahorro').innerText = `${user.CTA_CONTABLE_AHORRO} `;
 
-    console.log(user);
-
-    const ID = await setFechaCatorcena()
+    const ID = await setFechaCatorcena();
 
     fetchAndDisplaySavings(ID);
 

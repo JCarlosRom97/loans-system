@@ -70,6 +70,7 @@ input[type="number"], input[type="text"], select {
 
 /* Estilo para la sección de usuario (nombre y cuenta contable) */
 .user-info {
+  margin-top: 50px;
   text-align: center;  /* Centrar texto */
   margin-bottom: 20px;
 }
@@ -82,6 +83,18 @@ input[type="number"], input[type="text"], select {
 .user-info span {
   font-weight: bold;
   color: #2e8b57;
+}
+
+button {
+  width: 8%;
+  background-color: #5ba941;
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 
 /* Estilo para la sección del total */
