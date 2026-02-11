@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     
     const params = new URLSearchParams(window.location.search);
     idUser = params.get('idUsuario');
-    console.log(idUser);
+    console.log("idUsuario:",idUser);
 
 
     const user = await window.db.getUser(idUser);
@@ -38,14 +38,10 @@ document.addEventListener('DOMContentLoaded', async() => {
             Fecha_Deposito: window.api.formatDateForModel(fechaDeposito)
         }
 
-        console.log(saveObject);
-
           // Add the user to the database via the main process
         try {
             const newSaving = await window.db.addSavings(saveObject);
-            console.log('Saving added:', newSaving);
             
-        
             if(newSaving){
                 // Show Notification
                 if(newSaving.TipoTransaccion === 'Deposito'){
@@ -69,7 +65,6 @@ document.addEventListener('DOMContentLoaded', async() => {
            
 
         } catch (error) {
-            console.log(error.message);
        
             if (error.message === "Fondos insuficientes para retirar.") {
                 window.electron.showNotification("Fondos Insuficientes", 
@@ -151,7 +146,6 @@ document.addEventListener('DOMContentLoaded', async() => {
 // Función para obtener y mostrar los usuarios en una tabla
 async function fetchAndDisplaySavings(idAhorro) {
     try {
-        console.log(idAhorro);
         const savings = await window.db.getSavings(idAhorro);
         // Verificar si hay usuarios
         if (savings.length > 0) {
@@ -160,7 +154,6 @@ async function fetchAndDisplaySavings(idAhorro) {
             // Recorrer los usuarios y agregar filas
             savings.forEach(saving => {
                 const dateDeposito = window.api.formatDateToDisplay(saving.Fecha, 0);
-                console.log(saving);
             tableHTML += `
                 <tr>
                     <td>${dateDeposito}</td>
@@ -202,20 +195,13 @@ async function fetchAndDisplaySavings(idAhorro) {
 
 
 async function getSavingInfo () {
-    console.log(idUser);
     const dataSaving = await window.db.getAmmountSaving(idUser);
-
-    console.log('dataSaving', dataSaving);
-
     document.getElementById('totalAmount').innerText = `${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(dataSaving?.Monto || 0)}`;
-
     return {ID: dataSaving?.ID, FechaUltimaActualizacion: dataSaving?.FechaUltimaActualizacion};
 }
 
 async function deleteTransaction (idUser) {
-    console.log(idUser);
     const deletedSaving = await window.db.removeSavingTransaction(idUser);
-    console.log(deletedSaving);
     const {ID}  = await getSavingInfo();
     fetchAndDisplaySavings(ID)
     await setFechaCatorcena()
@@ -223,10 +209,8 @@ async function deleteTransaction (idUser) {
 
 const setFechaCatorcena = async() =>{
     const Saving = await getSavingInfo();
-    console.log(Saving);
     
     const {ID, FechaUltimaActualizacion} = await getSavingInfo();
-    console.log(ID, FechaUltimaActualizacion);
     
     if(FechaUltimaActualizacion){
         document.getElementById('fecha').value = window.api.getDateAfterPays(window.api.formatDateToDisplay(FechaUltimaActualizacion, 0), 1);

@@ -15,6 +15,11 @@ const Ahorro = sequelize.define('Ahorro', {
     type: DataTypes.DATE,
     allowNull: false,
   },
+  MontoComprometido: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  
 }, {
   tableName: 'Ahorro',
   timestamps: false,
