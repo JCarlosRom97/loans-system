@@ -11,8 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('name-user').innerText =
         `${user.Nombre} ${user.Apellido_Paterno} ${user.Apellido_Materno}`
 
-    console.log(user);
-
     getLoan();
     getLoanRefinance();
     getLoanPagados();
@@ -25,7 +23,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     fecha.addEventListener('keyup', async (e) => {
         const current = fecha.value;
-        console.log(current);
         
         // If what the user typed breaks the dd/mm/aaaa structure → revert
         if (!window.api.formatInputDate(current)) {
@@ -125,7 +122,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             Total_Pagado_Capital: 0,
             Total_Pagado_Intereses: 0
         }
-        console.log(loanData);
 
         if (isRefinanciar.length > 0) {
 
@@ -187,11 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Calcular el monto intereses ajustado por el porcentaje del pago
         const montoIntereses = Math.floor((TotalPrestamo_Intereses / No_Catorcenas) * porcentajePago);
-
-        console.log(`Porcentaje de pago: ${Math.round(porcentajePago * 100)}%`);
-        console.log(`Monto capital: ${montoCapital}`);
-        console.log(`Monto intereses: ${montoIntereses}`);
-
+        
         const paymentData = {
             id_Prestamo_fk: document.getElementById('idPrestamo').value,
             Fecha_Catorcena: formatDateForModel(document.getElementById('fechaPagoCatorcena').value),
@@ -203,7 +195,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             Monto_Pago_Intereses: parseInt(montoIntereses) + 1
         };
 
-        console.log('paymentData', paymentData);
         try {
 
             const newPayment = await window.db.addPayment(paymentData);
@@ -227,33 +218,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     showEditLoanBtn.addEventListener('click', (e)=>{
         e.preventDefault();
-        
-        const editSection = document.getElementById('editLoanSection');
-
-        const isHidden =
-        editSection.style.display === "none" ||
-        editSection.style.display === "";
-
-        console.log(document.getElementById('editLoanSection').style.display);
-        
-        console.log(isHidden);
-        
-        if(isHidden){
-            document.getElementById('editLoanSection').style.display = 'block';
-            return;
-        }
-        document.getElementById('editLoanSection').style.display = 'none';
+        showHideElement('editLoanSection');
     });
 
     const editButton = document.getElementById('editButton');
 
     editButton.addEventListener("click", async(e)=>{
         e.preventDefault();
-        console.log('Edit');
         const numeroPrestamoEdit = document.getElementById('numero-prestamo-input-edit').value;
         const numeroChequeEdit = document.getElementById('numero-cheque-input-edit').value;
-
-        console.log(numeroPrestamoEdit, numeroChequeEdit);
         const loanUpdated = await window.db.updateLoan(
         {
             id: document.getElementById('idPrestamo').value, 
@@ -274,6 +247,69 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `Error al actualizar prestamo, intenta de nuevo.!`);
         }
     });
+
+    const actualizarPagosButton = document.getElementById('actualizarPagosButton');
+
+    actualizarPagosButton.addEventListener('click', (e)=>{
+        e.preventDefault();
+        showHideElement('editLoanPaysSection');
+    })
+
+    const numeroPagosActualizarButton = document.getElementById('numeroPagosActualizarButton');
+
+    numeroPagosActualizarButton.addEventListener('click', async(e)=>{
+        e.preventDefault();
+        const newLoan = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
+        const { Fecha_Inicio, Monto, Pagos_Completados, No_Catorcenas, Abono, TotalPrestamo_Intereses } = newLoan[0];
+
+        const numeroPagosActualizar = document.getElementById('numero-pagos-actualizar-input-edit').value;
+        let Pagos_CompletadosLoop = Pagos_Completados;
+        const metodoPago = document.getElementById('metodoPagoUpdatePays').value;
+
+        // Calcular el porcentaje del pago en relación con el abono
+        const porcentajePago = Abono / Abono;
+
+        // Calcular el monto capital ajustado por el porcentaje del pago
+        const montoCapital = Math.floor((Monto / No_Catorcenas) * porcentajePago);
+
+        // Calcular el monto intereses ajustado por el porcentaje del pago
+        const montoIntereses = Math.floor((TotalPrestamo_Intereses / No_Catorcenas) * porcentajePago);
+        const formattedDateDisplay = window.api.formatDateToDisplay(Fecha_Inicio);
+
+        for (let index = 0; index < numeroPagosActualizar; index++) {
+            const fechaPago = window.api.getDateAfterPays(formattedDateDisplay, Pagos_CompletadosLoop);    
+
+            const paymentData = {
+                id_Prestamo_fk: document.getElementById('idPrestamo').value,
+                Fecha_Catorcena: formatDateForModel(fechaPago),
+                Fecha_Pago: formatDateForModel(fechaPago),
+                Monto_Pago: Abono,
+                Periodo_Catorcenal: Pagos_CompletadosLoop+1,
+                Metodo_Pago: metodoPago,
+                Monto_Pago_Capital: parseInt(montoCapital),
+                Monto_Pago_Intereses: parseInt(montoIntereses) + 1
+            };
+
+            Pagos_CompletadosLoop++;
+            
+            try {
+    
+                const newPayment = await window.db.addPayment(paymentData);
+                await window.db.updateLoanCapitalIntereses({
+                    id: document.getElementById('idPrestamo').value,
+                    Total_Pagado_Capital: paymentData.Monto_Pago_Capital,
+                    Total_Pagado_Intereses: paymentData.Monto_Pago_Intereses
+                });
+    
+            } catch (error) {
+                console.error(error)
+            }
+        }
+        getLoan();
+        formPago.reset()
+        document.getElementById('numero-pagos-actualizar-input-edit').value ="";
+
+    });
     /* FORM REFINANCIAR */
     buttonRefinanciar.addEventListener('click', async () => {
 
@@ -292,13 +328,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('capital-input-container').classList.add('visible');
             // TOTAL PRESTAMO + SALDO ANTERIOR
             document.getElementById('saldoAnterior').innerText = ` + Saldo Anterior: ${parseTOMXN(newLoan[0].Total_Capital)}`;
-
             document.getElementById('monto').value = parseTOMXN(newLoan[0].Total_Capital);
 
-
             const limitNewLoan = LIMIT_PRESTAMO - newLoan[0].Total_Capital;
-
-            console.log('limitNewLoan', limitNewLoan);
 
             document.getElementById('montoPagoTitle').innerText = `Monto: max(${parseTOMXN(limitNewLoan)})`
             document.getElementById('monto').setAttribute('max', parseInt(limitNewLoan));
@@ -339,6 +371,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 })
 
+const showHideElement = (idELement)=>{
+
+    const editSection = document.getElementById(idELement);
+    const isHidden =
+    editSection.style.display === "none" ||
+    editSection.style.display === "";
+    
+    if(isHidden){
+        document.getElementById(idELement).style.display = 'block';
+        return;
+    }
+    document.getElementById(idELement).style.display = 'none';
+}
+
 const parsefromMXN = (string) => parseInt(string.replace(/[^\d.-]/g, ''));
 
 const parseTOMXN = (number) => Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(number || 0);
@@ -360,7 +406,6 @@ const processFormInformation = async () => {
     if (isRefinanciar.length > 0) {
 
         document.getElementById('Capital').value = parseTOMXN(isRefinanciar[0].Total_Capital + (montoValue || 0));
-        console.log(isRefinanciar[0].Total_Capital, montoValue, porcentaje);
         totalPrestamoValue = (isRefinanciar[0].Total_Capital + montoValue) + ((isRefinanciar[0].Total_Capital + montoValue) * porcentaje);
         prestamoIntereses = totalPrestamoValue - parsefromMXN(document.getElementById('Capital').value);
     } else {
@@ -383,7 +428,6 @@ const processFormInformation = async () => {
 const getLoan = async () => {
 
     const newLoan = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
-    console.log('newLoan', newLoan);
     
     if (newLoan.length > 0) {
         // Detail Loan
@@ -426,7 +470,6 @@ const getLoan = async () => {
 
 const getLoanPagados = async () => {
     const loansPagados = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Pagado' });
-    console.log(loansPagados);
     if (loansPagados.length > 0) {
 
         document.getElementById('accordion-body-title-pagados').classList.remove('hidden');
@@ -554,7 +597,6 @@ const getLoanPagados = async () => {
 
 const getLoanRefinance = async () => {
     const loansRefinance = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Refinanciado' });
-    console.log(loansRefinance,'refinance');
     
     if (loansRefinance.length > 0) {
 
@@ -728,7 +770,6 @@ const fillLoanDataUI = (loan) => {
 function regexDate(fechaValue, totalPrestamoValue) {
     const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
     if (dateRegex.test(fechaValue)) {
-        console.log("Valid date format");
         const dates = generateSecondFridays(fechaValue, parseInt(document.getElementById('noAnios').value) * 26)
         document.getElementById('tablePagos').classList.remove('hidden');
         document.getElementById('tablePagos').classList.add('visible');
@@ -774,7 +815,6 @@ function generateSecondFridays(startDate, count) {
 
 const generateTableCatorcena = (dates, pay, differenceLastPay) => {
     const numberPays = dates.length;
-    console.log(differenceLastPay);
     // Verificar si hay usuarios
     if (dates.length > 0) {
         // Generar el HTML para la tabla
@@ -821,8 +861,7 @@ const generateTablePays = async (idPrestamo, idTable, isShowOldLoans = false) =>
     if (pagos.length > 0) {
         // Generar el HTML para la tabla
         let tableHTML = ``;
-
-        // Recorrer los usuarios y agregar filas
+        
         pagos.forEach((pago, index) => {
             tableHTML += `
             <tr>
@@ -851,7 +890,6 @@ const generateTablePays = async (idPrestamo, idTable, isShowOldLoans = false) =>
         tableHTML += '</tbody></table>';
 
         // Insertar la tabla en el div con ID "info"
-        console.log(idTable);
         const infoDiv = document.getElementById(idTable);
         infoDiv.innerHTML = tableHTML;
 

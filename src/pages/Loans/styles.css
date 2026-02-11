@@ -271,6 +271,10 @@ body {
     display: none;
   }
 
+  #editLoanPaysSection{
+    display: none;
+  }
+
   .refinanciar-button:hover{
     background-color: rgb(3, 203, 3);
   }
@@ -294,3 +298,12 @@ body {
     color: #0056b3;
   }
 
+  .button-actualizar-pagos{
+    background-color: rgb(21, 0, 255);
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .button-actualizar-pagos:hover{
+    background-color: rgba(21, 0, 255, 0.812);
+  }
