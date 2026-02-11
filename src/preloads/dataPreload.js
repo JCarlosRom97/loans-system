@@ -113,6 +113,14 @@ contextBridge.exposeInMainWorld('db', {
       console.error('Error adding Loan:', error.message);
     }
   },
+  updateLoan: async (data) => {
+    try {
+      return await ipcRenderer.invoke('db:updateLoan', data);
+    } catch (error) {
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error actualizando prestamo:', error.message);
+    }
+  },
   refinanceLoan: async (data) => {
     try {
       return await ipcRenderer.invoke('db:refinanceLoan', data);

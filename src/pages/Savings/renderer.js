@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         event.preventDefault();
         const typeTransaction = document.getElementById('selectTypeTransaction').value; 
         const amount = document.getElementById("amount").value;
-        const medioPago = 'Cheque';
+        const medioPago = document.getElementById("selectTypePay").value;
         const fecha = document.getElementById('fecha').value;
         const fechaDeposito = document.getElementById('fecha-deposito').value;
         const numeroCheque = typeTransaction =="Desahogo" ?
@@ -165,14 +165,14 @@ async function fetchAndDisplaySavings(idAhorro) {
                 <tr>
                     <td>${dateDeposito}</td>
                     <td>${window.api.formatDateToDisplay(saving.Fecha_Deposito, 0)}</td>
-                    <td>${saving.Numero_Cheque || 'N/A'}</td>
+                    <td>${saving.Numero_Cheque || ''}</td>
                     <td>${saving.TipoTransaccion} ${saving.TipoTransaccion === 'Corte' ? dateDeposito.split('/')[2] -1 : ''}</td>
                     <td>
                         ${saving.TipoTransaccion === 'Ahorro' || saving.TipoTransaccion ==='Corte'
                         ? `<span class="more-green">+</span> ${Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saving.Monto_Generado || saving.Monto)}`
                         : `<span class="less-red">- ${Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saving.Monto)}</span> `}
                     </td>
-                    <td>${saving.MedioPago || 'N/A'}</td>
+                    <td>${saving.MedioPago || ''}</td>
                     <td>
                         <button class="delete-btn" id="${saving.ID}" onclick="deleteTransaction(${saving.ID})"  >Eliminar</button>
                     </td>

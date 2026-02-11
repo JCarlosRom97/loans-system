@@ -107,8 +107,9 @@ function generateConciliationTable(data, saldoInicial, resultConciliationGastos)
 
     // Recorrer los registros procesados
     records.forEach((record) => {
-        const { Fecha, Nombre, Descripcion, TotalMonto, No_Cheque, CuentaPrestamo, CuentaAhorro, Numero_Prestamo } = record;
-
+        const { Fecha, Nombre, Descripcion, TotalMonto, No_Cheque, Referencia, CuentaPrestamo, CuentaAhorro, Numero_Prestamo } = record;
+        console.log(Referencia);
+        
         // Determinar el tipo de transacción
         let esAhorro = Descripcion.includes('Ahorro');
         let esPago = Descripcion.includes('Pago de préstamo');
@@ -140,21 +141,21 @@ function generateConciliationTable(data, saldoInicial, resultConciliationGastos)
                 <td>${Nombre}</td>
                 <td>${Fecha}</td>
                 <td>${Descripcion}</td>
-                <td>${No_Cheque || 'N/A'}</td>
+                <td>${Referencia || ''}</td>
                 <td>
                     ${esAhorro || esPago || isDepositoGasto 
                         ? `<span class="${montoClass}">+ ${parseTOMXN(TotalMonto)}</span>`
-                        : 'N/A'}
+                        : ''}
                 </td>
                 <td>
                 ${!esAhorro && !esPago && !isDepositoGasto 
                         ? `<span class="${montoClass}">- ${parseTOMXN(TotalMonto)}</span>`
-                        : 'N/A'}
+                        : ''}
                 </td>
                 <td>${parseTOMXN(saldoActual)}</td>
                 <td>${Numero_Prestamo}</td>
-                <td>${esPago || esPrestamo ? CuentaPrestamo : "N/A"}</td>
-                <td>${esAhorro ? CuentaAhorro : "N/A"}</td>
+                <td>${esPago || esPrestamo ? CuentaPrestamo : ""}</td>
+                <td>${esAhorro ? CuentaAhorro : ""}</td>
             </tr>
         `;
     });
@@ -231,6 +232,8 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
 
     // Función para agregar o actualizar un registro en el resultado
     const agregarRegistro = (usuario, fecha, tipo, registro) => {
+        console.log(registro);
+        
         // Para préstamos iniciados, siempre creamos registro único
         const clave = tipo === "prestamoIniciado" 
             ? `${usuario}-${fecha}-${tipo}-${registro.ID || Math.random().toString(36).substr(2, 9)}`
@@ -249,20 +252,21 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
         
         // Si es préstamo iniciado o no existe el registro, creamos uno nuevo
         if (tipo === "prestamoIniciado" || !resultado[clave] || tipo === "pago") {
- 
+            
             resultado[clave] = {
                 NombreCompleto: usuario,
                 Fecha: fecha,
                 FechaOriginal: parsearFecha(fecha),
                 Tipo: tipo,
                 TotalMonto: registro.Monto,
-                No_Cheque: [registro.No_Cheque || "N/A"],
-                Numero_Prestamo: tipo === 'prestamoIniciado' ? registro?.Numero_Prestamo : registro?.Prestamo?.EsNoChequeNumero_Prestamo || "N/A",
-                MotivoCheque: [registro.Motivo || "N/A"],
+                No_Cheque: [registro.No_Cheque || ""],
+                Referencia: registro.Referencia || "",
+                Numero_Prestamo: tipo === 'prestamoIniciado' ? registro?.Numero_Prestamo : registro?.Prestamo?.EsNoChequeNumero_Prestamo || "",
+                MotivoCheque: [registro.Motivo || ""],
                 NumeroTransacciones: 1,
                 Descripcion: descripcion,
-                CuentaPrestamo: registro.CTA_CONTABLE_PRESTAMO || "N/A",  // Añadido
-                CuentaAhorro: registro.CTA_CONTABLE_AHORRO || "N/A",      // Añadido
+                CuentaPrestamo: registro.CTA_CONTABLE_PRESTAMO || "",  // Añadido
+                CuentaAhorro: registro.CTA_CONTABLE_AHORRO || "",      // Añadido
                 EsPagoPrestamo: tipo === "pago",
                 EsAbonoAhorro: tipo === "ahorro",
                 EsPrestamoIniciado: tipo === "prestamoIniciado",
@@ -272,12 +276,14 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
                 EsNoCheque: tipo !== "cheque",
                 EsUnitario: tipo === "prestamoIniciado" // Marcar como unitario
             };
+
+            console.log(resultado[clave]);
         } 
         // Para otros tipos, agrupamos por nombre y fecha
         else if (tipo !== "prestamoIniciado") {
             resultado[clave].TotalMonto += registro.Monto;
             resultado[clave].Descripcion += ` / ${descripcion}`;
-            resultado[clave].No_Cheque.push(registro.No_Cheque || "N/A");
+            resultado[clave].No_Cheque.push(registro.No_Cheque || "");
             resultado[clave].NumeroTransacciones += 1;
             
             // Actualizar tipo si es necesario
@@ -293,8 +299,8 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
             const fecha = formatearFecha(cheque.Fecha);
             agregarRegistro(cheque.Nombre, fecha, "cheque", {
                 ...cheque,
-                CTA_CONTABLE_AHORRO: cheque.CTA_CONTABLE_AHORRO || "N/A",  // Asegurar que exista
-                CTA_CONTABLE_PRESTAMO: cheque.CTA_CONTABLE_PRESTAMO || "N/A"
+                CTA_CONTABLE_AHORRO: cheque.CTA_CONTABLE_AHORRO || "",  // Asegurar que exista
+                CTA_CONTABLE_PRESTAMO: cheque.CTA_CONTABLE_PRESTAMO || ""
             });
         });
     }
@@ -305,10 +311,10 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
             const fecha = formatearFecha(pago.Fecha_Pago);
             agregarRegistro(pago.NombreCompleto, fecha, "pago", {
                 ...pago,
-                No_Cheque: "N/A",
+                No_Cheque: "",
                 Monto: pago.Monto_Pago,
                 Motivo: "Pago de préstamo",
-                CTA_CONTABLE_PRESTAMO: pago.CTA_CONTABLE_PRESTAMO || "N/A"  // Añadido
+                CTA_CONTABLE_PRESTAMO: pago.CTA_CONTABLE_PRESTAMO || ""  // Añadido
             });
         });
     }
@@ -319,9 +325,9 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
             const fecha = formatearFecha(transaccion.Fecha);
             agregarRegistro(transaccion.NombreCompleto, fecha, "ahorro", {
                 ...transaccion,
-                No_Cheque: "N/A",
+                No_Cheque: "",
                 Motivo: transaccion.TipoTransaccion,
-                CTA_CONTABLE_AHORRO: transaccion.CTA_CONTABLE_AHORRO || "N/A"  // Añadido
+                CTA_CONTABLE_AHORRO: transaccion.CTA_CONTABLE_AHORRO || ""  // Añadido
             });
         });
     }
@@ -332,9 +338,9 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
             const fecha = formatearFecha(prestamo.Fecha);
             agregarRegistro(prestamo.NombreCompleto, fecha, "prestamoIniciado", {
                 ...prestamo,
-                No_Cheque: "N/A",
+                Referencia: prestamo.Numero_Cheque,
                 Motivo: "Préstamo iniciado",
-                CTA_CONTABLE_PRESTAMO: prestamo.CTA_CONTABLE_PRESTAMO || "N/A"  // Añadido
+                CTA_CONTABLE_PRESTAMO: prestamo.CTA_CONTABLE_PRESTAMO || ""  // Añadido
             });
         });
     }
@@ -342,12 +348,12 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
     // Procesar gastos de conciliación como registros unitarios
     resultConciliationGastos.forEach(gasto => {
         const fecha = formatearFecha(gasto.Fecha);
-        agregarRegistro("N/A", fecha, "gastoConciliado", {
+        agregarRegistro("", fecha, "gastoConciliado", {
             ...gasto,
             Motivo: gasto.Tipo,
-            No_Cheque: gasto.No_Cheque || "N/A",
-            CTA_CONTABLE_AHORRO: gasto.CTA_CONTABLE_AHORRO || "N/A",      // Añadido
-            CTA_CONTABLE_PRESTAMO: gasto.CTA_CONTABLE_PRESTAMO || "N/A"   // Añadido
+            No_Cheque: gasto.No_Cheque || "",
+            CTA_CONTABLE_AHORRO: gasto.CTA_CONTABLE_AHORRO || "",      // Añadido
+            CTA_CONTABLE_PRESTAMO: gasto.CTA_CONTABLE_PRESTAMO || ""   // Añadido
         });
     });
 
@@ -368,11 +374,12 @@ function orderDataConciliation(data, resultConciliationGastos = []) {
     // Mapear los registros finales incluyendo las cuentas contables
     return registrosOrdenados.map(registro => ({
         Fecha: registro.Fecha,
-        Nombre: registro.EsGastoConciliado ? "N/A" : registro.NombreCompleto,
+        Nombre: registro.EsGastoConciliado ? "" : registro.NombreCompleto,
         Descripcion: registro.Descripcion,
         TotalMonto: registro.TotalMonto,
         Numero_Prestamo: registro.Numero_Prestamo,
-        No_Cheque: registro.No_Cheque.filter(n => n !== "N/A").join(", ") || "N/A",
+        No_Cheque: registro.No_Cheque.filter(n => n !== "").join(", ") || "",
+        Referencia: registro.Referencia,
         NumeroTransacciones: registro.NumeroTransacciones,
         CuentaPrestamo: registro.CuentaPrestamo,  // Ya está asignado en agregarRegistro
         CuentaAhorro: registro.CuentaAhorro,      // Ya está asignado en agregarRegistro

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <title>Prestamos</title>
 </head>
 <body>
@@ -20,15 +22,29 @@
             <div class="accordion" id="accordion-body-refinanciado">
             </div>
         </div>
-        <div id="prestamos-eliminados-section" class="eliminados-section hidden">
-            <h2 id="accordion-body-title-eliminados" >Visualización de Préstamos Eliminados</h2>
-            <div class="accordion" id="accordion-body-eliminados">
-            </div>
-        </div>
         <h2>Formulario Prestamo y Pagos</h2>
         <div class="active-loan-section" id="detailLoanSection">
-            <h3>Préstamo Activo</h3>
+            <h3>
+                Préstamo Activo
+                <i id="showEditLoanBtn" class="fa fa-pencil-alt" style="margin-left:8px; cursor:pointer;"></i>
+            </h3>
+              
             <div class="loan-info">
+                <div id="editLoanSection">
+                    <div class="section">
+                        <div class="form-group">
+                            <label for="numero-prestamo-input-edit" >Numero de Prestamo:</label>
+                            <input type="text" id="numero-prestamo-input-edit" name="numero-prestamo-input-edit"  required >
+                        </div>
+                        <div class="form-group">
+                            <label for="numero-cheque-input-edit" >Numero de Cheque:</label>
+                            <input type="text" id="numero-cheque-input-edit" name="numero-cheque-input-edit"  required >
+                        </div>
+                    </div>
+                    <div class="section" style="padding: 0px 350px 0px 350px;">
+                        <button class="edit-button" id="editButton">Editar</button>
+                    </div>
+                </div>
                 <div class="section">
                     <div class="info-item">
                         <span class="label">Número de Prestamo:</span>

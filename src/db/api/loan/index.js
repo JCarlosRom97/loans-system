@@ -17,6 +17,34 @@ const loanAPI = (ipcMain) => {
         }
     });
 
+    ipcMain.handle('db:updateLoan', async (_, data) => {
+        try {
+            console.log(data);
+            const prestamoActual = await Prestamo.findByPk(data.id);
+
+            if (!prestamoActual) {
+                throw new Error('Préstamo no encontrado');
+            }
+
+            const Numero_Prestamo = data.Numero_Prestamo;
+            const Numero_Cheque = data.Numero_Cheque;
+
+            // Actualizar el préstamo actual
+            await prestamoActual.update({
+                Numero_Prestamo,
+                Numero_Cheque,
+            });
+
+            return {
+                message: 'Préstamo actualizado exitosamente.',
+                loan: prestamoActual.dataValues,
+            };
+        } catch (error) {
+            console.error('Error actualizado el préstamo:', error);
+            throw new Error(error.message || 'Error actualizado el préstamo.');
+        }
+    });
+
     ipcMain.handle('db:refinanceLoan', async (_, data) => {
         try {
             console.log(data);
@@ -59,24 +87,21 @@ const loanAPI = (ipcMain) => {
     ipcMain.handle('db:deleteLoan', async (_, data) => {
         try {
             const prestamoActual = await Prestamo.findByPk(data.idPrestamo);
-
+    
             if (!prestamoActual) {
                 throw new Error('Préstamo no encontrado');
             }
-
-            // Actualizar el préstamo actual
-            await prestamoActual.update({
-                EstadoPrestamo: data.status,
-                FechaEliminacion: new Date(),
-            });
-
+    
+            // Eliminación física del registro en la BD
+            await prestamoActual.destroy();
+    
             return {
                 message: 'Préstamo Eliminado Exitosamente.',
-                loan: prestamoActual.dataValues,
+                loanId: data.idPrestamo,
             };
         } catch (error) {
-            console.error('Error Eliminando el préstamo:', error);
-            throw new Error(error.message || 'Error Eliminando el préstamo.');
+            console.error('Error eliminando el préstamo:', error);
+            throw new Error(error.message || 'Error eliminando el préstamo.');
         }
     });
 

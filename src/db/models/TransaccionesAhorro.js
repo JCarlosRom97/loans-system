@@ -32,7 +32,7 @@ const TransaccionesAhorro = sequelize.define('TransaccionesAhorro', {
     allowNull: false,
   },
   MedioPago: {
-    type: DataTypes.ENUM('Cheque'),
+    type: DataTypes.ENUM('Cheque','Transferencia','Efectivo'),
     allowNull: false,
   },
 }, {

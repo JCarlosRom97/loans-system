@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     getLoan();
     getLoanRefinance();
-    getLoanDeleted();
     getLoanPagados();
 
     const fecha = document.getElementById('fecha');
@@ -223,6 +222,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
     })
+    // Show or hide edit Loan 
+    const showEditLoanBtn = document.getElementById('showEditLoanBtn');
+
+    showEditLoanBtn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        
+        const editSection = document.getElementById('editLoanSection');
+
+        const isHidden =
+        editSection.style.display === "none" ||
+        editSection.style.display === "";
+
+        console.log(document.getElementById('editLoanSection').style.display);
+        
+        console.log(isHidden);
+        
+        if(isHidden){
+            document.getElementById('editLoanSection').style.display = 'block';
+            return;
+        }
+        document.getElementById('editLoanSection').style.display = 'none';
+    });
+
+    const editButton = document.getElementById('editButton');
+
+    editButton.addEventListener("click", async(e)=>{
+        e.preventDefault();
+        console.log('Edit');
+        const numeroPrestamoEdit = document.getElementById('numero-prestamo-input-edit').value;
+        const numeroChequeEdit = document.getElementById('numero-cheque-input-edit').value;
+
+        console.log(numeroPrestamoEdit, numeroChequeEdit);
+        const loanUpdated = await window.db.updateLoan(
+        {
+            id: document.getElementById('idPrestamo').value, 
+            Numero_Prestamo: numeroPrestamoEdit, 
+            Numero_Cheque: numeroChequeEdit
+        });
+
+        if(loanUpdated.message == 'Préstamo actualizado exitosamente.'){
+            window.electron.showNotification('Prestamo Actualizado',
+                `El prestamo ha sido actualizado correctamente!`);
+
+            document.getElementById('editLoanSection').style.display = 'none';
+            document.getElementById('numero-prestamo-input-edit').value = "";
+            document.getElementById('numero-cheque-input-edit').value = "";
+            getLoan();
+        }else{
+            window.electron.showNotification('Error',
+                `Error al actualizar prestamo, intenta de nuevo.!`);
+        }
+    });
     /* FORM REFINANCIAR */
     buttonRefinanciar.addEventListener('click', async () => {
 
@@ -230,7 +281,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (document.getElementById('formLoan').classList.contains('hidden')) {
 
             const newLoan = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
-            // FORM 
+            //o FORM 
             document.getElementById('formLoan').classList.remove('hidden')
             document.getElementById('formLoan').classList.add('visible')
             // Titles
@@ -278,7 +329,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     `El prestamo ha sido eliminado correctamente!`);
 
                 getLoan();
-                getLoanDeleted();
             }
 
         } catch (error) {
@@ -333,7 +383,8 @@ const processFormInformation = async () => {
 const getLoan = async () => {
 
     const newLoan = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
-
+    console.log('newLoan', newLoan);
+    
     if (newLoan.length > 0) {
         // Detail Loan
         document.getElementById('detailLoanSection').classList.add('visible')
@@ -630,143 +681,6 @@ const getLoanRefinance = async () => {
         });
     } else {
         const accordionBody = document.getElementById('accordion-body-refinanciado');
-        accordionBody.innerHTML = '';
-    }
-
-}
-
-const getLoanDeleted = async () => {
-    const loansDeleted = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Eliminado' });
-    if (loansDeleted.length > 0) {
-
-        document.getElementById('prestamos-eliminados-section').classList.remove('hidden');
-        document.getElementById('prestamos-eliminados-section').classList.add('visible');
-
-        // Generar el HTML para la tabla
-        let tableHTML = ``;
-
-
-        // Recorrer los usuarios y agregar filas
-        loansDeleted.forEach((loan, index) => {
-            tableHTML += `
-            <div class="accordion-item">
-                <button class="accordion-header-eliminado" aria-expanded="false">Préstamo Eliminado ${index + 1}</button>
-                <div class="accordion-body">
-                  <div class="section">
-                        <div class="info-item">
-                            <p><strong>Fecha de Eliminación:</strong> ${window.api.formatDateToDisplay(loan.FechaEliminacion)}</p>
-                        </div>
-                    </div>
-                    <div class="section">
-                        <div class="info-item">
-                            <p><strong>Fecha de Inicio:</strong> ${window.api.formatDateToDisplay(loan.Fecha_Inicio)}</p>
-                        </div>
-                        <div class="info-item">
-                            <p><strong>Monto Original:</strong> ${parseTOMXN(loan.Monto)}</p>
-                        </div>
-                        <div class="info-item">
-                            <p><strong>Interés Préstamo:</strong> ${parseTOMXN(loan.TotalPrestamo_Intereses)}</p>
-                        </div>
-                    </div>
-                    <div class="section">
-                        <div class="info-item">
-                            <p><strong>Total Préstamo:</strong> ${parseTOMXN(loan.TotalPrestamo)}</p>
-                        </div>
-                        <div class="info-item">
-                            <p><strong>Saldo Anterior:</strong> ${parseTOMXN(loan.Saldo)}</p>
-                        </div>
-                        <div class="info-item">
-                            <p><strong>Total Pagado Interés:</strong> ${parseTOMXN(loan.Total_Pagado_Intereses)}</p>
-                        </div>
-                    </div>
-                    <div class="section">
-                        <div class="info-item">
-                            <p><strong>Total Pagado Capital:</strong> ${parseTOMXN(loan.Total_Pagado_Capital)}</p>
-                        </div>
-                        <div class="info-item">
-                            <p><strong>Periodo:</strong> ${loan.Periodo}</p>
-                        </div>
-                        <div class="info-item">
-                            <p><strong>Interés:</strong> ${loan.Interes}</p>
-                        </div>
-                    </div>
-                    <div class="section">
-                        <div class="info-item">
-                            <p><strong>Pagos Completados:</strong> ${loan.Pagos_Completados}</p>
-                        </div>
-                        <div class="info-item">
-                            <p><strong>Estado:</strong> ${loan.EstadoPrestamo}</p>
-                        </div>
-                        <div class="info-item">
-                            <p><strong>Capital:</strong> ${parseTOMXN(loan.Total_Capital)}</p>
-                        </div>
-                    </div>
-                    <div class="section">
-                       <div class="info-item">
-                            <p><strong>Número de Prestamo:</strong> ${loan.Numero_Prestamo}</p>
-                        </div>
-                        <div class="info-item">
-                            <p><strong>Número de Cheque:</strong> ${loan.Numero_Cheque}</p>
-                        </div>
-                        <div class="info-item">
-                            <p><strong>Fecha de Termino:</strong> ${window.api.formatDateToDisplay(loan.Fecha_Termino)}</p>
-                        </div>
-               
-                    </div>
-                    <div class="table-container" >
-                        <table class="user-table">
-                        <thead>
-                            <tr>
-                                <th>No.</th>
-                                <th>Periodo Catorcenal</th>
-                                <th>Fecha</th>
-                                <th>Monto</th>
-                                <th>Monto a Capital</th>
-                                <th>Monto a Intereses</th>
-                                <th>Método de Pago</th>
-                                <th>Saldo Actual</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pays-table-body-refinance${loan.ID}">
-                            <!-- Aquí se insertarán los usuarios dinámicamente -->
-                        </tbody>
-                        </table>
-                        <div id="info"></div>
-                    </div>
-                </div>
-            </div>
-            `;
-
-        });
-
-
-        const accordionBody = document.getElementById('accordion-body-eliminados');
-        // Insertar la tabla en el div con ID "info"
-        accordionBody.innerHTML = tableHTML;
-
-
-
-
-        // Acordeón
-        document.querySelectorAll('.accordion-header-eliminado').forEach(button => {
-            button.addEventListener('click', () => {
-                const expanded = button.getAttribute('aria-expanded') === 'true';
-                button.setAttribute('aria-expanded', !expanded);
-
-                const body = button.nextElementSibling;
-                if (!expanded) {
-                    body.style.maxHeight = body.scrollHeight + 'px';
-                } else {
-                    body.style.maxHeight = 0;
-                }
-            });
-        });
-
-        loansDeleted.forEach((loan, index) => {
-            generateTablePays(loan.ID, `pays-table-body-deleted${loan.ID}`, true);
-        });
-    } else {
-        const accordionBody = document.getElementById('accordion-body-eliminados');
         accordionBody.innerHTML = '';
     }
 

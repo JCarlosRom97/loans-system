@@ -201,7 +201,7 @@ body {
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 16px;
-    width: 300px;
+
   }
 
   /* Table Styling */
@@ -260,11 +260,15 @@ body {
     margin-right: auto;
   }
 
-  .refinanciar-button, .button-nuevo-prestamo, .registrar-pago-button{
+  .refinanciar-button, .button-nuevo-prestamo, .registrar-pago-button, .edit-button{
     background-color: rgb(0, 145, 0);
     margin-left: 0px;
     font-size: 14px;
     padding: 10px;
+  }
+
+  #editLoanSection{
+    display: none;
   }
 
   .refinanciar-button:hover{
@@ -284,5 +288,9 @@ body {
 
   button:hover {
     background-color: #0056b3;
+  }
+
+  .fa-pencil-alt:hover{
+    color: #0056b3;
   }
 
