@@ -7,50 +7,16 @@ const AhorroSaldos = require('../../models/AhorroSaldos');
 const savingsAPI = (ipcMain) => {
     console.log(sequelize)
     //Savings
-    ipcMain.handle('db:addSaving', async (_, { idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito }) => {
-        console.log({ idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito });
+    ipcMain.handle('db:addSaving', async (_, { idAhorro, idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito }) => {
+        console.log({ idAhorro, idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito });
 
         const t = await sequelize.transaction(); // Iniciar la transacción
 
         try {
+
+            let ahorro = await Ahorro.findByPk(idAhorro);
             monto = parseFloat(monto);
-            if (isNaN(monto)) {
-                throw new Error("El monto debe ser un número válido.");
-            }
-
-            let ahorro = await Ahorro.findOne({ where: { id_Usuario_fk: idUsuario }, transaction: t });
-
-            if (!ahorro) {
-                if (tipo === "Desahogo") {
-                    throw new Error("No existe una cuenta de ahorro para retirar dinero.");
-                }
-
-                // Crear una nueva cuenta de ahorro
-                ahorro = await Ahorro.create({
-                    Monto: 0,
-                    FechaUltimaActualizacion: Fecha,
-                    id_Usuario_fk: idUsuario
-                }, { transaction: t });
-            } else {
-                // ✅ Usar `await` y la clave correcta `transaction`
-                await ahorro.update({
-                    FechaUltimaActualizacion: Fecha
-                }, { transaction: t });
-            }
-
-            if (tipo === "Ahorro") {
-                ahorro.Monto += monto;
-            } else if (tipo === "Desahogo") {
-                if (ahorro.Monto < monto) {
-                    throw new Error("Fondos insuficientes para retirar.");
-                }
-                ahorro.Monto -= monto;
-            } else {
-                throw new Error("Tipo de transacción inválido.");
-            }
-
-            await ahorro.save({ transaction: t });
-
+          
             // Registrar la transacción
             const transaccionAhorro = await TransaccionesAhorro.create({
                 Monto: monto,
@@ -75,15 +41,20 @@ const savingsAPI = (ipcMain) => {
 
     ipcMain.handle('db:getAllSavingsTransactions', async (_, idAhorro) => {
         try {
-            console.log(idAhorro);
-
+            const t = await sequelize.transaction(); // Iniciar la transacción
             if (idAhorro) {
                 const transacciones = await TransaccionesAhorro.findAll({
                     where: { id_Ahorro_fk: idAhorro }, // Filtra por el id_ahorro_fk
                     order: [['Fecha', 'DESC']] // Ordena las transacciones de más reciente a más antigua
-                });
+                },{ transaction: t });
 
-                return transacciones.map(t => t.toJSON()); // Retorna un array de objetos JSON
+                const ahorro = await Ahorro.findOne({
+                    where: { ID: idAhorro }, // Filtra por el id_ahorro_fk
+                },{ transaction: t });
+
+                await t.commit(); // Confirmar la transacción
+
+                return {transacciones: transacciones.map(t => t.toJSON()), MontoComprometido: ahorro.MontoComprometido}; // Retorna un array de objetos JSON
             } else {
                 return []
             }
