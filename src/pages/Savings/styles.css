@@ -54,6 +54,14 @@ input[type="number"], input[type="text"], select {
   font-size: 14px;
 }
 
+.montoComprometidoButton{
+  background-color: #2e8b57;
+  margin-top: 12px;
+  padding: 0px;
+  width: 80px;
+  height: 30px;
+}
+
 .delete-btn {
   background-color: #b81515ce;
   color: white;

@@ -13,11 +13,11 @@ const Ahorro = sequelize.define('Ahorro', {
   },
   FechaUltimaActualizacion: {
     type: DataTypes.DATE,
-    allowNull: false,
+    allowNull: true,
   },
   MontoComprometido: {
     type: DataTypes.DECIMAL(10, 2),
-    allowNull: false,
+    allowNull: true,
   },
   
 }, {
