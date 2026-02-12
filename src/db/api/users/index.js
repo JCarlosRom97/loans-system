@@ -1,7 +1,8 @@
 const { Sequelize } = require('sequelize');
 const Domicilio = require('../../models/Domicilio');
 const Usuario = require('../../models/Usuario');
-
+const Ahorro = require('../../models/Ahorro');
+const sequelize = require('../../index');
 const usersAPI = (ipcMain) => {
   //USERS
   ipcMain.handle('db:getUser', async (event, userId) => {
@@ -83,7 +84,20 @@ const usersAPI = (ipcMain) => {
 
   ipcMain.handle('db:addUser', async (_, data) => {
     try {
+      const t = await sequelize.transaction(); // Iniciar la transacción
       const newUser = await Usuario.create(data);
+      let ahorro = await Ahorro.findOne({ where: { id_Usuario_fk: newUser.ID }, transaction: t });
+      if(!ahorro){
+        // Crear una nueva cuenta de ahorro
+        ahorro = await Ahorro.create({
+          Monto: 0,
+          FechaUltimaActualizacion: null,
+          id_Usuario_fk: newUser.ID
+        }, { transaction: t });
+  
+        await t.commit(); // Confirmar la transacción
+      }
+
       return newUser.toJSON();
     } catch (error) {
       console.error('Error adding user:', error);

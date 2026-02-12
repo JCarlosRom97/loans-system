@@ -205,6 +205,8 @@ async function getRegisterOfMonth(){
                 document.getElementById('StatusRegistro').classList.add('less-red');
                 document.getElementById('StatusRegistro').classList.remove('more-green');
                 await generateConciliation();
+            }else{
+                await generateConciliation();
             }
       
         }

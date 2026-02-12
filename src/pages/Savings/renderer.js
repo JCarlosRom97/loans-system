@@ -27,8 +27,9 @@ document.addEventListener('DOMContentLoaded', async() => {
         const numeroCheque = typeTransaction =="Desahogo" ?
          document.getElementById('numero-cheque').value:
          "";
-
+        const {ID}  = await getSavingInfo();
         const saveObject = {
+            idAhorro: ID, 
             idUsuario: idUser,
             Numero_Cheque: numeroCheque,
             monto: amount,
@@ -148,11 +149,11 @@ async function fetchAndDisplaySavings(idAhorro) {
     try {
         const savings = await window.db.getSavings(idAhorro);
         // Verificar si hay usuarios
-        if (savings.length > 0) {
+        if (savings.transacciones.length > 0) {
             // Generar el HTML para la tabla
             let tableHTML = ``;
             // Recorrer los usuarios y agregar filas
-            savings.forEach(saving => {
+            savings.transacciones.forEach(saving => {
                 const dateDeposito = window.api.formatDateToDisplay(saving.Fecha, 0);
             tableHTML += `
                 <tr>
@@ -201,7 +202,7 @@ async function getSavingInfo () {
 }
 
 async function deleteTransaction (idUser) {
-    const deletedSaving = await window.db.removeSavingTransaction(idUser);
+    await window.db.removeSavingTransaction(idUser);
     const {ID}  = await getSavingInfo();
     fetchAndDisplaySavings(ID)
     await setFechaCatorcena()
