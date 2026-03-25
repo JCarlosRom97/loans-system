@@ -23,19 +23,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     fecha.addEventListener('keyup', async (e) => {
         const current = fecha.value;
-        
+
         // If what the user typed breaks the dd/mm/aaaa structure → revert
         if (!window.api.formatInputDate(current)) {
-          fecha.value = lastValidDate;
-          return;
+            fecha.value = lastValidDate;
+            return;
         }
-      
+
         // If full date is written, validate logical date
         if (current.length === 10 && !window.api.formatInputDate(current)) {
-          fecha.value = lastValidDate;
-          return;
+            fecha.value = lastValidDate;
+            return;
         }
-      
+
         // Save valid value
         lastValidDate = current;
 
@@ -45,23 +45,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     })
 
     const fechaPago = document.getElementById('fecha-deposito');
-    let lastValidDatePays ='';
-    
-    fechaPago.addEventListener('keyup', (e) =>{
+    let lastValidDatePays = '';
+
+    fechaPago.addEventListener('keyup', (e) => {
         const current = fechaPago.value;
 
         // If what the user typed breaks the dd/mm/aaaa structure → revert
         if (!window.api.formatInputDate(current)) {
             fechaPago.value = lastValidDatePays;
-          return;
+            return;
         }
-      
+
         // If full date is written, validate logical date
         if (current.length === 10 && !window.api.formatInputDate(current)) {
             fechaPago.value = lastValidDatePays;
-          return;
+            return;
         }
-      
+
         // Save valid value
         lastValidDatePays = current;
         e.preventDefault();
@@ -79,6 +79,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         const [fechaValue, totalPrestamoValue] = await processFormInformation();
         regexDate(fechaValue, totalPrestamoValue)
     })
+
+    anios.addEventListener("change", () => {
+        let value = parseFloat(anios.value);
+
+        if (isNaN(value)) return;
+
+        // Redondear al múltiplo de 0.5 más cercano
+        const rounded = Math.round(value * 2) / 2;
+
+        anios.value = rounded;
+    });
 
 
     interes.addEventListener('keyup', async () => {
@@ -183,7 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Calcular el monto intereses ajustado por el porcentaje del pago
         const montoIntereses = Math.floor((TotalPrestamo_Intereses / No_Catorcenas) * porcentajePago);
-        
+
         const paymentData = {
             id_Prestamo_fk: document.getElementById('idPrestamo').value,
             Fecha_Catorcena: formatDateForModel(document.getElementById('fechaPagoCatorcena').value),
@@ -216,25 +227,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Show or hide edit Loan 
     const showEditLoanBtn = document.getElementById('showEditLoanBtn');
 
-    showEditLoanBtn.addEventListener('click', (e)=>{
+    showEditLoanBtn.addEventListener('click', (e) => {
         e.preventDefault();
         showHideElement('editLoanSection');
     });
 
     const editButton = document.getElementById('editButton');
 
-    editButton.addEventListener("click", async(e)=>{
+    editButton.addEventListener("click", async (e) => {
         e.preventDefault();
         const numeroPrestamoEdit = document.getElementById('numero-prestamo-input-edit').value;
         const numeroChequeEdit = document.getElementById('numero-cheque-input-edit').value;
         const loanUpdated = await window.db.updateLoan(
-        {
-            id: document.getElementById('idPrestamo').value, 
-            Numero_Prestamo: numeroPrestamoEdit, 
-            Numero_Cheque: numeroChequeEdit
-        });
+            {
+                id: document.getElementById('idPrestamo').value,
+                Numero_Prestamo: numeroPrestamoEdit,
+                Numero_Cheque: numeroChequeEdit
+            });
 
-        if(loanUpdated.message == 'Préstamo actualizado exitosamente.'){
+        if (loanUpdated.message == 'Préstamo actualizado exitosamente.') {
             window.electron.showNotification('Prestamo Actualizado',
                 `El prestamo ha sido actualizado correctamente!`);
 
@@ -242,7 +253,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('numero-prestamo-input-edit').value = "";
             document.getElementById('numero-cheque-input-edit').value = "";
             getLoan();
-        }else{
+        } else {
             window.electron.showNotification('Error',
                 `Error al actualizar prestamo, intenta de nuevo.!`);
         }
@@ -250,14 +261,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const actualizarPagosButton = document.getElementById('actualizarPagosButton');
 
-    actualizarPagosButton.addEventListener('click', (e)=>{
+    actualizarPagosButton.addEventListener('click', (e) => {
         e.preventDefault();
         showHideElement('editLoanPaysSection');
     })
 
     const numeroPagosActualizarButton = document.getElementById('numeroPagosActualizarButton');
 
-    numeroPagosActualizarButton.addEventListener('click', async(e)=>{
+    numeroPagosActualizarButton.addEventListener('click', async (e) => {
         e.preventDefault();
         const newLoan = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
         const { Fecha_Inicio, Monto, Pagos_Completados, No_Catorcenas, Abono, TotalPrestamo_Intereses } = newLoan[0];
@@ -277,37 +288,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         const formattedDateDisplay = window.api.formatDateToDisplay(Fecha_Inicio);
 
         for (let index = 0; index < numeroPagosActualizar; index++) {
-            const fechaPago = window.api.getDateAfterPays(formattedDateDisplay, Pagos_CompletadosLoop);    
+            const fechaPago = window.api.getDateAfterPays(formattedDateDisplay, Pagos_CompletadosLoop);
 
             const paymentData = {
                 id_Prestamo_fk: document.getElementById('idPrestamo').value,
                 Fecha_Catorcena: formatDateForModel(fechaPago),
                 Fecha_Pago: formatDateForModel(fechaPago),
                 Monto_Pago: Abono,
-                Periodo_Catorcenal: Pagos_CompletadosLoop+1,
+                Periodo_Catorcenal: Pagos_CompletadosLoop + 1,
                 Metodo_Pago: metodoPago,
                 Monto_Pago_Capital: parseInt(montoCapital),
                 Monto_Pago_Intereses: parseInt(montoIntereses) + 1
             };
 
             Pagos_CompletadosLoop++;
-            
+
             try {
-    
+
                 const newPayment = await window.db.addPayment(paymentData);
                 await window.db.updateLoanCapitalIntereses({
                     id: document.getElementById('idPrestamo').value,
                     Total_Pagado_Capital: paymentData.Monto_Pago_Capital,
                     Total_Pagado_Intereses: paymentData.Monto_Pago_Intereses
                 });
-    
+
             } catch (error) {
                 console.error(error)
             }
         }
         getLoan();
         formPago.reset()
-        document.getElementById('numero-pagos-actualizar-input-edit').value ="";
+        document.getElementById('numero-pagos-actualizar-input-edit').value = "";
 
     });
     /* FORM REFINANCIAR */
@@ -371,14 +382,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 })
 
-const showHideElement = (idELement)=>{
+const showHideElement = (idELement) => {
 
     const editSection = document.getElementById(idELement);
     const isHidden =
-    editSection.style.display === "none" ||
-    editSection.style.display === "";
-    
-    if(isHidden){
+        editSection.style.display === "none" ||
+        editSection.style.display === "";
+
+    if (isHidden) {
         document.getElementById(idELement).style.display = 'block';
         return;
     }
@@ -428,7 +439,7 @@ const processFormInformation = async () => {
 const getLoan = async () => {
 
     const newLoan = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Activo' });
-    
+
     if (newLoan.length > 0) {
         // Detail Loan
         document.getElementById('detailLoanSection').classList.add('visible')
@@ -597,7 +608,7 @@ const getLoanPagados = async () => {
 
 const getLoanRefinance = async () => {
     const loansRefinance = await window.db.getLoan({ userId: document.getElementById('idUser').value, status: 'Refinanciado' });
-    
+
     if (loansRefinance.length > 0) {
 
         document.getElementById('prestamos-refinanciados-section').classList.remove('hidden');
@@ -770,7 +781,7 @@ const fillLoanDataUI = (loan) => {
 function regexDate(fechaValue, totalPrestamoValue) {
     const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
     if (dateRegex.test(fechaValue)) {
-        const dates = generateSecondFridays(fechaValue, parseInt(document.getElementById('noAnios').value) * 26)
+        const dates = generateSecondFridays(fechaValue, document.getElementById('noAnios').value * 26)
         document.getElementById('tablePagos').classList.remove('hidden');
         document.getElementById('tablePagos').classList.add('visible');
 
@@ -861,7 +872,7 @@ const generateTablePays = async (idPrestamo, idTable, isShowOldLoans = false) =>
     if (pagos.length > 0) {
         // Generar el HTML para la tabla
         let tableHTML = ``;
-        
+
         pagos.forEach((pago, index) => {
             tableHTML += `
             <tr>
@@ -904,7 +915,7 @@ const deletePay = async (idPay) => {
 
     const confirmDelete = confirm('¿Estás seguro que deseas eliminar este prestamo? Esta acción no se puede deshacer.');
 
-    if(!confirmDelete) return;
+    if (!confirmDelete) return;
     const response = await window.db.removePayment(idPay);
 
     if (response) {
