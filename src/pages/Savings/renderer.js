@@ -1,35 +1,23 @@
 var idUser = null;
-document.addEventListener('DOMContentLoaded', async() => {
-    
-    const params = new URLSearchParams(window.location.search);
-    idUser = params.get('idUsuario');
-    console.log("idUsuario:",idUser);
+document.addEventListener('DOMContentLoaded', async () => {
 
-
-    const user = await window.db.getUser(idUser);
-
-    document.getElementById('Nombre').innerText = `${user.Nombre} ${user.Apellido_Paterno} ${user.Apellido_Materno} `;
-    document.getElementById('cuenta_contable_ahorro').innerText = `${user.CTA_CONTABLE_AHORRO} `;
-
-    const ID = await setFechaCatorcena();
-
-    fetchAndDisplaySavings(ID);
+    const idUser = initScreen();
 
     const formSavings = document.getElementById("formSavings");
 
-    formSavings.addEventListener("submit",async(event)=>{
+    formSavings.addEventListener("submit", async (event) => {
         event.preventDefault();
-        const typeTransaction = document.getElementById('selectTypeTransaction').value; 
+        const typeTransaction = document.getElementById('selectTypeTransaction').value;
         const amount = document.getElementById("amount").value;
         const medioPago = document.getElementById("selectTypePay").value;
         const fecha = document.getElementById('fecha').value;
         const fechaDeposito = document.getElementById('fecha-deposito').value;
-        const numeroCheque = typeTransaction =="Desahogo" ?
-         document.getElementById('numero-cheque').value:
-         "";
-        const {ID}  = await getSavingInfo();
+        const numeroCheque = typeTransaction == "Desahogo" ?
+            document.getElementById('numero-cheque').value :
+            "";
+        const { ID } = await getSavingInfo();
         const saveObject = {
-            idAhorro: ID, 
+            idAhorro: ID,
             idUsuario: idUser,
             Numero_Cheque: numeroCheque,
             monto: amount,
@@ -39,22 +27,22 @@ document.addEventListener('DOMContentLoaded', async() => {
             Fecha_Deposito: window.api.formatDateForModel(fechaDeposito)
         }
 
-          // Add the user to the database via the main process
+        // Add the user to the database via the main process
         try {
             const newSaving = await window.db.addSavings(saveObject);
-            
-            if(newSaving){
+
+            if (newSaving) {
                 // Show Notification
-                if(newSaving.TipoTransaccion === 'Deposito'){
-                    window.electron.showNotification('Ahorro Agregado', 
-                    `El ahorro ha sido exitosamente añadido a su cuenta!`);
-                }else{
-                    window.electron.showNotification('Retiro Exitoso', 
-                    `El ahorro ha sido exitosamente retirado de su cuenta!`);
+                if (newSaving.TipoTransaccion === 'Deposito') {
+                    window.electron.showNotification('Ahorro Agregado',
+                        `El ahorro ha sido exitosamente añadido a su cuenta!`);
+                } else {
+                    window.electron.showNotification('Retiro Exitoso',
+                        `El ahorro ha sido exitosamente retirado de su cuenta!`);
                 }
 
                 formSavings.reset();
-                const {ID}  = await getSavingInfo();
+                const { ID } = await getSavingInfo();
                 fetchAndDisplaySavings(ID);
 
                 await setFechaCatorcena()
@@ -63,18 +51,18 @@ document.addEventListener('DOMContentLoaded', async() => {
                 inputCheque.hidden = true;
                 inputCheque.removeAttribute("required"); // Eliminar 'required' al ocultar
             }
-           
+
 
         } catch (error) {
-       
+
             if (error.message === "Fondos insuficientes para retirar.") {
-                window.electron.showNotification("Fondos Insuficientes", 
-                `Fondos insuficientes para retirar.`);
+                window.electron.showNotification("Fondos Insuficientes",
+                    `Fondos insuficientes para retirar.`);
             } else {
-                window.electron.showNotification("Error", 
-                `Ha ocurrido un error. Intenta nuevamente.`);
+                window.electron.showNotification("Error",
+                    `Ha ocurrido un error. Intenta nuevamente.`);
             }
-            
+
         } finally {
             isSubmitting = false; // Reset flag after the operation completes
         }
@@ -82,7 +70,7 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     const selectTransaction = document.getElementById('selectTypeTransaction');
 
-    selectTransaction.addEventListener("change", () =>{
+    selectTransaction.addEventListener("change", () => {
         const selectTransactionValue = document.getElementById('selectTypeTransaction').value;
         if (selectTransactionValue == "Ahorro") {
             let inputCheque = document.getElementById("numero-cheque");
@@ -96,50 +84,75 @@ document.addEventListener('DOMContentLoaded', async() => {
     })
 
     const fecha = document.getElementById('fecha');
-    let lastValidDate ='';
-    
-    fecha.addEventListener('keyup', (e) =>{
+    let lastValidDate = '';
+
+    fecha.addEventListener('keyup', (e) => {
         const current = fecha.value;
-        
+
         // If what the user typed breaks the dd/mm/aaaa structure → revert
         if (!window.api.formatInputDate(current)) {
             fecha.value = lastValidDate;
-          return;
+            return;
         }
-      
+
         // If full date is written, validate logical date
         if (current.length === 10 && !window.api.formatInputDate(current)) {
             fecha.value = lastValidDate;
-          return;
+            return;
         }
-      
+
         // Save valid value
         lastValidDate = current;
         e.preventDefault();
     });
 
     const fechaDeposito = document.getElementById('fecha-deposito');
-    let lastValidDateDeposito ='';
-    
-    fechaDeposito.addEventListener('keyup', (e) =>{
+    let lastValidDateDeposito = '';
+
+    fechaDeposito.addEventListener('keyup', (e) => {
         const current = fechaDeposito.value;
-        
+
         // If what the user typed breaks the dd/mm/aaaa structure → revert
         if (!window.api.formatInputDate(current)) {
             fechaDeposito.value = lastValidDateDeposito;
-          return;
+            return;
         }
-      
+
         // If full date is written, validate logical date
         if (current.length === 10 && !window.api.formatInputDate(current)) {
             fechaDeposito.value = lastValidDateDeposito;
-          return;
+            return;
         }
-      
+
         // Save valid value
         lastValidDateDeposito = current;
         e.preventDefault();
     });
+
+    const montoComprometidoElement = document.getElementById('form-monto-comprometido');
+
+    montoComprometidoElement.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const montoComprometido = document.getElementById('montoComprometidoInput').value;
+        const { ID } = await getSavingInfo();
+
+        const saveObject = {
+            idAhorro: ID, montoComprometido
+        }
+
+        try {
+            const newMontoComprometido = await window.db.saveMontoComprometido(saveObject);
+            if (newMontoComprometido) {
+                window.electron.showNotification('Monto Comprometido Agregado',
+                    `El Monto Comprometido ha sido exitosamente registrado a su ahorro!`);
+                    initScreen();
+                    document.getElementById('montoComprometidoInput').value = '';
+            }
+        } catch (error) {
+            window.electron.showNotification("Error al registrar monto comprometido",
+                `Por favor intente de nuevo.`);
+        }
+    })
 
 
 });
@@ -148,6 +161,18 @@ document.addEventListener('DOMContentLoaded', async() => {
 async function fetchAndDisplaySavings(idAhorro) {
     try {
         const savings = await window.db.getSavings(idAhorro);
+        console.log('savings', savings);
+        
+
+        if (savings.MontoComprometido) {
+            const container = document.getElementById('MontoComprometidoContainer');
+            container.classList.remove('hidden');
+            container.classList.add('show');
+
+            document.getElementById('montoComprometido').innerText = Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(savings.MontoComprometido);
+            
+        }
+
         // Verificar si hay usuarios
         if (savings.transacciones && savings.transacciones.length > 0) {
             // Generar el HTML para la tabla
@@ -155,14 +180,14 @@ async function fetchAndDisplaySavings(idAhorro) {
             // Recorrer los usuarios y agregar filas
             savings.transacciones.forEach(saving => {
                 const dateDeposito = window.api.formatDateToDisplay(saving.Fecha, 0);
-            tableHTML += `
+                tableHTML += `
                 <tr>
                     <td>${dateDeposito}</td>
                     <td>${window.api.formatDateToDisplay(saving.Fecha_Deposito, 0)}</td>
                     <td>${saving.Numero_Cheque || ''}</td>
-                    <td>${saving.TipoTransaccion} ${saving.TipoTransaccion === 'Corte' ? dateDeposito.split('/')[2] -1 : ''}</td>
+                    <td>${saving.TipoTransaccion} ${saving.TipoTransaccion === 'Corte' ? dateDeposito.split('/')[2] - 1 : ''}</td>
                     <td>
-                        ${saving.TipoTransaccion === 'Ahorro' || saving.TipoTransaccion ==='Corte'
+                        ${saving.TipoTransaccion === 'Ahorro' || saving.TipoTransaccion === 'Corte'
                         ? `<span class="more-green">+</span> ${Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saving.Monto_Generado || saving.Monto)}`
                         : `<span class="less-red">- ${Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(saving.Monto)}</span> `}
                     </td>
@@ -173,51 +198,50 @@ async function fetchAndDisplaySavings(idAhorro) {
                 </tr>
             `;
             });
-    
+
             tableHTML += '</tbody></table>';
-    
+
             // Insertar la tabla en el div con ID "info"
             const infoDiv = document.getElementById('saving-table-body');
             infoDiv.innerHTML = tableHTML;
             document.getElementById('infoTable').innerText = '';
-   
+
         } else {
             const infoDiv = document.getElementById('saving-table-body');
             infoDiv.innerHTML = "";
             // Mostrar mensaje si no hay usuarios
             document.getElementById('infoTable').innerText = 'No se encontraron registros.';
         }
-        } catch (error) {
+    } catch (error) {
         // Manejar errores
         console.error('Error al obtener usuarios:', error);
         document.getElementById('infoTable').innerText = 'Error al cargar los registros.';
     }
 }
 
-
-async function getSavingInfo () {
+async function getSavingInfo() {
     const dataSaving = await window.db.getAmmountSaving(idUser);
-    document.getElementById('totalAmount').innerText = `${Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN'}).format(dataSaving?.Monto || 0)}`;
-    return {ID: dataSaving?.ID, FechaUltimaActualizacion: dataSaving?.FechaUltimaActualizacion};
+    document.getElementById('totalAmount').innerText = `${Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(dataSaving?.Monto || 0)}`;
+    return { ID: dataSaving?.ID, FechaUltimaActualizacion: dataSaving?.FechaUltimaActualizacion };
 }
 
-async function deleteTransaction (idUser) {
+async function deleteTransaction(idUser) {
     await window.db.removeSavingTransaction(idUser);
-    const {ID}  = await getSavingInfo();
+    const { ID } = await getSavingInfo();
     fetchAndDisplaySavings(ID)
     await setFechaCatorcena()
 }
 
-const setFechaCatorcena = async() =>{
+const setFechaCatorcena = async () => {
     const Saving = await getSavingInfo();
-    
-    const {ID, FechaUltimaActualizacion} = await getSavingInfo();
-    
-    if(FechaUltimaActualizacion){
+
+    const { ID, FechaUltimaActualizacion } = await getSavingInfo();
+
+    if (FechaUltimaActualizacion) {
         document.getElementById('fecha').value = window.api.getDateAfterPays(window.api.formatDateToDisplay(FechaUltimaActualizacion, 0), 1);
         document.getElementById("fecha").disabled = true;
-        
-    }else{
+
+    } else {
         document.getElementById('fecha').value = '';
         document.getElementById("fecha").disabled = false;
     }
@@ -225,4 +249,20 @@ const setFechaCatorcena = async() =>{
 
     return ID;
 
+}
+
+const initScreen = async () => {
+    const params = new URLSearchParams(window.location.search);
+    idUser = params.get('idUsuario');
+
+    const user = await window.db.getUser(idUser);
+
+    document.getElementById('Nombre').innerText = `${user.Nombre} ${user.Apellido_Paterno} ${user.Apellido_Materno} `;
+    document.getElementById('cuenta_contable_ahorro').innerText = `${user.CTA_CONTABLE_AHORRO} `;
+
+    const ID = await setFechaCatorcena();
+
+    fetchAndDisplaySavings(ID);
+
+    return idUser;
 }

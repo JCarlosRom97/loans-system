@@ -15,8 +15,11 @@
         </div>
         <div class="container-inputs">
             <form id="form-monto-comprometido">
-                <input type="number" name="montoComprometido" class="montoComprometido" id="montoComprometido" placeholder="Monto Comprometido" required>
+                <input type="number" name="montoComprometido" class="montoComprometido" id="montoComprometidoInput" placeholder="Monto Comprometido" required>
                 <button type="submit" class="montoComprometidoButton">Guardar</button>
+                <div id="MontoComprometidoContainer" class="hidden">
+                     <h3>Monto Comprometido: <span id="montoComprometido">0.00</span></h3>
+                </div>
             </form>
         </div>
         <form id="formSavings">

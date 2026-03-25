@@ -18,7 +18,7 @@ const savingsAPI = (ipcMain) => {
     }) => {
 
         const t = await sequelize.transaction();
-        console.log( idAhorro,
+        console.log(idAhorro,
             idUsuario,
             monto,
             Numero_Cheque,
@@ -26,7 +26,7 @@ const savingsAPI = (ipcMain) => {
             medioPago,
             Fecha,
             Fecha_Deposito);
-        
+
         try {
             // 1️⃣ Buscar el ahorro
             const ahorro = await Ahorro.findByPk(idAhorro, { transaction: t });
@@ -327,8 +327,6 @@ const savingsAPI = (ipcMain) => {
         }
     });
 
-
-
     ipcMain.handle('db:getAmmountSaving', async (_, idUsuario) => {
         try {
             console.log('idUsuario', idUsuario);
@@ -373,7 +371,6 @@ const savingsAPI = (ipcMain) => {
         }
     });
 
-
     ipcMain.handle('db:getAhorroSaldoById', async (_, idAhorro) => {
         try {
             // Buscar registros en el modelo AhorroSaldos por ID_Ahorro
@@ -387,7 +384,6 @@ const savingsAPI = (ipcMain) => {
             throw new Error('Error fetching AhorroSaldos');
         }
     });
-
 
     ipcMain.handle('db:getTotalSavingCorte', async (_, { userId, year }) => {
         try {
@@ -529,6 +525,31 @@ const savingsAPI = (ipcMain) => {
         }
     });
 
+    ipcMain.handle('db:addMontoComprometido', async (_, { idAhorro, montoComprometido }) => {
+        try {
+            const ahorro = await Ahorro.findByPk(idAhorro);
+
+            if (!ahorro) {
+                throw new Error('Ahorro no encontrado');
+            }
+
+            await ahorro.update({
+                MontoComprometido: montoComprometido,
+                FechaUltimaActualizacion: new Date(),
+            });
+
+            return {
+                success: true,
+                data: ahorro,
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message,
+            };
+        }
+    });
 
 }
 

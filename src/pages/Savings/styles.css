@@ -119,10 +119,16 @@ button {
   margin: 0;
 }
 
-#totalAmount {
+#totalAmount, #montoComprometido {
   color: #2e8b57;
 }
+.hidden{
+  display: none;
+}
 
+.show{
+  display: block;
+}
 /* Table Styling */
 .table-container {
   overflow-x: auto;

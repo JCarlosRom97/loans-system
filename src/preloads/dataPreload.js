@@ -199,6 +199,15 @@ contextBridge.exposeInMainWorld('db', {
       console.error('Error adding Loan:', error.message);
     }
   },
+  saveMontoComprometido: async (data) => {
+    try {
+      return await ipcRenderer.invoke('db:addMontoComprometido', data);
+    } catch (error) {
+      // Muestra el mensaje de error completo para depuración
+      console.error('Error adding Loan:', error.message);
+
+    }
+  },
   //Payments
   getPayments: async (data) => {
     try {
