@@ -54,14 +54,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
         } catch (error) {
-
-            if (error.message === "Fondos insuficientes para retirar.") {
-                window.electron.showNotification("Fondos Insuficientes",
-                    `Fondos insuficientes para retirar.`);
-            } else {
-                window.electron.showNotification("Error",
-                    `Ha ocurrido un error. Intenta nuevamente.`);
-            }
+            window.electron.showNotification("Error",
+                error.message);
 
         } finally {
             isSubmitting = false; // Reset flag after the operation completes
@@ -145,8 +139,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (newMontoComprometido) {
                 window.electron.showNotification('Monto Comprometido Agregado',
                     `El Monto Comprometido ha sido exitosamente registrado a su ahorro!`);
-                    initScreen();
-                    document.getElementById('montoComprometidoInput').value = '';
+                initScreen();
+                document.getElementById('montoComprometidoInput').value = '';
             }
         } catch (error) {
             window.electron.showNotification("Error al registrar monto comprometido",
@@ -162,7 +156,7 @@ async function fetchAndDisplaySavings(idAhorro) {
     try {
         const savings = await window.db.getSavings(idAhorro);
         console.log('savings', savings);
-        
+
 
         if (savings.MontoComprometido) {
             const container = document.getElementById('MontoComprometidoContainer');
@@ -170,7 +164,7 @@ async function fetchAndDisplaySavings(idAhorro) {
             container.classList.add('show');
 
             document.getElementById('montoComprometido').innerText = Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(savings.MontoComprometido);
-            
+
         }
 
         // Verificar si hay usuarios

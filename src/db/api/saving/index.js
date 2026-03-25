@@ -16,7 +16,7 @@ const savingsAPI = (ipcMain) => {
         Fecha,
         Fecha_Deposito
     }) => {
-
+        const MONTO_MINIMO = 10000;
         const t = await sequelize.transaction();
         console.log(idAhorro,
             idUsuario,
@@ -47,8 +47,8 @@ const savingsAPI = (ipcMain) => {
                 nuevoMonto = ahorro.Monto - monto;
 
                 // Evitar que quede negativo
-                if (nuevoMonto < 0) {
-                    throw new Error('El desahogo excede el monto disponible del ahorro');
+                if (nuevoMonto < MONTO_MINIMO) {
+                    throw new Error(`No puedes retirar ese monto. El saldo mínimo permitido es $10,000.00`);
                 }
             }
             else {
