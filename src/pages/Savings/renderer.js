@@ -149,7 +149,7 @@ async function fetchAndDisplaySavings(idAhorro) {
     try {
         const savings = await window.db.getSavings(idAhorro);
         // Verificar si hay usuarios
-        if (savings.transacciones.length > 0) {
+        if (savings.transacciones && savings.transacciones.length > 0) {
             // Generar el HTML para la tabla
             let tableHTML = ``;
             // Recorrer los usuarios y agregar filas

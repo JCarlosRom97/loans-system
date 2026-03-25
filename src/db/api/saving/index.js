@@ -5,36 +5,90 @@ const TransaccionesAhorro = require('../../models/TransaccionesAhorro');
 const Usuario = require('../../models/Usuario');
 const AhorroSaldos = require('../../models/AhorroSaldos');
 const savingsAPI = (ipcMain) => {
-    console.log(sequelize)
     //Savings
-    ipcMain.handle('db:addSaving', async (_, { idAhorro, idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito }) => {
-        console.log({ idAhorro, idUsuario, monto, Numero_Cheque, tipo, medioPago, Fecha, Fecha_Deposito });
+    ipcMain.handle('db:addSaving', async (_, {
+        idAhorro,
+        idUsuario,
+        monto,
+        Numero_Cheque,
+        tipo,
+        medioPago,
+        Fecha,
+        Fecha_Deposito
+    }) => {
 
-        const t = await sequelize.transaction(); // Iniciar la transacción
-
+        const t = await sequelize.transaction();
+        console.log( idAhorro,
+            idUsuario,
+            monto,
+            Numero_Cheque,
+            tipo,
+            medioPago,
+            Fecha,
+            Fecha_Deposito);
+        
         try {
+            // 1️⃣ Buscar el ahorro
+            const ahorro = await Ahorro.findByPk(idAhorro, { transaction: t });
 
-            let ahorro = await Ahorro.findByPk(idAhorro);
+            if (!ahorro) {
+                throw new Error('Ahorro no encontrado');
+            }
+
             monto = parseFloat(monto);
-          
-            // Registrar la transacción
+
+            // 2️⃣ Calcular nuevo monto
+            let nuevoMonto = ahorro.Monto;
+
+            if (tipo === 'Ahorro') {
+                nuevoMonto = ahorro.Monto + monto;
+            }
+            else if (tipo === 'Desahogo') {
+                nuevoMonto = ahorro.Monto - monto;
+
+                // Evitar que quede negativo
+                if (nuevoMonto < 0) {
+                    throw new Error('El desahogo excede el monto disponible del ahorro');
+                }
+            }
+            else {
+                throw new Error('Tipo de transacción inválido');
+            }
+
+            // 3️⃣ Registrar transacción
             const transaccionAhorro = await TransaccionesAhorro.create({
                 Monto: monto,
                 Numero_Cheque,
-                Fecha: Fecha,
+                Fecha,
                 Fecha_Deposito,
                 TipoTransaccion: tipo,
                 MedioPago: medioPago,
-                id_Ahorro_fk: ahorro.ID
+                id_Ahorro_fk: ahorro.ID,
+                id_Usuario_fk: idUsuario
             }, { transaction: t });
 
-            await t.commit(); // Confirmar la transacción
-            console.log(`Transacción ${tipo} de ${monto} realizada con éxito.`);
+            // 4️⃣ Actualizar el ahorro
+            await Ahorro.update({
+                Monto: nuevoMonto,
+                Fecha_Actualizacion: new Date()
+            }, {
+                where: { ID: idAhorro },
+                transaction: t
+            });
 
-            return transaccionAhorro.toJSON();
+            await t.commit();
+
+            console.log(`✔ ${tipo} aplicado. Ahorro pasó de ${ahorro.Monto} a ${nuevoMonto}`);
+
+            return {
+                transaccion: transaccionAhorro.toJSON(),
+                montoAnterior: ahorro.Monto,
+                montoActual: nuevoMonto
+            };
+
         } catch (error) {
             await t.rollback();
-            console.error("Error en la transacción:", error.message);
+            console.error("❌ Error en la transacción:", error.message);
             throw error;
         }
     });
@@ -46,15 +100,15 @@ const savingsAPI = (ipcMain) => {
                 const transacciones = await TransaccionesAhorro.findAll({
                     where: { id_Ahorro_fk: idAhorro }, // Filtra por el id_ahorro_fk
                     order: [['Fecha', 'DESC']] // Ordena las transacciones de más reciente a más antigua
-                },{ transaction: t });
+                }, { transaction: t });
 
                 const ahorro = await Ahorro.findOne({
                     where: { ID: idAhorro }, // Filtra por el id_ahorro_fk
-                },{ transaction: t });
+                }, { transaction: t });
 
                 await t.commit(); // Confirmar la transacción
 
-                return {transacciones: transacciones.map(t => t.toJSON()), MontoComprometido: ahorro.MontoComprometido}; // Retorna un array de objetos JSON
+                return { transacciones: transacciones.map(t => t.toJSON()), MontoComprometido: ahorro.MontoComprometido }; // Retorna un array de objetos JSON
             } else {
                 return []
             }
@@ -297,13 +351,13 @@ const savingsAPI = (ipcMain) => {
                     order: [['Fecha', 'DESC']], // Ordenar por fecha en orden descendente para obtener el último registro
                 });
 
-                console.log(ultimaTransaccionAhorro,'ultimaTransaccionAhorro');
-                
+                console.log(ultimaTransaccionAhorro, 'ultimaTransaccionAhorro');
+
 
                 // Actualizar FechaUltimaActualizacion con la fecha de la última transacción de ahorro
                 if (ultimaTransaccionAhorro) {
                     ahorro.dataValues.FechaUltimaActualizacion = ultimaTransaccionAhorro.Fecha;
-                }else{
+                } else {
                     ahorro.dataValues.FechaUltimaActualizacion = null;
                 }
 

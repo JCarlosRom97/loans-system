@@ -9,15 +9,17 @@
 <body>
     <div id="container">
         <div id="header"></div>
+        <div class="user-info">
+            <h2 id="userName">Nombre del Usuario: <span id="Nombre"></span></h2>
+            <h3 id="userAccount">Cuenta Contable: <span id="cuenta_contable_ahorro"></span></h3>
+        </div>
+        <div class="container-inputs">
+            <form id="form-monto-comprometido">
+                <input type="number" name="montoComprometido" class="montoComprometido" id="montoComprometido" placeholder="Monto Comprometido" required>
+                <button type="submit" class="montoComprometidoButton">Guardar</button>
+            </form>
+        </div>
         <form id="formSavings">
-            <div class="user-info">
-                <h2 id="userName">Nombre del Usuario: <span id="Nombre"></span></h2>
-                <h3 id="userAccount">Cuenta Contable: <span id="cuenta_contable_ahorro"></span></h3>
-            </div>
-            <div class="container-inputs">
-             <!--    <input type="number" name="montoComprometido" class="montoComprometido" id="montoComprometido" placeholder="Monto Comprometido" required>
-                <button type="submit" class="montoComprometidoButton">Guardar</button> -->
-            </div>
             <div class="container-inputs">
                 <div>
                     <input type="checkbox" id="intereses-anuales-check">
